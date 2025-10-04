@@ -1,0 +1,311 @@
+# Tasks Documentation
+
+This file documents repetitive tasks and workflows for future reference. Tasks are organized by category and include step-by-step instructions.
+
+---
+
+## Add New AI Model Support
+
+**Last performed:** 2025-10-04
+**Files to modify:**
+- `src/vs/workbench/contrib/void/common/modelCapabilities.ts` - Add model configuration
+- `src/vs/workbench/contrib/void/common/voidSettingsTypes.ts` - Update type definitions if needed
+- `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/ModelDropdown.tsx` - Ensure UI supports new model
+
+**Steps:**
+1. Open `modelCapabilities.ts` and add model to provider's model list
+2. Configure model capabilities:
+   ```typescript
+   'new-model-name': {
+     maxTokens: 128000,
+     supportsAutocomplete: true,
+     supportsChat: true,
+     supportsTools: true,
+     // ... other capabilities
+   }
+   ```
+3. Test with actual API calls before committing
+4. Update any provider-specific configuration if needed
+5. Build React components: `npm run buildreact`
+
+**Important notes:**
+- Always check provider's official documentation for exact capabilities
+- Ensure proper token limits to avoid API errors
+- Test both chat and autocomplete if both supported
+- Verify backward compatibility with existing configurations
+
+---
+
+## Add New AI Provider
+
+**Last performed:** 2025-10-04
+**Files to modify:**
+- `src/vs/workbench/contrib/void/common/voidSettingsTypes.ts` - Add provider types
+- `src/vs/workbench/contrib/void/common/modelCapabilities.ts` - Add provider models
+- `src/vs/workbench/contrib/void/browser/voidSettingsService.ts` - Add provider logic
+- `src/vs/workbench/contrib/void/electron-main/sendLLMMessageService.ts` - Add API integration
+- `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/Settings.tsx` - Add provider UI
+
+**Steps:**
+1. Add provider name to type definitions:
+   ```typescript
+   export type ProviderName = 'openai' | 'anthropic' | 'newprovider' | ...;
+   ```
+2. Add provider to modelCapabilities with at least one model
+3. Implement API key settings and validation
+4. Add API call logic in sendLLMMessageService
+5. Create provider configuration UI
+6. Test authentication and message flow
+7. Add provider to any relevant autodetection logic
+
+**Important notes:**
+- Check if provider-specific SDK is needed, add to package.json if yes
+- Implement proper error handling for API failures
+- Test rate limiting and quota handling
+- Ensure retry logic works with provider's error codes
+- Always use HTTPS connections for security
+
+---
+
+## Create New Void Feature
+
+**Last performed:** 2025-10-04
+**Workflow: Use `/specify` command system**
+
+**Steps:**
+1. **Specification Phase:**
+   - Run `/specify` with feature description
+   - Review generated specification in `specs/` directory
+   - Approve or refine specification as needed
+
+2. **Planning Phase:**
+   - Run `/plan` to create implementation plan
+   - Review plan for completeness and feasibility
+   - Adjust if requirements have changed
+
+3. **Implementation Phase:**
+   - Run `/tasks` to generate actionable tasks
+   - Run `/implement` to execute all tasks
+   - Test implementation thoroughly
+
+4. **Documentation Phase:**
+   - Update memory bank if significant changes
+   - Commit changes with descriptive messages
+   - Update any relevant documentation
+
+**Important notes:**
+- Always start with `/specify` for new features
+- Review specification before proceeding to implementation
+- Test in both development and production builds
+- Update memory bank for architectural changes
+
+---
+
+## Performance Optimization
+
+**Last performed:** 2025-10-04
+**Common areas to optimize:**
+- Large file Apply operations (>1000 lines)
+- Memory usage in long-running sessions
+- React component rendering performance
+- AI response streaming performance
+
+**Steps:**
+1. **Profile memory usage:**
+   - Open DevTools in Void (`F12`)
+   - Monitor memory tab during usage
+   - Identify memory leaks or excessive allocation
+
+2. **Optimize large file operations:**
+   - Check streaming Apply for large files
+   - Verify DiffZone computation efficiency
+   - Test with progressively larger files
+
+3. **React performance:**
+   - Use React DevTools Profiler
+   - Check for unnecessary re-renders
+   - Optimize component memoization
+
+4. **AI streaming:**
+   - Monitor response parsing performance
+   - Check UI update frequency
+   - Optimize chunk processing
+
+**Important notes:**
+- Always benchmark before and after optimization
+- Test with realistic data sizes
+- Don't optimize prematurely
+- Document performance improvements
+
+---
+
+## Debug Common Issues
+
+### Chat Issues
+**Problem:** Chat not responding or showing errors
+**Files to check:**
+- `src/vs/workbench/contrib/void/browser/sidebar-tsx/SidebarChat.tsx`
+- `src/vs/workbench/contrib/void/electron-main/sendLLMMessageService.ts`
+
+**Debug Steps:**
+1. Check browser console for errors
+2. Verify API key configuration in settings
+3. Test API connectivity manually
+4. Check network tab for failed requests
+
+### Apply Issues
+**Problem:** Code not applying or diff errors
+**Files to check:**
+- `src/vs/workbench/contrib/void/browser/editCodeService.ts`
+- `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
+
+**Debug Steps:**
+1. Check DiffZone creation and management
+2. Verify streaming response parsing
+3. Test with simpler examples
+4. Check file permissions and locks
+
+### Settings Issues
+**Problem:** Settings not saving or loading
+**Files to check:**
+- `src/vs/workbench/contrib/void/browser/voidSettingsService.ts`
+- `src/vs/workbench/contrib/void/common/storageKeys.ts`
+
+**Debug Steps:**
+1. Check storage service integration
+2. Verify settings state management
+3. Test with different configuration values
+4. Check for service registration errors
+
+---
+
+## Reorder Settings UI Sections
+
+**Last performed:** 2025-10-04
+**Files to modify:**
+- `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/Settings.tsx` - Main settings component
+
+**Steps:**
+1. **Update the Tab type definition** (line ~26-31):
+   ```typescript
+   type Tab = 'tab1' | 'tab2' | 'tab3' | 'tab4' | 'tab5';  // Order matters for consistency
+   ```
+
+2. **Update the navigation items array** (line ~1034-1040):
+   ```typescript
+   const navItems: { tab: Tab; label: string }[] = [
+     { tab: 'tab1', label: 'Section 1' },
+     { tab: 'tab2', label: 'Section 2' },
+     // ... continue in desired order
+   ];
+   ```
+
+3. **Update the default selected section** (line ~1032):
+   ```typescript
+   useState<Tab>('tab1');  // Should match first nav item
+   ```
+
+4. **Reorder JSX section blocks** (line ~1165-1505):
+   Move the `<div className={shouldShowTab('tab') ? `` : 'hidden'}>` blocks to match navItems order
+
+5. **Clean rebuild:**
+   ```bash
+   rm -rf out/
+   npm run buildreact
+   ```
+
+**Important notes:**
+- Always clear `out/` directory - cached builds prevent UI changes from appearing
+- The order in all three places must match: Tab type, navItems array, and JSX blocks
+- Only UI order changes - no functionality affected
+- Use `npm run buildreact` for faster iteration vs full compilation
+
+**Example reordering from:**
+Old: Models → Main Providers → Feature Options → General → MCP
+New: General → Feature Options → Main Providers → Models → MCP
+
+---
+
+## Build and Deployment Tasks
+
+### React Component Build Issues
+**Problem:** React components not updating or build fails
+
+**Solutions:**
+1. Clean build: `rm -rf out/ && npm run buildreact`
+2. Check tsup configuration
+3. Verify TypeScript compilation
+4. Check for circular dependencies
+5. **CRITICAL**: Always clear `out/` directory for UI changes - compiled versions cache and prevent updates
+
+### Full Application Build
+**Commands:**
+```bash
+# Development
+npm run compile
+npm run watchd
+
+# Production
+npm run compile-build
+npm run minify-vscode
+
+# Testing
+npm run test-browser
+npm run smoketest
+```
+
+**Common Issues:**
+- Memory不足: Increase Node.js memory limit
+- TypeScript errors: Check strict mode violations
+- VSCode conflicts: Ensure clean VSCode build first
+
+---
+
+## Memory Bank Management
+
+### Update Memory Bank
+**When to update:**
+- After implementing significant features
+- When adding new providers or capabilities
+- When architectural decisions change
+- After major bug fixes or optimizations
+
+**Process:**
+1. Update `activeContext.md` with current state
+2. Update relevant sections in other files
+3. Update `progress.md` with new completed features
+4. Add new tasks to `tasks.md` if workflows discovered
+
+### Review Memory Bank
+**Frequency:** Monthly or after major changes
+**Checklist:**
+- [ ] `activeContext.md` reflects current work
+- [ ] `progress.md` shows realistic status
+- [ ] `systemPatterns.md` matches current architecture
+- [ ] `techContext.md` includes all dependencies
+- [ ] `tasks.md` covers current workflows
+
+---
+
+## Security and Privacy Tasks
+
+### Security Checklist
+**Review security before releases:**
+1. Verify HTTPS for all external communications
+2. Check for hardcoded credentials or keys
+3. Review CSP compliance for browser process
+4. Validate input sanitization and XSS prevention
+5. Test with security scanning tools
+
+### Privacy Verification
+**Ensure privacy protection:**
+1. Confirm no data retention in message flow
+2. Verify local storage only for settings
+3. Check analytics are anonymous and opt-outable
+4. Test with network monitoring for data leakage
+5. Review provider API integrations for privacy
+
+---
+
+**Last Updated:** 2025-10-04
+**Maintenance**: Review and update tasks monthly or as workflows evolve
