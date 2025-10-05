@@ -15,6 +15,7 @@
 - **Lucide React**: 0.503.0 - Icon library
 - **React Tooltip**: 5.28.1 - Tooltip components
 - **Marked**: 15.0.11 - Markdown parsing
+- **Custom Theme System**: Edlide Dark theme based on Absolute Black color scheme
 
 ### AI Provider SDKs
 - **Anthropic AI SDK**: @anthropic-ai/sdk ^0.40.0
