@@ -260,6 +260,36 @@ const handleEditFile = async (fileName: string) => {
 };
 ```
 
+### QA and Validation Patterns
+```bash
+# Independent QA validation (use specialized agent)
+<Agent task="Comprehensive QA validation">
+
+# Systematic brand consistency checks
+find src/vs/workbench/contrib/void -name "*.ts" -o -name "*.tsx" | \
+  xargs grep -n "\"[Vv]oid" | grep -v "void-" | grep -v "VoidSettings" | \
+  grep -v "IVoid" | grep -v "\.void/" | grep -v "void-editor"
+
+# File system operations consistency validation
+grep -r "\.void-editor\|\.edlide" src/vs/workbench/contrib/void/browser/extensionTransferService.ts
+
+# Cross-validation of localize2 strings
+find src/vs/workbench/contrib/void -name "*.ts" | xargs grep -n "localize2.*[Vv]oid"
+```
+
+### Critical/Issue Resolution Pattern
+```typescript
+// Critical: User-visible inconsistencies
+extensionTransferService.ts:  '.void-editor' → '.edlide' (all paths)
+
+// Major: Internal errors that could leak
+editCodeService.ts: 'Void 1' → 'Edlide Internal Error 1' (error messages)
+
+// Minor: Comment/documentation inconsistencies
+sidebarPane.ts: "used to say Void" → "used to say Edlide"
+terminalToolService.ts: "Void team" → "Edlide team"
+```
+
 ---
 
-**Note**: This architecture maintains VSCode's robust foundation while adding modern React UI and AI integration capabilities. The service-first approach ensures maintainability and extensibility.
+**Note**: This architecture maintains VSCode's robust foundation while adding modern React UI and AI integration capabilities. The service-first approach ensures maintainability and extensibility. Successfully demonstrated comprehensive QA validation process for major branding changes.

@@ -585,7 +585,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 							offsetLines = 1
 						}
 					}
-					else { throw new Error('Void 1') }
+					else { throw new Error('Edlide Internal Error 1') }
 
 					const buttonsWidget = this._instantiationService.createInstance(AcceptRejectInlineWidget, {
 						editor,
@@ -1480,7 +1480,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 			else if (from === 'ClickApply') {
 				return extractCodeFromRegular({ text: fullText, recentlyAddedTextLen })
 			}
-			throw new Error('Void 1')
+			throw new Error('Edlide Internal Error 1')
 		}
 
 		// refresh now in case onText takes a while to get 1st message
