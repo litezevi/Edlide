@@ -67,9 +67,64 @@ This file documents repetitive tasks and workflows for future reference. Tasks a
 
 ---
 
-## Create New Void Feature
+## Update UI Branding (Void → Edlide)
 
-**Last performed:** 2025-10-04
+**Last performed:** 2025-10-05
+**Level**: Critical - Major Rebranding Task
+**Scope**: Complete user interface transformation
+
+**Files to modify:**
+- `src/vs/workbench/contrib/void/browser/sidebarActions.ts` - Actions localize2 strings
+- `src/vs/workbench/contrib/void/browser/voidSettingsPane.ts` - Settings title and labels
+- `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/Settings.tsx` - UI text
+- `src/vs/workbench/contrib/void/browser/react/src/void-onboarding/VoidOnboarding.tsx` - Onboarding text
+- `src/vs/workbench/contrib/void/browser/terminalToolService.ts` - Agent names
+- `src/vs/workbench/contrib/void/browser/voidUpdateActions.ts` - Update messages
+- `src/vs/workbench/contrib/void/electron-main/llmMessage/sendLLMMessage.impl.ts` - API headers and errors
+- `src/vs/workbench/contrib/void/browser/editCodeService.ts` - Error messages and labels
+- ALL localize2/nls.localize strings with "Void" text
+
+**Steps:**
+1. **Action Commands**: Change all `localize2('voidAction', 'Void: Action')` to 'Edlide: Action'
+2. **Settings UI**: Change all `"Void's Settings"` to `"Edlide's Settings"`
+3. **Onboarding**: Change `"Welcome to Void"` to `"Welcome to Edlide"`
+4. **Agents**: Change `"Void Agent"` to `"Edlide Agent"`
+5. **Errors**: Change all `"Void Error"` to `"Edlide Error"`
+6. **Updates**: Change `"Restart Void to update"` to `"Restart Edlide to update"`
+7. **API Headers**: Change `'X-Title': 'Void'` to `'X-Title': 'Edlide'`
+8. **Endpoint Errors**: Change `"in Void if"` to `"in Edlide if"`
+9. **Metrics**: Change `"Void Update"` to `"Edlide Update"`
+10. **System Messages**: Change all system error messages to "Edlide"
+
+**Search patterns to execute:**
+```bash
+# Mass UI changes (safe - only affects user-visible strings)
+find . -name "*.ts" -o -name "*.tsx" | xargs sed -i '' 's/Void:/Edlide:/g'
+find . -name "*.ts" -o -name "*.tsx" | xargs sed -i '' 's/Void[''']*s(Settings|Error)/Edlide'\''\1/g'
+find . -name "*.ts" -o -name "*.tsx" | xargs sed -i '' 's/Void Agent/Edlide Agent/g'
+```
+
+**Critical - DO NOT CHANGE (preserves backend logic):**
+- All class names: `VoidSettingsService`, `IVoidModelService`
+- All service IDs: `VOID_...` constants
+- All interfaces: `IVoidSettingsService`, `IVoidModelService`
+- All function/variable names
+- All file directory names: `./void/` folder structure
+- Import/export statements
+
+**Important notes:**
+- This is a branding change only - ZERO functional changes
+- Backend architecture must remain exactly unchanged
+- Only user-visible strings should change
+- Test thoroughly - any missed "Void" in UI is incomplete
+- Build React components: `npm run buildreact`
+- Verify all user interactions show "Edlide" branding
+
+---
+
+## Create New Edlide Feature
+
+**Last performed:** 2025-10-05
 **Workflow: Use `/specify` command system**
 
 **Steps:**
@@ -307,5 +362,5 @@ npm run smoketest
 
 ---
 
-**Last Updated:** 2025-10-04
+**Last Updated:** 2025-10-05 (Major Edlide Rebranding Complete)
 **Maintenance**: Review and update tasks monthly or as workflows evolve

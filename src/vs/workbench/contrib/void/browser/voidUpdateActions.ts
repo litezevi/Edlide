@@ -21,7 +21,7 @@ import { IAction } from '../../../../base/common/actions.js';
 
 
 const notifyUpdate = (res: VoidCheckUpdateRespose & { message: string }, notifService: INotificationService, updateService: IUpdateService): INotificationHandle => {
-	const message = res?.message || 'This is a very old version of Void, please download the latest version! [Void Editor](https://voideditor.com/download-beta)!'
+	const message = res?.message || 'This is a very old version of Edlide, please download the latest version! [Edlide Editor](https://voideditor.com/download-beta)!'
 
 	let actions: INotificationActions | undefined
 
@@ -85,7 +85,7 @@ const notifyUpdate = (res: VoidCheckUpdateRespose & { message: string }, notifSe
 		primary.push({
 			id: 'void.updater.site',
 			enabled: true,
-			label: `Void Site`,
+			label: `Edlide Site`,
 			tooltip: '',
 			class: undefined,
 			run: () => {
@@ -127,7 +127,7 @@ const notifyUpdate = (res: VoidCheckUpdateRespose & { message: string }, notifSe
 	// })
 }
 const notifyErrChecking = (notifService: INotificationService): INotificationHandle => {
-	const message = `Void Error: There was an error checking for updates. If this persists, please get in touch or reinstall Void [here](https://voideditor.com/download-beta)!`
+	const message = `Edlide Error: There was an error checking for updates. If this persists, please get in touch or reinstall Edlide [here](https://voideditor.com/download-beta)!`
 	const notifController = notifService.notify({
 		severity: Severity.Info,
 		message: message,
@@ -147,21 +147,21 @@ const performVoidCheck = async (
 
 	const metricsTag = explicit ? 'Manual' : 'Auto'
 
-	metricsService.capture(`Void Update ${metricsTag}: Checking...`, {})
+	metricsService.capture(`Edlide Update ${metricsTag}: Checking...`, {})
 	const res = await voidUpdateService.check(explicit)
 	if (!res) {
 		const notifController = notifyErrChecking(notifService);
-		metricsService.capture(`Void Update ${metricsTag}: Error`, { res })
+		metricsService.capture(`Edlide Update ${metricsTag}: Error`, { res })
 		return notifController
 	}
 	else {
 		if (res.message) {
 			const notifController = notifyUpdate(res, notifService, updateService)
-			metricsService.capture(`Void Update ${metricsTag}: Yes`, { res })
+			metricsService.capture(`Edlide Update ${metricsTag}: Yes`, { res })
 			return notifController
 		}
 		else {
-			metricsService.capture(`Void Update ${metricsTag}: No`, { res })
+			metricsService.capture(`Edlide Update ${metricsTag}: No`, { res })
 			return null
 		}
 	}
@@ -177,7 +177,7 @@ registerAction2(class extends Action2 {
 		super({
 			f1: true,
 			id: 'void.voidCheckUpdate',
-			title: localize2('voidCheckUpdate', 'Void: Check for Updates'),
+			title: localize2('voidCheckUpdate', 'Edlide: Check for Updates'),
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {

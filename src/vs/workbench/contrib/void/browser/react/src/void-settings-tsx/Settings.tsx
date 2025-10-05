@@ -571,10 +571,10 @@ const SimpleModelSettingsDialog = ({
 
 				{/* Display model recognition status */}
 				<div className="text-sm text-void-fg-3 mb-4">
-					{type === 'default' ? `${modelName} comes packaged with Void, so you shouldn't need to change these settings.`
+					{type === 'default' ? `${modelName} comes packaged with Edlide, so you shouldn't need to change these settings.`
 						: isUnrecognizedModel
-							? `Model not recognized by Void.`
-							: `Void recognizes ${modelName} ("${recognizedModelName}").`}
+							? `Model not recognized by Edlide.`
+							: `Edlide recognizes ${modelName} ("${recognizedModelName}").`}
 				</div>
 
 
@@ -1094,7 +1094,7 @@ export const OllamaSetupInstructions = ({ sayWeAutoDetect }: { sayWeAutoDetect?:
 		>
 			<ChatMarkdownRender string={`3. Run \`ollama pull your_model\` to install a model.`} chatMessageLocation={undefined} />
 		</div>
-		{sayWeAutoDetect && <div className=' pl-6'><ChatMarkdownRender string={`Void automatically detects locally running models and enables them.`} chatMessageLocation={undefined} /></div>}
+		{sayWeAutoDetect && <div className=' pl-6'><ChatMarkdownRender string={`Edlide automatically detects locally running models and enables them.`} chatMessageLocation={undefined} /></div>}
 	</div>
 }
 
@@ -1417,7 +1417,7 @@ export const Settings = () => {
 
 					<div className='max-w-3xl'>
 
-						<h1 className='text-2xl w-full'>{`Void's Settings`}</h1>
+						<h1 className='text-2xl w-full'>{`Edlide's Settings`}</h1>
 
 						<div className='w-full h-[1px] my-2' />
 
@@ -1436,7 +1436,7 @@ export const Settings = () => {
 								<div>
 									<ErrorBoundary>
 										<h2 className='text-3xl mb-2'>One-Click Switch</h2>
-										<h4 className='text-void-fg-3 mb-4'>{`Transfer your editor settings into Void.`}</h4>
+										<h4 className='text-void-fg-3 mb-4'>{`Transfer your editor settings into Edlide.`}</h4>
 
 										<div className='flex flex-col gap-2'>
 											<OneClickSwitchButton className='w-48' fromEditor="VS Code" />
@@ -1449,7 +1449,7 @@ export const Settings = () => {
 								{/* Import/Export section */}
 								<div>
 									<h2 className='text-3xl mb-2'>Import/Export</h2>
-									<h4 className='text-void-fg-3 mb-4'>{`Transfer Void's settings and chats in and out of Void.`}</h4>
+									<h4 className='text-void-fg-3 mb-4'>{`Transfer Edlide's settings and chats in and out of Edlide.`}</h4>
 									<div className='flex flex-col gap-8'>
 										{/* Settings Subcategory */}
 										<div className='flex flex-col gap-2 max-w-48 w-full'>
@@ -1510,7 +1510,7 @@ export const Settings = () => {
 								{/* Metrics section */}
 								<div className='max-w-[600px]'>
 									<h2 className={`text-3xl mb-2`}>Metrics</h2>
-									<h4 className={`text-void-fg-3 mb-4`}>Very basic anonymous usage tracking helps us keep Void running smoothly. You may opt out below. Regardless of this setting, Void never sees your code, messages, or API keys.</h4>
+									<h4 className={`text-void-fg-3 mb-4`}>Very basic anonymous usage tracking helps us keep Edlide running smoothly. You may opt out below. Regardless of this setting, Edlide never sees your code, messages, or API keys.</h4>
 
 									<div className='my-2'>
 										{/* Disable All Metrics Switch */}
@@ -1667,7 +1667,7 @@ export const Settings = () => {
 
 										<div className='w-full'>
 											<h4 className={`text-base`}>Editor</h4>
-											<div className='text-sm text-void-fg-3 mt-1'>{`Settings that control the visibility of Void suggestions in the code editor.`}</div>
+											<div className='text-sm text-void-fg-3 mt-1'>{`Settings that control the visibility of Edlide suggestions in the code editor.`}</div>
 
 											<div className='my-2'>
 												{/* Auto Accept Switch */}
@@ -1727,7 +1727,7 @@ export const Settings = () => {
 									{/* Providers part */}
 									<div className="mb-16">
 										<h2 className={`text-3xl mb-4`}>Main Providers</h2>
-										<h3 className={`text-void-fg-3 mb-6`}>{`Void can access models from Anthropic, OpenAI, OpenRouter, and more.`}</h3>
+										<h3 className={`text-void-fg-3 mb-6`}>{`Edlide can access models from Anthropic, OpenAI, OpenRouter, and more.`}</h3>
 										<VoidProviderSettings providerNames={providerNames} />
 									</div>
 								</ErrorBoundary>
@@ -1798,7 +1798,7 @@ Use Model Context Protocol to provide Agent mode with more tools.
 
 											{/* System Message Description */}
 											<div className='text-void-fg-3 text-xs mt-2 mb-4'>
-												{`When disabled, Void will not include anything in the system message except for content you specified above.`}
+												{`When disabled, Edlide will not include anything in the system message except for content you specified above.`}
 											</div>
 										</div>
 

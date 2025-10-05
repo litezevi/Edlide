@@ -5456,3 +5456,285 @@
 [debug] [2025-10-04T10:48:22.225Z] > authorizing via signed-in user (litezevin@gmail.com)
 [debug] [2025-10-04T10:48:22.236Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
 [debug] [2025-10-04T10:48:22.238Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:00:33.837Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.838Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.838Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.839Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.839Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.859Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.859Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.859Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.860Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.860Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.861Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.861Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.861Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.861Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.861Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.862Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.862Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.862Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.862Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.862Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.863Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.863Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.863Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.863Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.863Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.863Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.863Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.863Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.863Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.863Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.873Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.873Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.873Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.874Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.874Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.874Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.874Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.874Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.874Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.874Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.875Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.875Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.875Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.875Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.875Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.876Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.876Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.876Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.876Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.876Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.876Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.876Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.876Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.876Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.876Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:33.877Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.877Z] Checked if tokens are valid: false, expires at: 1759576889753
+[debug] [2025-10-05T00:00:33.877Z] > refreshing access token with scopes: []
+[debug] [2025-10-05T00:00:33.877Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-05T00:00:33.877Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.156Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.156Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.176Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.176Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.181Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.181Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.193Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.193Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.196Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.196Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.208Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:00:34.208Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.210Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.210Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.220Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.220Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.222Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.222Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.232Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.232Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.233Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.233Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.243Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.243Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.245Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.245Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.255Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:00:34.255Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.255Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.255Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.266Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.266Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.268Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.268Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.280Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:00:34.280Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.284Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.285Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.294Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.294Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.296Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.296Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.306Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:00:34.306Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:34.308Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-05T00:00:34.308Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-05T00:00:34.320Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:00:34.320Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:00:35.402Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:00:35.402Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:00:35.404Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:00:35.405Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:00:35.445Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:00:35.445Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:35.453Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:00:35.453Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:35.462Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:00:35.462Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:35.469Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:00:35.469Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:35.681Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:00:35.681Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:00:36.351Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:00:36.352Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:36.352Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:00:36.352Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:36.522Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:00:36.522Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:36.523Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:00:36.523Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:00:36.831Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:00:36.832Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:00:36.836Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-05T00:00:36.836Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2025-10-05T00:05:47.219Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.221Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.222Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.222Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.222Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.222Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.222Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.223Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:05:47.223Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.245Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.245Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.246Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.246Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.246Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.246Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.247Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.247Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.247Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:05:47.247Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.257Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.258Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.258Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.258Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.258Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:05:47.258Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:05:47.258Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.258Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.258Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.259Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.259Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.259Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.259Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.260Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:05:47.260Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:47.260Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:05:47.261Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:05:48.271Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:05:48.272Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:05:48.313Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:05:48.314Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:05:48.377Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:05:48.378Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.384Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:05:48.384Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.385Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:05:48.385Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.386Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:05:48.386Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.386Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:05:48.386Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.387Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:05:48.387Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.394Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:05:48.394Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.437Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:05:48.437Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:05:48.641Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:05:48.641Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:05:48.644Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-05T00:05:48.645Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2025-10-05T00:05:48.721Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:05:48.721Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:29:42.647Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.649Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.649Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.649Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.649Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.649Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.650Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.651Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:29:42.651Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.677Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.677Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.679Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.679Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.680Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.680Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.681Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.681Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.681Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:29:42.681Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.694Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.695Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.695Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.695Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.695Z] Checked if tokens are valid: true, expires at: 1759626033308
+[debug] [2025-10-05T00:29:42.695Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [none]
+[debug] [2025-10-05T00:29:42.695Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.696Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.696Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.696Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.696Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.697Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.697Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.697Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-10-05T00:29:42.697Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:42.698Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2025-10-05T00:29:42.698Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2025-10-05T00:29:43.748Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:29:43.748Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:29:43.768Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2025-10-05T00:29:43.768Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2025-10-05T00:29:43.853Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:29:43.853Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.883Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:29:43.883Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.901Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2025-10-05T00:29:43.901Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.902Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-10-05T00:29:43.902Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.922Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:29:43.922Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.923Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com 200
+[debug] [2025-10-05T00:29:43.923Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasecrashlytics.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.924Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:29:43.924Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:43.925Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2025-10-05T00:29:43.925Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2025-10-05T00:29:44.200Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:29:44.200Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:29:44.200Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ 200
+[debug] [2025-10-05T00:29:44.200Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/ [omitted]
+[debug] [2025-10-05T00:29:44.204Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-05T00:29:44.205Z] > authorizing via signed-in user (litezevin@gmail.com)

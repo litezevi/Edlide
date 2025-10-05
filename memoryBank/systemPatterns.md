@@ -29,20 +29,20 @@
 
 ## Source Code Paths
 
-### Core Void Implementation
+### Core Edlide Implementation (with Void backend infrastructure)
 ```
 src/vs/workbench/contrib/void/
 ├── browser/                    # Browser process code
 │   ├── react/                 # React UI components
 │   │   ├── src/               # React source files
 │   │   │   ├── sidebar-tsx/   # Chat interface
-│   │   │   ├── void-settings-tsx/  # Settings UI
+│   │   │   ├── void-settings-tsx/  # Settings UI (shows "Edlide's Settings")
 │   │   │   └── util/          # React utilities
 │   │   ├── build.js           # React build script
 │   │   └── tailwind.config.js # Tailwind configuration
-│   ├── editCodeService.ts     # Core Apply functionality
+│   ├── editCodeService.ts     # Core Apply functionality (errors: "Edlide Error")
 │   ├── chatThreadService.ts   # Chat management
-│   ├── voidSettingsService.ts # Settings persistence
+│   ├── voidSettingsService.ts # Settings persistence (backend: Void, UI: Edlide)
 │   └── [30+ other services]   # Core void services
 ├── common/                     # Shared code
 │   ├── voidSettingsTypes.ts   # Type definitions
