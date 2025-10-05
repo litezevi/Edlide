@@ -203,7 +203,7 @@ const ProjectRuleItem = ({ fileName, onEdit, onDelete, onRename }: {
 				<VoidSimpleInputBox
 					value={newName}
 					onChangeValue={setNewName}
-					placeholder={fileName.replace('.voidrules', '')}
+					placeholder={fileName.replace('.edliderules', '')}
 					compact={true}
 					className='flex-1'
 				/>
@@ -235,7 +235,7 @@ const ProjectRuleItem = ({ fileName, onEdit, onDelete, onRename }: {
 
 	return (
 		<div className='flex items-center justify-between gap-4 py-2 px-3 rounded-sm hover:bg-black/10 dark:hover:bg-gray-300/10'>
-			<span className='text-void-fg-1'>{fileName.replace('.voidrules', '')}</span>
+			<span className='text-void-fg-1'>{fileName.replace('.edliderules', '')}</span>
 			<div className="flex items-center gap-1">
 				<button
 					onClick={onEdit}
@@ -265,20 +265,20 @@ const ProjectRulesSection = () => {
 	const [isCreatingNew, setIsCreatingNew] = useState(false);
 	const [newFileName, setNewFileName] = useState('');
 
-	// Load .voidrules files
+	// Load .edliderules files
 	const loadVoidRulesFiles = useCallback(async () => {
 		try {
 			const workspaceFolders = workspaceContextService.getWorkspace().folders;
 			const files: string[] = [];
 
 			for (const folder of workspaceFolders) {
-				const voidRulesFolderUri = URI.joinPath(folder.uri, '.voidrules');
+				const voidRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
 
 				try {
 					const folderStat = await fileService.resolve(voidRulesFolderUri);
 					if (folderStat.isDirectory) {
 						const voidRulesFiles = (folderStat.children || [])
-							.filter(child => child.name.endsWith('.voidrules') && child.isFile)
+							.filter(child => child.name.endsWith('.edliderules') && child.isFile)
 							.sort((a, b) => a.name.localeCompare(b.name))
 							.map(child => child.name);
 
@@ -291,7 +291,7 @@ const ProjectRulesSection = () => {
 
 			setVoidRulesFiles(files);
 		} catch (e) {
-			console.error('Failed to load .voidrules files:', e);
+			console.error('Failed to load .edliderules files:', e);
 		}
 	}, [fileService, voidModelService, workspaceContextService]);
 
@@ -313,7 +313,7 @@ const ProjectRulesSection = () => {
 		try {
 			const workspaceFolders = workspaceContextService.getWorkspace().folders;
 			for (const folder of workspaceFolders) {
-				const fileUri = URI.joinPath(folder.uri, '.voidrules', fileName);
+				const fileUri = URI.joinPath(folder.uri, '.edliderules', fileName);
 				const commandService = accessor.get('ICommandService');
 				await commandService.executeCommand('_workbench.open', fileUri, [
 					undefined,       // No column specified (use current column)
@@ -331,7 +331,7 @@ const ProjectRulesSection = () => {
 		try {
 			const workspaceFolders = workspaceContextService.getWorkspace().folders;
 			for (const folder of workspaceFolders) {
-				const fileUri = URI.joinPath(folder.uri, '.voidrules', fileName);
+				const fileUri = URI.joinPath(folder.uri, '.edliderules', fileName);
 				await fileService.del(fileUri);
 				break;
 			}
@@ -350,11 +350,11 @@ const ProjectRulesSection = () => {
 			if (workspaceFolders.length === 0) return;
 
 			const folder = workspaceFolders[0];
-			const voidRulesFolderUri = URI.joinPath(folder.uri, '.voidrules');
-			const fileName = newFileName.endsWith('.voidrules') ? newFileName : `${newFileName}.voidrules`;
+			const voidRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
+			const fileName = newFileName.endsWith('.edliderules') ? newFileName : `${newFileName}.edliderules`;
 			const fileUri = URI.joinPath(voidRulesFolderUri, fileName);
 
-			// Ensure .voidrules directory exists
+			// Ensure .edliderules directory exists
 			try {
 				await fileService.createFolder(voidRulesFolderUri);
 			} catch (e) {
@@ -441,7 +441,7 @@ const ProjectRulesSection = () => {
 
 			{voidRulesFiles.length === 0 && !isCreatingNew && (
 				<div className='text-void-fg-3 text-sm py-2 px-3 mb-4'>
-					No .voidrules files were found. To create a project rule manually, make a .voidrules folder and add a example.voidrules file inside.
+					No .edliderules files were found. To create a project rule manually, make a .edliderules folder and add a example.edliderules file inside.
 				</div>
 			)}
 		</div>

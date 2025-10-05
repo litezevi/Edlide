@@ -151,14 +151,14 @@ Sidebar.tsx (main container)
 └── Settings.tsx (settings interface)
     ├── ModelDropdown.tsx
     ├── WarningBox.tsx
-    ├── ProjectRuleItem.tsx (NEW - individual .voidrules file management)
-    ├── ProjectRulesSection.tsx (NEW - complete .voidrules folder management)
+    ├── ProjectRuleItem.tsx (NEW - individual .edliderules file management)
+    ├── ProjectRulesSection.tsx (NEW - complete .edliderules folder management)
     └── Current Settings Structure:
         ├── Models (model management and auto-detection)
         ├── Main Providers (unified provider management for all providers)
         ├── Feature Options (autocomplete, apply, tools, editor, SCM)
         ├── General (import/export, built-in IDE settings, metrics, AI instructions)
-        ├── Rules (AI instructions + Project Rules management for .voidrules files)
+        ├── Rules (AI instructions + Project Rules management for .edliderules files)
         └── MCP (Model Context Protocol servers)
 ```
 
@@ -226,18 +226,18 @@ const loadVoidRulesFiles = useCallback(async () => {
   try {
     const workspaceFolders = workspaceContextService.getWorkspace().folders;
     for (const folder of workspaceFolders) {
-      const voidRulesFolderUri = URI.joinPath(folder.uri, '.voidrules');
+      const voidRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
       const folderStat = await fileService.resolve(voidRulesFolderUri);
       if (folderStat.isDirectory) {
         const voidRulesFiles = (folderStat.children || [])
-          .filter(child => child.name.endsWith('.voidrules') && child.isFile)
+          .filter(child => child.name.endsWith('.edliderules') && child.isFile)
           .sort((a, b) => a.name.localeCompare(b.name));
         // Process files...
       }
     }
   } catch (e) {
     // Handle folder doesn't exist gracefully
-    console.error('Failed to load .voidrules files:', e);
+    console.error('Failed to load .edliderules files:', e);
   }
 }, [fileService, workspaceContextService]);
 
@@ -251,7 +251,7 @@ useEffect(() => {
 // VSCode command integration for file editing
 const handleEditFile = async (fileName: string) => {
   try {
-    const fileUri = URI.joinPath(folder.uri, '.voidrules', fileName);
+    const fileUri = URI.joinPath(folder.uri, '.edliderules', fileName);
     const commandService = accessor.get('ICommandService');
     await commandService.executeCommand('vscode.open', fileUri);
   } catch (e) {

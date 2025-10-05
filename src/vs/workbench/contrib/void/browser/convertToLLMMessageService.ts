@@ -272,7 +272,7 @@ const prepareOpenAIOrAnthropicMessages = ({
 	// A COMPLETE HACK: last message is system message for context purposes
 
 	const sysMsgParts: string[] = []
-	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the user's .voidrules file):\n${aiInstructions}`)
+	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the user's .edliderules file):\n${aiInstructions}`)
 	if (systemMessage) sysMsgParts.push(systemMessage)
 	const combinedSystemMessage = sysMsgParts.join('\n\n')
 
@@ -547,67 +547,67 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		super()
 	}
 
-	// Read .voidrules files from workspace folders
+	// Read .edliderules files from workspace folders
 	private async _getVoidRulesFileContents(): Promise<string> {
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
-			let voidRules = '';
+			let edlideRules = '';
 
 			for (const folder of workspaceFolders) {
-				// Сначала проверяем папку .voidrules
-				const voidRulesFolderUri = URI.joinPath(folder.uri, '.voidrules');
+				// Сначала проверяем папку .edliderules
+				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
 
 				try {
-					// Проверяем существует ли папка .voidrules
-					const folderStat = await this.fileService.resolve(voidRulesFolderUri);
+					// Проверяем существует ли папка .edliderules
+					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
 					if (folderStat.isDirectory) {
-						// Получаем отсортированный список файлов .voidrules
-						const voidRulesFiles = (folderStat.children || [])
-							.filter(child => child.name.endsWith('.voidrules') && child.isFile)
+						// Получаем отсортированный список файлов .edliderules
+						const edlideRulesFiles = (folderStat.children || [])
+							.filter(child => child.name.endsWith('.edliderules') && child.isFile)
 							.sort((a, b) => a.name.localeCompare(b.name)); // Алфавитный порядок
 
-						// Читаем все .voidrules файлы из папки
-						for (const fileStat of voidRulesFiles) {
+						// Читаем все .edliderules файлы из папки
+						for (const fileStat of edlideRulesFiles) {
 							const { model } = this.voidModelService.getModel(fileStat.resource);
 							if (model) {
 								const content = model.getValue(EndOfLinePreference.LF).trim();
 								if (content) {
-									voidRules += `# ${fileStat.name}\n${content}\n\n`;
+									edlideRules += `# ${fileStat.name}\n${content}\n\n`;
 								}
 							}
 						}
 						continue; // Переходим к следующей папке workspace
 					}
 				} catch (e) {
-					// Папка .voidrules не существует, проверяем файл в корне
+					// Папка .edliderules не существует, проверяем файл в корне
 				}
 
-				// Обратная совместимость - ищем .voidrules файл в корне
-				const rootFileUri = URI.joinPath(folder.uri, '.voidrules');
+				// Обратная совместимость - ищем .edliderules файл в корне
+				const rootFileUri = URI.joinPath(folder.uri, '.edliderules');
 				const { model } = this.voidModelService.getModel(rootFileUri);
 				if (model) {
 					const content = model.getValue(EndOfLinePreference.LF).trim();
 					if (content) {
-						voidRules += content + '\n\n';
+						edlideRules += content + '\n\n';
 					}
 				}
 			}
 
-			return voidRules.trim();
+			return edlideRules.trim();
 		}
 		catch (e) {
 			return ''
 		}
 	}
 
-	// Get combined AI instructions from settings and .voidrules files
+	// Get combined AI instructions from settings and .edliderules files
 	private async _getCombinedAIInstructions(): Promise<string> {
 		const globalAIInstructions = this.voidSettingsService.state.globalSettings.aiInstructions;
-		const voidRulesFileContent = await this._getVoidRulesFileContents();
+		const edlideRulesFileContent = await this._getVoidRulesFileContents();
 
 		const ans: string[] = []
 		if (globalAIInstructions) ans.push(globalAIInstructions)
-		if (voidRulesFileContent) ans.push(voidRulesFileContent)
+		if (edlideRulesFileContent) ans.push(edlideRulesFileContent)
 		return ans.join('\n\n')
 	}
 

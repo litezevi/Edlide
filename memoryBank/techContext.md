@@ -207,7 +207,7 @@ export default {
 ### Runtime Performance
 - **AI Response Time**: Direct provider connections minimize latency
 - **UI Responsiveness**: Non-blocking AI operations
-- **File Operations**: Async file I/O throughout with .voidrules folder management and real-time polling
+- **File Operations**: Async file I/O throughout with .edliderules folder management and real-time polling
 - **Network**: Request timeout and retry mechanisms
 
 ---

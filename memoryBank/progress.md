@@ -218,12 +218,12 @@
 - **SYSTEM ERROR HANDLING**: All error messages rebranded while maintaining system architecture
 
 **Previous Sessions Completed Features:**
-- **NEW: Project Rules Section**: Complete UI for managing .voidrules files in Settings
-- **File Management**: Edit/delete/create .voidrules files directly from interface
+- **NEW: Project Rules Section**: Complete UI for managing .edliderules files in Settings
+- **File Management**: Edit/delete/create .edliderules files directly from interface
 - **VSCode Integration**: Seamless file editing via VSCode command system
 - **File Watcher**: Auto-updating file list with real-time polling
 - **Inline Rename**: Immediate rename interface for new files with templates
-- Enhanced .voidrules support with multi-file folder system integration
+- Enhanced .edliderules support with multi-file folder system integration
 - Consolidated all providers into unified "Main Providers" section
 - Updated settings structure: General, Feature Options, Models, MCP, Rules
 - Cleaned up TypeScript imports and resolved warnings
