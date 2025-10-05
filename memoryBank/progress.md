@@ -51,6 +51,13 @@
 - **Internal Error Fixes**: Debug errors `'Void 1'` → `'Edlide Internal Error 1'` (2 instances)
 - **Backend Preservation**: Maintained all internal "Void" classes, interfaces, and system logic
 
+**🔧 PROVIDER INTERFACE CLEANUP (2025-10-05):**
+- **Microsoft Azure OpenAI Removal**: Removed from Add Model dropdown and Main Providers section
+- **AWS Bedrock Removal**: Removed from Add Model dropdown and Main Providers section
+- **Settings.tsx Updates**: Modified provider filtering arrays (lines 647, 1007)
+- **User Experience**: Streamlined provider options while maintaining backend compatibility
+- **Provider Exclusion Pattern**: Established consistent provider filtering approach
+
 **🔍 FINAL QA VALIDATION ACHIEVED (2025-10-05):**
 - **Independent QA Assessment**: Discovered critical gaps at 94% completion
 - **Critical Issues Resolution**: 無critical extension path inconsistency resolved

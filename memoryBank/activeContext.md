@@ -6,6 +6,13 @@
 **Branch**: `main`
 **Primary Feature**: Complete UI Rebranding from "Void" to "Edlide" - **FULLY COMPLETED & QA VALIDATED**
 
+### Latest Changes (2025-10-05 - Provider Interface Cleanup)
+- **Provider Interface Cleanup**: Removed Microsoft Azure OpenAI and AWS Bedrock from user interface
+- **Models Section Cleanup**: Updated "Add Model" dropdown to exclude microsoftAzure and awsBedrock providers
+- **Main Providers Section Cleanup**: Removed Microsoft Azure OpenAI and AWS Bedrock from Main Providers display
+- **Settings.tsx Updates**: Modified providersToExclude arrays in two locations (lines 647 and 1007)
+- **User Experience Simplification**: Streamlined provider options while maintaining backend compatibility
+
 ### Recent Completed Work
 
 **🚀 MAJOR COMPLETED WORK - COMPLETE EDLIDE REBRANDING:**

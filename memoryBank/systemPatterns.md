@@ -154,8 +154,8 @@ Sidebar.tsx (main container)
     ├── ProjectRuleItem.tsx (NEW - individual .edliderules file management)
     ├── ProjectRulesSection.tsx (NEW - complete .edliderules folder management)
     └── Current Settings Structure:
-        ├── Models (model management and auto-detection)
-        ├── Main Providers (unified provider management for all providers)
+        ├── Models (model management and auto-detection, with filtered provider dropdown)
+        ├── Main Providers (filtered provider management - excludes microsoftAzure, awsBedrock)
         ├── Feature Options (autocomplete, apply, tools, editor, SCM)
         ├── General (import/export, built-in IDE settings, metrics, AI instructions)
         ├── Rules (AI instructions + Project Rules management for .edliderules files)
@@ -288,6 +288,20 @@ editCodeService.ts: 'Void 1' → 'Edlide Internal Error 1' (error messages)
 // Minor: Comment/documentation inconsistencies
 sidebarPane.ts: "used to say Void" → "used to say Edlide"
 terminalToolService.ts: "Void team" → "Edlide team"
+
+### Provider Filtering Pattern
+```typescript
+// Settings.tsx ModelDump component (line 647) - Add Model dropdown
+const providersToExclude: ProviderName[] = [
+  'deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral',
+  'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock'
+];
+
+// Settings.tsx VoidProviderSettings component (line 1007) - Main Providers section
+const providersToExclude: ProviderName[] = [
+  'deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral',
+  'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock'
+];
 ```
 
 ---

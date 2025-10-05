@@ -644,7 +644,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	const modelDump: (VoidStatefulModelInfo & { providerName: ProviderName, providerEnabled: boolean })[] = []
 
 	// Providers to exclude from add model dropdown
-	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex']
+	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
 
 	// Filter out excluded providers for the dropdown
 	const allProviders = filteredProviders || providerNames;
@@ -1004,7 +1004,7 @@ export const SettingsForProvider = ({ providerName, showProviderTitle, showProvi
 
 export const VoidProviderSettings = ({ providerNames }: { providerNames: ProviderName[] }) => {
 	// Providers to completely exclude from Main Providers (headings and settings)
-	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex']
+	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
 
 	// Filter out excluded providers
 	const visibleProviders = providerNames.filter(providerName => !providersToExclude.includes(providerName))
@@ -1530,7 +1530,7 @@ export const Settings = () => {
 									</div>
 								</div>
 
-								
+
 							</div>
 
 							{/* Actions section */}
@@ -1714,7 +1714,7 @@ export const Settings = () => {
 								</ErrorBoundary>
 							</div>
 
-							
+
 							{/* Models section (formerly FeaturesTab) */}
 							<div className={shouldShowTab('models') ? `` : 'hidden'}>
 								<ErrorBoundary>
@@ -1727,7 +1727,7 @@ export const Settings = () => {
 									{/* Providers part */}
 									<div className="mb-16">
 										<h2 className={`text-3xl mb-4`}>Main Providers</h2>
-										<h3 className={`text-void-fg-3 mb-6`}>{`Edlide can access models from Anthropic, OpenAI, OpenRouter, and more.`}</h3>
+										<h3 className={`text-void-fg-3 mb-6`}>{`Edlide can access models from Anthropic, OpenAI, Gemini, Groq`}</h3>
 										<VoidProviderSettings providerNames={providerNames} />
 									</div>
 								</ErrorBoundary>

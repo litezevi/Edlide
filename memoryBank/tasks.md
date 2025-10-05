@@ -195,6 +195,66 @@ QA Results:
 
 ---
 
+## Remove Provider from UI Interface
+
+**Last performed:** 2025-10-05
+**Purpose:** Clean up provider interface by removing specific providers from user-facing elements while maintaining backend compatibility
+
+**When to use:**
+- When simplifying provider options for better user experience
+- When removing deprecated or unsupported providers
+- When consolidating similar provider options
+
+**Files to modify:**
+- `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/Settings.tsx` - Provider filtering arrays
+
+**Steps:**
+1. **Identify target providers:**
+   - Determine which providers to remove from UI
+   - Verify backend code should remain intact
+
+2. **Update Add Model dropdown filtering (line ~647):**
+   ```typescript
+   const providersToExclude: ProviderName[] = [
+     'existingExclusions', 'newProvider1', 'newProvider2'
+   ];
+   ```
+
+3. **Update Main Providers section filtering (line ~1007):**
+   ```typescript
+   const providersToExclude: ProviderName[] = [
+     'existingExclusions', 'newProvider1', 'newProvider2'
+   ];
+   ```
+
+4. **Test changes:**
+   - Verify providers no longer appear in "Add Model" dropdown
+   - Confirm providers are hidden from "Main Providers" section
+   - Ensure existing configurations remain functional
+
+5. **Build React components:**
+   ```bash
+   npm run buildreact
+   ```
+
+**Important notes:**
+- Only affects UI display - backend functionality preserved
+- Existing user configurations with these providers continue to work
+- This is a UX improvement, not a functional removal
+- Always use consistent ProviderName values from type definitions
+- Test thoroughly to ensure no broken references
+
+**Example exclusion pattern:**
+```typescript
+// Remove Microsoft Azure OpenAI and AWS Bedrock from UI
+const providersToExclude: ProviderName[] = [
+  'deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral',
+  'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock'
+];
+```
+
+---
+
 ## Create New Edlide Feature
 
 **Last performed:** 2025-10-05
@@ -435,5 +495,5 @@ npm run smoketest
 
 ---
 
-**Last Updated:** 2025-10-05 (Major Edlide Rebranding Complete)
+**Last Updated:** 2025-10-05 (Provider Interface Cleanup + Major Edlide Rebranding Complete)
 **Maintenance**: Review and update tasks monthly or as workflows evolve
