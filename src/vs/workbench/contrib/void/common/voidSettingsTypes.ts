@@ -106,6 +106,9 @@ export const displayInfoOfProviderName = (providerName: ProviderName): DisplayIn
 	else if (providerName === 'awsBedrock') {
 		return { title: 'AWS Bedrock', }
 	}
+	else if (providerName === 'edlide') {
+		return { title: 'Edlide', }
+	}
 
 	throw new Error(`descOfProviderName: Unknown provider name: "${providerName}"`)
 }
@@ -124,6 +127,7 @@ export const subTextMdOfProviderName = (providerName: ProviderName): string => {
 	if (providerName === 'googleVertex') return 'You must authenticate before using Vertex with Void. Read more about endpoints [here](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/call-vertex-using-openai-library), and regions [here](https://cloud.google.com/vertex-ai/docs/general/locations#available-regions).'
 	if (providerName === 'microsoftAzure') return 'Read more about endpoints [here](https://learn.microsoft.com/en-us/rest/api/aifoundry/model-inference/get-chat-completions/get-chat-completions?view=rest-aifoundry-model-inference-2024-05-01-preview&tabs=HTTP), and get your API key [here](https://learn.microsoft.com/en-us/azure/search/search-security-api-keys?tabs=rest-use%2Cportal-find%2Cportal-query#find-existing-keys).'
 	if (providerName === 'awsBedrock') return 'Connect via a LiteLLM proxy or the AWS [Bedrock-Access-Gateway](https://github.com/aws-samples/bedrock-access-gateway). LiteLLM Bedrock setup docs are [here](https://docs.litellm.ai/docs/providers/bedrock).'
+	if (providerName === 'edlide') return 'Built-in Edlide provider with pre-configured models.'
 	if (providerName === 'ollama') return ''
 	if (providerName === 'vLLM') return ''
 	if (providerName === 'lmStudio') return ''
@@ -350,7 +354,13 @@ export const defaultSettingsOfProvider: SettingsOfProvider = {
 		...defaultCustomSettings,
 		...defaultProviderSettings.awsBedrock,
 		...modelInfoOfDefaultModelNames(defaultModelsOfProvider.awsBedrock),
-		_didFillInProviderSettings: undefined,
+		_didFillInProviderSettings: true, // Edlide is always configured
+	},
+	edlide: { // built-in Edlide provider
+		...defaultCustomSettings,
+		...defaultProviderSettings.edlide,
+		...modelInfoOfDefaultModelNames(defaultModelsOfProvider.edlide),
+		_didFillInProviderSettings: true, // Edlide is always configured
 	},
 }
 

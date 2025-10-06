@@ -10,6 +10,9 @@ import { FeatureName, ModelSelectionOptions, OverridesOfModel, ProviderName } fr
 
 
 export const defaultProviderSettings = {
+	edlide: {
+		apiKey: 'cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5',
+	},
 	anthropic: {
 		apiKey: '',
 	},
@@ -72,6 +75,12 @@ export const defaultProviderSettings = {
 
 
 export const defaultModelsOfProvider = {
+	edlide: [
+		'zai-org/GLM-4.6-turbo',
+		'deepseek-ai/DeepSeek-V3.2-Exp',
+		'deepseek-ai/DeepSeek-V3.1-Terminus',
+		'moonshotai/Kimi-K2-Instruct-0905'
+	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
 		'gpt-4.1',
 		'gpt-4.1-mini',
@@ -1106,8 +1115,60 @@ const microsoftAzureSettings: VoidStaticProviderInfo = {
 const awsBedrockModelOptions = {
 } as const satisfies Record<string, VoidStaticModelInfo>
 
-const awsBedrockSettings: VoidStaticProviderInfo = {
+	const awsBedrockSettings: VoidStaticProviderInfo = {
 	modelOptions: awsBedrockModelOptions,
+	modelOptionsFallback: (modelName) => { return null },
+	providerReasoningIOSettings: {
+		input: { includeInPayload: openAICompatIncludeInPayloadReasoning },
+	},
+}
+
+// ---------------- EDLIDE ----------------
+const edlideModelOptions = {
+	'zai-org/GLM-4.6-turbo': {
+		contextWindow: 128_000,
+		reservedOutputTokenSpace: 8_192,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'deepseek-ai/DeepSeek-V3.2-Exp': {
+		contextWindow: 128_000,
+		reservedOutputTokenSpace: 8_192,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'deepseek-ai/DeepSeek-V3.1-Terminus': {
+		contextWindow: 128_000,
+		reservedOutputTokenSpace: 8_192,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'moonshotai/Kimi-K2-Instruct-0905': {
+		contextWindow: 128_000,
+		reservedOutputTokenSpace: 8_192,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+} as const satisfies { [s: string]: VoidStaticModelInfo }
+
+const edlideSettings: VoidStaticProviderInfo = {
+	modelOptions: edlideModelOptions,
 	modelOptionsFallback: (modelName) => { return null },
 	providerReasoningIOSettings: {
 		input: { includeInPayload: openAICompatIncludeInPayloadReasoning },
@@ -1455,6 +1516,7 @@ const modelSettingsOfProvider: { [providerName in ProviderName]: VoidStaticProvi
 	googleVertex: googleVertexSettings,
 	microsoftAzure: microsoftAzureSettings,
 	awsBedrock: awsBedrockSettings,
+	edlide: edlideSettings,
 } as const
 
 

@@ -644,11 +644,14 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	const modelDump: (VoidStatefulModelInfo & { providerName: ProviderName, providerEnabled: boolean })[] = []
 
 	// Providers to exclude from add model dropdown
-	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
+	const providersToExcludeFromAddModel: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide']
+
+	// Providers to exclude from models display (only exclude local providers that need refresh)
+	const providersToExcludeFromModels: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
 
 	// Filter out excluded providers for the dropdown
 	const allProviders = filteredProviders || providerNames;
-	const providersToShow = allProviders.filter(providerName => !providersToExclude.includes(providerName));
+	const providersToShow = allProviders.filter(providerName => !providersToExcludeFromModels.includes(providerName));
 
 	for (let providerName of providersToShow) {
 		const providerSettings = settingsState.settingsOfProvider[providerName]
@@ -784,19 +787,19 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 			<div className="mt-4">
 				<form className="flex items-center gap-2">
 
-					{/* Provider dropdown */}
-					<ErrorBoundary>
-						<VoidCustomDropdownBox
-							options={providersToShow}
-							selectedOption={userChosenProviderName}
-							onChangeOption={(pn) => setUserChosenProviderName(pn)}
-							getOptionDisplayName={(pn) => pn ? displayInfoOfProviderName(pn).title : 'Provider Name'}
-							getOptionDropdownName={(pn) => pn ? displayInfoOfProviderName(pn).title : 'Provider Name'}
-							getOptionsEqual={(a, b) => a === b}
-							className="max-w-32 mx-2 w-full resize-none bg-void-bg-1 text-void-fg-1 placeholder:text-void-fg-3 border border-void-border-2 focus:border-void-border-1 py-1 px-2 rounded"
-							arrowTouchesText={false}
-						/>
-					</ErrorBoundary>
+  {/* Provider dropdown */}
+  <ErrorBoundary>
+    <VoidCustomDropdownBox
+      options={allProviders.filter(providerName => !providersToExcludeFromAddModel.includes(providerName))}
+      selectedOption={userChosenProviderName}
+      onChangeOption={(pn) => setUserChosenProviderName(pn)}
+      getOptionDisplayName={(pn) => pn ? displayInfoOfProviderName(pn).title : 'Provider Name'}
+      getOptionDropdownName={(pn) => pn ? displayInfoOfProviderName(pn).title : 'Provider Name'}
+      getOptionsEqual={(a, b) => a === b}
+      className="max-w-32 mx-2 w-full resize-none bg-void-bg-1 text-void-fg-1 placeholder:text-void-fg-3 border border-void-border-2 focus:border-void-border-1 py-1 px-2 rounded"
+      arrowTouchesText={false}
+    />
+  </ErrorBoundary>
 
 					{/* Model name input */}
 					<ErrorBoundary>
@@ -1003,8 +1006,8 @@ export const SettingsForProvider = ({ providerName, showProviderTitle, showProvi
 
 
 export const VoidProviderSettings = ({ providerNames }: { providerNames: ProviderName[] }) => {
-	// Providers to completely exclude from Main Providers (headings and settings)
-	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
+  // Providers to completely exclude from Main Providers (headings and settings)
+  const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide']
 
 	// Filter out excluded providers
 	const visibleProviders = providerNames.filter(providerName => !providersToExclude.includes(providerName))
@@ -1724,7 +1727,7 @@ export const Settings = () => {
 										<ModelDump />
 									</div>
 
-									{/* Providers part */}
+  {/* Providers part */}
 									<div className="mb-16">
 										<h2 className={`text-3xl mb-4`}>Main Providers</h2>
 										<h3 className={`text-void-fg-3 mb-6`}>{`Edlide can access models from Anthropic, OpenAI, Gemini, Groq`}</h3>

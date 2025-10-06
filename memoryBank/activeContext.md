@@ -2,9 +2,28 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-10-05 (Updated)
+**Session Date**: 2025-10-06 (Updated)
 **Branch**: `main`
-**Primary Feature**: Complete UI Rebranding from "Void" to "Edlide" - **FULLY COMPLETED & QA VALIDATED**
+**Primary Feature**: Added Native Edlide Provider - **FULLY COMPLETED**
+
+### Latest Changes (2025-10-06 - Native Edlide Provider)
+- **Native Provider Implementation**: Successfully added Edlide as built-in provider
+- **Fixed API Configuration**: Corrected base URL to `https://llm.chutes.ai/v1/` with proper headers
+- **Model Integration**: Added 4 pre-configured Edlide models
+- **UI Integration**: Edlide appears at top of Models section, excluded from Add Model dropdown and Main Providers
+- **Hardcoded Configuration**: API key and base URL hardcoded in backend like OpenAI Compatible pattern
+- **Working Implementation**: Successfully tested - messages can be sent to Edlide models
+
+### Edlide Provider Details:
+- **Base URL**: `https://llm.chutes.ai/v1/`
+- **API Key**: `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`
+- **Models**: 
+  - `zai-org/GLM-4.6-turbo`
+  - `deepseek-ai/DeepSeek-V3.2-Exp`
+  - `deepseek-ai/DeepSeek-V3.1-Terminus`
+  - `moonshotai/Kimi-K2-Instruct-0905`
+- **UI Position**: First in Models list (above Anthropic)
+- **Settings**: No user-configurable settings (built-in provider)
 
 ### Latest Changes (2025-10-05 - Edlide Dark Default Theme)
 - **Default Theme Implementation**: Successfully created "Edlide Dark" theme based on Absolute Black color scheme

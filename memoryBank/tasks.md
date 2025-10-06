@@ -38,7 +38,7 @@ This file documents repetitive tasks and workflows for future reference. Tasks a
 
 ## Add New AI Provider
 
-**Last performed:** 2025-10-04
+**Last performed:** 2025-10-06 (Edlide Native Provider)
 **Files to modify:**
 - `src/vs/workbench/contrib/void/common/voidSettingsTypes.ts` - Add provider types
 - `src/vs/workbench/contrib/void/common/modelCapabilities.ts` - Add provider models
@@ -64,6 +64,15 @@ This file documents repetitive tasks and workflows for future reference. Tasks a
 - Test rate limiting and quota handling
 - Ensure retry logic works with provider's error codes
 - Always use HTTPS connections for security
+
+**Edlide Native Provider Implementation (2025-10-06):**
+- **Hardcoded Configuration**: API key and base URL defined in backend
+- **OpenAI Compatible**: Uses OpenAI client with custom endpoint
+- **No UI Settings**: Excluded from Main Providers and Add Model dropdown
+- **Built-in Models**: 4 pre-configured models available immediately
+- **Positioning**: First in Models list above Anthropic
+- **URL**: `https://llm.chutes.ai/v1/` (note trailing slash)
+- **Headers**: Proper Authorization Bearer token and Content-Type headers
 
 ---
 
