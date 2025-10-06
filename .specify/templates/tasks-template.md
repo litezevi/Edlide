@@ -55,32 +55,35 @@
 - [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] Service implementation in src/vs/workbench/contrib/void/common/
-- [ ] T009 [P] Browser component in src/vs/workbench/contrib/void/browser/
+- [ ] T008 [P] Service implementation in src/vs/workbench/contrib/void/common/ (Void backend, Edlide UI)
+- [ ] T009 [P] Browser component in src/vs/workbench/contrib/void/browser/ with proper Edlide branding
 - [ ] T010 [P] Main process service in src/vs/workbench/contrib/void/electron-main/
-- [ ] T011 Register service with dependency injection
-- [ ] T012 React component (if UI) in src/vs/workbench/contrib/void/browser/react/
-- [ ] T013 Service communication channel (if main/browser)
-- [ ] T014 Error handling and logging with service patterns
+- [ ] T011 Register service with dependency injection using registerSingleton pattern
+- [ ] T012 React component (if UI) in src/vs/workbench/contrib/void/browser/react/ with Tailwind CSS
+- [ ] T013 Service communication channel (if main/browser) with proper IPC
+- [ ] T014 Error handling and logging with Edlide-branded user messages
+- [ ] T015 Memory Bank documentation updates for new architectural decisions
 
 ## Phase 3.4: Integration
-- [ ] T015 Connect service to voidSettingsService
-- [ ] T016 Browser/main process channel setup
-- [ ] T017 AI service integration (if applicable)
-- [ ] T018 DiffZone integration for code changes
+- [ ] T016 Connect service to voidSettingsService
+- [ ] T017 Browser/main process channel setup
+- [ ] T018 AI service integration (if applicable)
+- [ ] T019 DiffZone integration for code changes
 
 ## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+- [ ] T020 [P] Unit tests for validation in tests/unit/test_validation.py
+- [ ] T021 Performance tests (<200ms)
+- [ ] T022 [P] Update docs/api.md
+- [ ] T023 Remove duplication
+- [ ] T024 Run manual-testing.md
+- [ ] T025 [P] Build React components with npm run buildreact
+- [ ] T026 Comprehensive QA validation for branding compliance
 
 ## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
-- T008 blocks T009, T015
-- T016 blocks T018
-- Implementation before polish (T019-T023)
+- Tests (T004-T007) before implementation (T008-T015)
+- T008 blocks T009, T016
+- T017 blocks T019
+- Implementation before polish (T020-T026)
 
 ## Parallel Example
 ```

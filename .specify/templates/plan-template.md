@@ -48,30 +48,47 @@
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 ### AI Agent Integration
-- [ ] Preserves AI functionality (chat, autocomplete, apply)
-- [ ] Maintains service communication channels
-- [ ] No disruption to LLM message pipeline
+- [ ] Preserves AI functionality (chat modes: Minimal, Ask, Agent)
+- [ ] Maintains service communication channels and MCP protocol support
+- [ ] No disruption to LLM message pipeline through sendLLMMessageService
+- [ ] Edlide's AI capabilities remain primary differentiator
 
-### Backend Service Separation
+### Backend Service Separation with Dual Brand Architecture
 - [ ] Respects browser/main process separation
 - [ ] Node modules only in electron-main services
 - [ ] Proper channel communication maintained
+- [ ] User-facing "Edlide" branding, internal "Void" architecture preserved
 
-### Service-First Architecture
+### Service-First Architecture with Memory Bank Integration
 - [ ] New functionality implemented as services first
 - [ ] Uses singleton pattern with dependency injection
 - [ ] Data flows through services, not direct component access
 - [ ] Settings managed through voidSettingsService
+- [ ] Memory Bank documentation updated for architectural decisions
 
-### React Component Integrity
-- [ ] Respects React build pipeline organization
-- [ ] Components remain self-contained
+### React Component Integrity and Modern Build System
+- [ ] Respects React build pipeline organization (tsup/esbuild)
+- [ ] Components remain self-contained with Tailwind CSS
 - [ ] Clear service boundaries maintained
+- [ ] Build requirements: npm run buildreact, clear out/ directory
 
-### DiffZone Management
+### DiffZone Management and Apply System
 - [ ] All code changes use established DiffZone system
 - [ ] editCodeService as single source of truth
-- [ ] Fast Apply performance preserved
+- [ ] Fast Apply performance preserved (sub-second for 1000+ lines)
+- [ ] Fast/Slow Apply patterns properly implemented
+
+### Brand Integrity and User Experience
+- [ ] All user-facing elements use "Edlide" branding exclusively
+- [ ] No "Void" references in UI, error messages, or commands
+- [ ] localize2 strings properly branded as "Edlide"
+- [ ] Internal Void architecture preserved for compatibility
+
+### Privacy-First Development and Local AI Support
+- [ ] Direct provider communication without intermediaries
+- [ ] Local AI providers (Ollama, LM Studio) properly supported
+- [ ] No data retention beyond local settings storage
+- [ ] HTTPS communications with proper authentication
 
 ## Project Structure
 
@@ -240,4 +257,4 @@ directories captured above]
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v2.0.0 - See `/memory/constitution.md`*

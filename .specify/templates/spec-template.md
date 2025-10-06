@@ -92,6 +92,7 @@ When creating this spec from a user prompt:
 - [ ] Focused on user value and business needs
 - [ ] Written for non-technical stakeholders
 - [ ] All mandatory sections completed
+- [ ] Edlide branding requirements considered where applicable
 
 ### Requirement Completeness
 - [ ] No [NEEDS CLARIFICATION] markers remain
