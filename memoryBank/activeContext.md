@@ -6,7 +6,23 @@
 **Branch**: `main`
 **Primary Feature**: Added Native Edlide Provider - **FULLY COMPLETED**
 
-### Latest Changes (2025-10-06 - Native Edlide Provider)
+### Latest Changes (2025-10-06 - Settings UI Cleanup)
+- **Metrics Section Hidden**: Completely removed Metrics section from user interface settings
+- **Autocomplete Section Hidden**: Completely removed Autocomplete section from Actions settings
+- **Default Settings Applied**: Metrics now opt-out by default (true instead of false)
+- **User Experience Simplification**: Removed confusing experimental features from settings
+- **Backend Compatibility**: Maintained all functionality while hiding from users
+
+### Settings Cleanup Details:
+- **Metrics Location**: Was in General section - now completely hidden with `className='hidden'`
+- **Autocomplete Location**: Was in Actions section - now completely hidden with `className='hidden'`
+- **Opt-out Default**: Changed `useIsOptedOut` default from `false` to `true` in services.tsx
+- **Autocomplete Default**: Already was `false` by default in voidSettingsTypes.ts
+- **Files Modified**: 
+  - `Settings.tsx` - Added `hidden` class to both sections
+  - `services.tsx` - Changed default opt-out value to `true`
+
+### Previous Changes (2025-10-06 - Native Edlide Provider)
 - **Native Provider Implementation**: Successfully added Edlide as built-in provider
 - **Fixed API Configuration**: Corrected base URL to `https://llm.chutes.ai/v1/` with proper headers
 - **Model Integration**: Added 4 pre-configured Edlide models
@@ -279,12 +295,15 @@ Most TypeScript warnings in Settings.tsx have been resolved:
 - ✅ **File Operations Integrity**: Maintained full file paths for all system operations while improving UI appearance
 
 ### Short Term (Next Session - NEW FOCUS AREAS)
+- **SETTINGS CLEANUP TESTING**: Verify Metrics and Autocomplete sections are completely hidden from users
+- **DEFAULT SETTINGS VALIDATION**: Confirm metrics are opt-out by default and autocomplete remains disabled
+- **UI CONSISTENCY CHECK**: Ensure settings interface is clean without hidden experimental features
 - **THEME LOGIC CRITICAL FIX**: Modify themeConfiguration.ts to force Edlide Dark as default regardless of OS color scheme
 - **THEME TESTING**: Test Edlide Dark theme appears correctly for ALL users (light/dark OS modes)
-- **BUILD VALIDATION**: Run `npm run buildreact` to ensure all theme changes compile correctly
-- **USER ACCEPTANCE TESTING**: Validate Edlide Dark default theme provides optimal user experience for everyone
+- **BUILD VALIDATION**: Run `npm run buildreact` to ensure all theme and settings changes compile correctly
+- **USER ACCEPTANCE TESTING**: Validate Edlide Dark default theme and clean settings interface provide optimal user experience
 - **REGRESSION TESTING**: Ensure no Void branding leaks in any user interactions
-- **DOCUMENTATION UPDATE**: Update user documentation to mention Edline Dark as default theme
+- **DOCUMENTATION UPDATE**: Update user documentation to mention Edline Dark as default theme and simplified settings
 - **PREPARATION FOR NEXT FEATURES**: Ready codebase for new Edlide-branded features
 
 ### Long Term Vision
