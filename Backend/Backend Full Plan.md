@@ -414,5 +414,17 @@ Shared CPU • 500 MB RAM
 - 7-day log retention
 
 
-
 - если что у меня еще есть digital ocean и там есть 100$ баланса
+
+**AI Provider**
+
+У меня провайдер chutes он будет моим главным провайдером в первое время. Chutes AI.
+
+вот их Open AI compitable: API: https://llm.chutes.ai/v1/
+
+будет только три нативным от самого IDE моделей это
+
+1. "zai-org/GLM-4.6-turbo"
+2. "deepseek-ai/DeepSeek-V3.2-Exp"
+3. "deepseek-ai/DeepSeek-V3.1-Terminus"
+4. "moonshotai/Kimi-K2-Instruct-0905"
