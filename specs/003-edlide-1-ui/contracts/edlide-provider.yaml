@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Edlide Native Provider API
+  description: OpenAI-compatible API for Edlide provider with embedded credentials
+  version: 1.0.0
+
+servers:
+  - url: https://llm.chutes.ai/v1/
+    description: Edlide API endpoint (hardcoded)
+
+paths:
+  /chat/completions:
+    post:
+      summary: Create chat completion using Edlide models
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Successful completion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+        '4xx':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '5xx':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /models:
+    get:
+      summary: List available Edlide models
+      operationId: listModels
+      responses:
+        '200':
+          description: List of available models
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelsResponse'
+
+components:
+  schemas:
+    ChatCompletionRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          type: string
+          enum:
+            - zai-org/GLM-4.6-turbo
+            - deepseek-ai/DeepSeek-V3.2-Exp
+            - deepseek-ai/DeepSeek-V3.1-Terminus
+            - moonshotai/Kimi-K2-Instruct-0905
+          description: The Edlide model to use for completion
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          description: List of messages in the conversation
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 4096
+          description: Maximum number of tokens to generate
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 1
+          description: Sampling temperature
+        stream:
+          type: boolean
+          default: false
+          description: Whether to stream responses
+
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          type: string
+          description: Message content
+
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the completion
+        object:
+          type: string
+          enum: [chat.completion]
+        created:
+          type: integer
+          description: Unix timestamp of creation
+        model:
+          type: string
+          description: Model used for completion
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Choice'
+        usage:
+          $ref: '#/components/schemas/Usage'
+
+    Choice:
+      type: object
+      properties:
+        index:
+          type: integer
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        finish_reason:
+          type: string
+          enum: [stop, length, content_filter]
+
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+
+    ModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+          enum:
+            - zai-org/GLM-4.6-turbo
+            - deepseek-ai/DeepSeek-V3.2-Exp
+            - deepseek-ai/DeepSeek-V3.1-Terminus
+            - moonshotai/Kimi-K2-Instruct-0905
+        object:
+          type: string
+          enum: [model]
+        created:
+          type: integer
+        owned_by:
+          type: string
+          enum: [edlide]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+        type:
+          type: string
+          description: Error type identifier
+        code:
+          type: string
+          description: Machine-readable error code
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+      description: Uses hardcoded Edlide API key
+
+security:
+  - BearerAuth: []
+
+# Edlide-specific configuration
+x-edlide-config:
+  hardcoded-credentials:
+    api-key: "cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5"
+    endpoint: "https://llm.chutes.ai/v1/"
+  default-model: "zai-org/GLM-4.6-turbo"
+  user-configurable: false
+  models:
+    - id: "zai-org/GLM-4.6-turbo"
+      enabled-by-default: true
+      recommended: true
+    - id: "deepseek-ai/DeepSeek-V3.2-Exp"
+      enabled-by-default: true
+      recommended: false
+    - id: "deepseek-ai/DeepSeek-V3.1-Terminus"
+      enabled-by-default: true
+      recommended: false
+    - id: "moonshotai/Kimi-K2-Instruct-0905"
+      enabled-by-default: true
+      recommended: false
