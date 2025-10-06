@@ -4,9 +4,18 @@
 
 **Session Date**: 2025-10-06 (Updated)
 **Branch**: `main`
-**Primary Feature**: Added Native Edlide Provider - **FULLY COMPLETED**
+**Primary Feature**: Model Updates - Added new models and removed deprecated ones
 
-### Latest Changes (2025-10-06 - Settings UI Cleanup)
+### Latest Changes (2025-10-06 - Model Updates)
+- **Anthropic Models Added**: Added `claude-4.5-sonnet` and `claude-4.1-opus`
+- **Anthropic Models Removed**: Removed deprecated `claude-3-opus-latest`
+- **OpenAI Models Added**: Added `gpt-5-high`, `gpt-5-medium`, `gpt-5-low`, and `o3-pro`
+- **Gemini Models Updated**: Replaced old models with `gemini-2.5-flash` and `gemini-2.5-pro`
+- **Gemini Models Removed**: Removed deprecated models including `gemini-2.5-pro-exp-03-25`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-2.5-pro-preview-05-06`
+- **Grok Models Updated**: Replaced `grok-2` with `grok-4`
+- **File Modified**: Updated `src/vs/workbench/contrib/void/common/modelCapabilities.ts`
+
+### Previous Changes (2025-10-06 - Settings UI Cleanup)
 - **Metrics Section Hidden**: Completely removed Metrics section from user interface settings
 - **Autocomplete Section Hidden**: Completely removed Autocomplete section from Actions settings
 - **Default Settings Applied**: Metrics now opt-out by default (true instead of false)

@@ -82,6 +82,10 @@ export const defaultModelsOfProvider = {
 		'moonshotai/Kimi-K2-Instruct-0905'
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
+		'gpt-5-high',
+		'gpt-5-medium',
+		'gpt-5-low',
+		'o3-pro',
 		'gpt-4.1',
 		'gpt-4.1-mini',
 		'gpt-4.1-nano',
@@ -93,26 +97,24 @@ export const defaultModelsOfProvider = {
 		// 'gpt-4o-mini',
 	],
 	anthropic: [ // https://docs.anthropic.com/en/docs/about-claude/models
+		'claude-4.5-sonnet',
+		'claude-4.1-opus',
 		'claude-opus-4-0',
 		'claude-sonnet-4-0',
 		'claude-3-7-sonnet-latest',
 		'claude-3-5-sonnet-latest',
 		'claude-3-5-haiku-latest',
-		'claude-3-opus-latest',
 	],
 	xAI: [ // https://docs.x.ai/docs/models?cluster=us-east-1
-		'grok-2',
+		'grok-4',
 		'grok-3',
 		'grok-3-mini',
 		'grok-3-fast',
 		'grok-3-mini-fast'
 	],
 	gemini: [ // https://ai.google.dev/gemini-api/docs/models/gemini
-		'gemini-2.5-pro-exp-03-25',
-		'gemini-2.5-flash-preview-04-17',
-		'gemini-2.0-flash',
-		'gemini-2.0-flash-lite',
-		'gemini-2.5-pro-preview-05-06',
+		'gemini-2.5-flash',
+		'gemini-2.5-pro',
 	],
 	deepseek: [ // https://api-docs.deepseek.com/quick_start/pricing
 	],
