@@ -373,20 +373,46 @@
 - Для подсчёта токенов: сразу после ответа провайдера делай асинхронный job который обновляет `usage_counters` (idempotent, с request_id).
 
 
-Мой тариф Supabase в данный момент
+**Мой тариф Supabase в данный момент**
 
-вот характеристики моего тарифа
+- вот характеристики моего тарифа он пока бесплатный только для mvp:
 
 Unlimited API requests
-
 50,000 monthly active users
-
 500 MB database size
-
 Shared CPU • 500 MB RAM
-
 5 GB egress
-
 5 GB cached egress
-
 1 GB file storage
+
+- это будет пока временно  в начале просто для mvp backend позже я куплю подписку и у нас будет
+
+- 100,000 monthly active users
+
+    then $0.00325 per MAU
+
+- 8 GB disk size per project
+
+    then $0.125 per GB
+
+- 250 GB egress
+
+    then $0.09 per GB
+
+- 250 GB cached egress
+
+    then $0.03 per GB
+
+- 100 GB file storage
+
+    then $0.021 per GB
+
+- Email support
+
+- Daily backups stored for 7 days
+
+- 7-day log retention
+
+
+
+- если что у меня еще есть digital ocean и там есть 100$ баланса
