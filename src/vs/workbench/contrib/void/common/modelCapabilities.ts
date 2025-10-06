@@ -77,7 +77,6 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6-turbo',
-		'deepseek-ai/DeepSeek-V3.2-Exp',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
 		'moonshotai/Kimi-K2-Instruct-0905'
 	],
@@ -1128,16 +1127,6 @@ const awsBedrockModelOptions = {
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
 	'zai-org/GLM-4.6-turbo': {
-		contextWindow: 128_000,
-		reservedOutputTokenSpace: 8_192,
-		cost: { input: 0, output: 0 },
-		downloadable: false,
-		supportsFIM: false,
-		supportsSystemMessage: 'system-role',
-		specialToolFormat: 'openai-style',
-		reasoningCapabilities: false,
-	},
-	'deepseek-ai/DeepSeek-V3.2-Exp': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },

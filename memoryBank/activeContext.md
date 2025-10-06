@@ -7,6 +7,7 @@
 **Primary Feature**: Model Updates - Added new models and removed deprecated ones
 
 ### Latest Changes (2025-10-06 - Model Updates)
+- **Edlide Models Removed**: Removed `deepseek-ai/DeepSeek-V3.2-Exp` from native Edlide provider
 - **Anthropic Models Added**: Added `claude-4.5-sonnet` and `claude-4.1-opus`
 - **Anthropic Models Removed**: Removed deprecated `claude-3-opus-latest`
 - **OpenAI Models Added**: Added `gpt-5-high`, `gpt-5-medium`, `gpt-5-low`, and `o3-pro`
@@ -44,7 +45,6 @@
 - **API Key**: `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`
 - **Models**: 
   - `zai-org/GLM-4.6-turbo`
-  - `deepseek-ai/DeepSeek-V3.2-Exp`
   - `deepseek-ai/DeepSeek-V3.1-Terminus`
   - `moonshotai/Kimi-K2-Instruct-0905`
 - **UI Position**: First in Models list (above Anthropic)
