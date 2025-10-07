@@ -1213,6 +1213,115 @@ export const VoidSwitch = ({
 	);
 };
 
+export const ContextProgressBar = ({ 
+	percentage, 
+	size = 'md',
+	disabled = false,
+	className = '',
+	tooltipText = ''
+}: {
+	percentage: number; // 0-100
+	size?: 'xxs' | 'xs' | 'sm' | 'sm+' | 'md';
+	disabled?: boolean;
+	className?: string;
+	tooltipText?: string;
+}) => {
+	// Clamp percentage between 0 and 100
+	const clampedPercentage = Math.max(0, Math.min(100, percentage));
+	
+  // Calculate stroke properties for the circle - SAME SIZE as ButtonStop
+  const radius = 8; // Same as ButtonStop
+  const strokeWidth = 3; // Same as ButtonStop
+  const normalizedRadius = radius - strokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (clampedPercentage / 100) * circumference;
+  
+  // Size calculations - SAME SIZE as ButtonStop
+  const svgSize = radius * 2;
+  const buttonSize = 22; // SAME as ButtonStop (22px)
+	
+	// State for mouse press with timer for faster tooltip
+	const [isPressed, setIsPressed] = useState(false);
+	const [showEnhancedTooltip, setShowEnhancedTooltip] = useState(false);
+	const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+	// Enhanced tooltip text for press and hold
+	const enhancedTooltipText = `${tooltipText} (${Math.round(clampedPercentage)}% full)`;
+
+	const handleMouseDown = () => {
+		setIsPressed(true);
+		// Show enhanced tooltip after shorter delay (300ms instead of default)
+		pressTimerRef.current = setTimeout(() => {
+			setShowEnhancedTooltip(true);
+		}, 300);
+	};
+
+	const handleMouseUp = () => {
+		setIsPressed(false);
+		setShowEnhancedTooltip(false);
+		if (pressTimerRef.current) {
+			clearTimeout(pressTimerRef.current);
+			pressTimerRef.current = null;
+		}
+	};
+
+	const handleMouseLeave = () => {
+		setIsPressed(false);
+		setShowEnhancedTooltip(false);
+		if (pressTimerRef.current) {
+			clearTimeout(pressTimerRef.current);
+			pressTimerRef.current = null;
+		}
+	};
+
+	return (
+		<div 
+			className={`
+				rounded-full flex-shrink-0 flex-grow-0 cursor-pointer flex items-center justify-center
+				${disabled ? 'opacity-40' : ''}
+				${className}
+			`}
+			style={{ 
+				width: buttonSize, 
+				height: buttonSize
+			}}
+			title={showEnhancedTooltip ? enhancedTooltipText : tooltipText}
+			onMouseDown={handleMouseDown}
+			onMouseUp={handleMouseUp}
+			onMouseLeave={handleMouseLeave}
+		>
+			<svg
+				width={svgSize}
+				height={svgSize}
+				className="transform -rotate-90"
+			>
+				{/* Background circle - СЕРОЕ КОЛЬЦО */}
+				<circle
+					cx={radius}
+					cy={radius}
+					r={normalizedRadius}
+					stroke="rgba(128, 128, 128, 0.6)"
+					strokeWidth={strokeWidth}
+					fill="transparent"
+				/>
+				{/* Progress circle - БЕЛЫЙ ЗАПОЛНИТЕЛЬ */}
+				<circle
+					cx={radius}
+					cy={radius}
+					r={normalizedRadius}
+					stroke="white"
+					strokeWidth={strokeWidth}
+					fill="transparent"
+					strokeDasharray={circumference}
+					strokeDashoffset={strokeDashoffset}
+					strokeLinecap="round"
+					className="transition-all duration-300 ease-out"
+				/>
+			</svg>
+		</div>
+	);
+};
+
 
 
 

@@ -13,7 +13,7 @@ import { ChatMarkdownRender, ChatMessageLocation, getApplyBoxId } from '../markd
 import { URI } from '../../../../../../../base/common/uri.js';
 import { IDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { ErrorDisplay } from './ErrorDisplay.js';
-import { BlockCode, TextAreaFns, VoidCustomDropdownBox, VoidInputBox2, VoidSlider, VoidSwitch, VoidDiffEditor } from '../util/inputs.js';
+import { BlockCode, TextAreaFns, VoidCustomDropdownBox, VoidInputBox2, VoidSlider, VoidSwitch, VoidDiffEditor, ContextProgressBar } from '../util/inputs.js';
 import { ModelDropdown, } from '../void-settings-tsx/ModelDropdown.js';
 import { PastThreadsList } from './SidebarThreadSelector.js';
 import { VOID_CTRL_L_ACTION_ID } from '../../../actionIDs.js';
@@ -35,6 +35,123 @@ import { ToolApprovalTypeSwitch } from '../void-settings-tsx/Settings.js';
 
 import { persistentTerminalNameOfId } from '../../../terminalToolService.js';
 import { removeMCPToolNamePrefix } from '../../../../common/mcpServiceTypes.js';
+
+// Hook for tracking context window usage
+const useContextTracker = (threadId: string, featureName: FeatureName) => {
+	const accessor = useAccessor();
+	const voidSettingsService = accessor.get('IVoidSettingsService');
+	const chatThreadService = accessor.get('IChatThreadService');
+	
+	const [contextPercentage, setContextPercentage] = useState(0);
+	const [showContextBar, setShowContextBar] = useState(false);
+
+	// Check if current model is from Edlide provider
+	const isEdlideProvider = () => {
+		const modelSelection = voidSettingsService.state.modelSelectionOfFeature[featureName];
+		return modelSelection?.providerName === 'edlide';
+	};
+
+	// Calculate context usage based on current thread state
+	const calculateContextUsage = useCallback(() => {
+		if (!isEdlideProvider()) {
+			setShowContextBar(false);
+			return;
+		}
+
+		const thread = chatThreadService.state.allThreads[threadId];
+		if (!thread) {
+			setShowContextBar(false);
+			return;
+		}
+
+		// Get model-specific context limit
+		const modelSelection = voidSettingsService.state.modelSelectionOfFeature[featureName];
+		const modelName = modelSelection?.modelName || '';
+		
+		// Model-specific context limits
+		const getModelContextLimit = (modelName: string): number => {
+			if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
+				return 256000; // kimi-k2: 256k tokens
+			}
+			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6')) {
+				return 200000; // glm-4.6: 200k tokens
+			}
+		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
+			return 162000; // deepseek v3.1 terminus: 162k tokens
+		}
+		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
+			return 162000; // deepseek v3.1 terminus: 162k tokens (exact match)
+		}
+		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
+			return 162000; // deepseek v3.1 variants: 162k tokens
+		}
+		return 128000; // Default fallback
+		};
+
+		const maxContextTokens = getModelContextLimit(modelName);
+
+		// Calculate approximate context usage
+		let totalTokens = 0;
+
+		// Count tokens from messages
+		for (const message of thread.messages) {
+			if (message.role === 'user') {
+				// User messages have content and displayContent
+				totalTokens += Math.ceil(message.content.length / 4);
+				totalTokens += Math.ceil(message.displayContent.length / 4);
+			}
+			else if (message.role === 'assistant') {
+				// Assistant messages have displayContent and reasoning
+				totalTokens += Math.ceil(message.displayContent.length / 4);
+				totalTokens += Math.ceil(message.reasoning.length / 4);
+			}
+			else if (message.role === 'tool') {
+				// Tool messages have content
+				totalTokens += Math.ceil(message.content.length / 4);
+			}
+			// Checkpoint and other message types are typically not sent to LLM
+		}
+
+		// Add estimated tokens from selections
+		if (thread.state.stagingSelections) {
+			for (const selection of thread.state.stagingSelections) {
+				// Rough estimation for file content
+				totalTokens += 1000; // Approximate tokens per file
+			}
+		}
+
+		const percentage = Math.min(100, (totalTokens / maxContextTokens) * 100);
+		setContextPercentage(percentage);
+		setShowContextBar(true);
+	}, [threadId, featureName, voidSettingsService, chatThreadService]);
+
+	// Update context usage when thread changes
+	useEffect(() => {
+		calculateContextUsage();
+	}, [calculateContextUsage]);
+
+	// Listen for thread changes
+	useEffect(() => {
+		const disposables = [
+			chatThreadService.onDidChangeCurrentThread(() => {
+				calculateContextUsage();
+			}),
+			chatThreadService.onDidChangeStreamState(() => {
+				calculateContextUsage();
+			})
+		];
+
+		return () => {
+			disposables.forEach(d => d.dispose());
+		};
+	}, [calculateContextUsage, chatThreadService]);
+
+	return {
+		contextPercentage,
+		showContextBar,
+		isEdlideProvider: isEdlideProvider()
+	};
+};
 
 
 
@@ -317,6 +434,11 @@ interface VoidChatAreaProps {
 	onClose?: () => void;
 
 	featureName: FeatureName;
+	
+	// Context bar props
+	contextPercentage?: number;
+	showContextBar?: boolean;
+	contextTooltipText?: string;
 }
 
 export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
@@ -336,6 +458,9 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 	setSelections,
 	featureName,
 	loadingIcon,
+	contextPercentage = 0,
+	showContextBar = false,
+	contextTooltipText = '',
 }) => {
 	return (
 		<div
@@ -370,7 +495,7 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 
 				{/* Close button (X) if onClose is provided */}
 				{onClose && (
-					<div className='absolute -top-1 -right-1 cursor-pointer z-1'>
+					<div className='absolute -top-1 -right-1 cursor-pointer z-20'>
 						<IconX
 							size={12}
 							className="stroke-[2] opacity-80 text-void-fg-3 hover:brightness-95"
@@ -394,6 +519,15 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 				)}
 
 				<div className="flex items-center gap-2">
+
+					{/* Context bar - positioned left of stop/submit buttons */}
+					{showContextBar && (
+						<ContextProgressBar 
+							percentage={contextPercentage} 
+							size="md"
+							tooltipText={contextTooltipText}
+						/>
+					)}
 
 					{isStreaming && loadingIcon}
 
@@ -1148,6 +1282,9 @@ const UserMessageComponent = ({ chatMessage, messageIdx, isCheckpointGhost, curr
 			showProspectiveSelections={false}
 			selections={stagingSelections}
 			setSelections={setStagingSelections}
+			contextPercentage={0} // Edit mode doesn't need context tracking
+			showContextBar={false}
+			contextTooltipText=""
 		>
 			<VoidInputBox2
 				enableAtToMention
@@ -2885,6 +3022,7 @@ export const SidebarChat = () => {
 	const accessor = useAccessor()
 	const commandService = accessor.get('ICommandService')
 	const chatThreadsService = accessor.get('IChatThreadService')
+	const voidSettingsService = accessor.get('IVoidSettingsService')
 
 	const settingsState = useSettingsState()
 	// ----- HIGHER STATE -----
@@ -2906,6 +3044,35 @@ export const SidebarChat = () => {
 
 	// this is just if it's currently being generated, NOT if it's currently running
 	const toolIsGenerating = toolCallSoFar && !toolCallSoFar.isDone // show loading for slow tools (right now just edit)
+
+	// Context tracking for Edlide provider
+	const { contextPercentage, showContextBar, isEdlideProvider } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
+
+	// Get current model and calculate exact token count for tooltip
+	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
+	const modelName = modelSelection?.modelName || '';
+	
+	const getModelContextLimit = (modelName: string): number => {
+		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
+			return 256000; // kimi-k2: 256k tokens
+		}
+		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6')) {
+			return 200000; // glm-4.6: 200k tokens
+		}
+		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
+			return 162000; // deepseek v3.1 terminus: 162k tokens
+		}
+		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
+			return 162000; // deepseek v3.1 terminus: 162k tokens (exact match)
+		}
+		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
+			return 162000; // deepseek v3.1 variants: 162k tokens
+		}
+		return 128000; // Default fallback
+	};
+
+	const maxTokens = getModelContextLimit(modelName);
+	const currentTokens = Math.round((contextPercentage / 100) * maxTokens);
 
 	// ----- SIDEBAR CHAT state (local) -----
 
@@ -3074,6 +3241,9 @@ export const SidebarChat = () => {
 		selections={selections}
 		setSelections={setSelections}
 		onClickAnywhere={() => { textAreaRef.current?.focus() }}
+		contextPercentage={contextPercentage}
+		showContextBar={showContextBar}
+  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used`}
 	>
 		<VoidInputBox2
 			enableAtToMention
