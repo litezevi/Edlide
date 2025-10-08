@@ -9,7 +9,7 @@
 - [ ] Создать базовую структуру проекта
 - [ ] Настроить локальную разработку
 
-### ✅ **Phase 2: Unified Authentication (4-5 дней)**  
+### ✅ **Phase 2: Unified Authentication (4-5 дней)**
 - [ ] Реализовать `/api/auth/register` (единая регистрация)
 - [ ] Реализовать `/api/auth/login` (единый вход для сайта и IDE)
 - [ ] Создать JWT middleware для проверки токенов
@@ -444,7 +444,7 @@ export function Navigation() {
         }
       }
     };
-    
+
     checkAuth();
   }, []);
 
@@ -462,7 +462,7 @@ export function Navigation() {
           <Link href="/" className="text-2xl font-bold text-white">
             Edlide
           </Link>
-          
+
           {/* Главное меню */}
           <div className="hidden md:flex space-x-8">
             <Link href="/features" className="text-gray-300 hover:text-white">
@@ -475,25 +475,25 @@ export function Navigation() {
               Docs
             </Link>
           </div>
-          
+
           {/* Авторизация */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <Link 
-                  href="/dashboard" 
+                <Link
+                  href="/dashboard"
                   className="text-gray-300 hover:text-white"
                 >
                   Dashboard
                 </Link>
-                <Link 
-                  href="/profile" 
+                <Link
+                  href="/profile"
                   className="text-gray-300 hover:text-white"
                 >
                   Profile
                 </Link>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleLogout}
                   className="border-gray-600 text-gray-300 hover:bg-gray-800"
                 >
@@ -502,8 +502,8 @@ export function Navigation() {
               </>
             ) : (
               <>
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="text-gray-300 hover:text-white"
                 >
                   Login
@@ -615,7 +615,7 @@ export default function PricingPage() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Redirect to Dodo Payments
         window.location.href = data.paymentUrl;
@@ -636,7 +636,7 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Choose the perfect plan for your needs. All plans include access to 
+            Choose the perfect plan for your needs. All plans include access to
             all AI models and core Edlide features.
           </p>
         </div>
@@ -647,8 +647,8 @@ export default function PricingPage() {
             <div
               key={plan.name}
               className={`relative rounded-lg border ${
-                plan.highlighted 
-                  ? 'border-blue-500 bg-gray-900' 
+                plan.highlighted
+                  ? 'border-blue-500 bg-gray-900'
                   : 'border-gray-800 bg-gray-900'
               } p-8`}
             >
@@ -750,7 +750,7 @@ export default function DashboardPage() {
         const response = await fetch('/api/user/dashboard', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         const data = await response.json();
         if (data.success) {
           setUserData(data.user);
@@ -809,8 +809,8 @@ export default function DashboardPage() {
                     <span>{usage?.requestsUsedToday || 0} used</span>
                     <span>{usage?.requestsPerDay} total</span>
                   </div>
-                  <Progress 
-                    value={(usage?.requestsUsedToday || 0) / (usage?.requestsPerDay) * 100} 
+                  <Progress
+                    value={(usage?.requestsUsedToday || 0) / (usage?.requestsPerDay) * 100}
                     className="h-2"
                   />
                 </div>
@@ -887,7 +887,7 @@ export default function DashboardPage() {
               <p className="text-gray-400">
                 Use your Edlide account to login to the desktop IDE
               </p>
-              
+
               <div className="bg-black rounded-lg p-4">
                 <h4 className="font-semibold mb-2">How to connect:</h4>
                 <ol className="text-sm text-gray-300 space-y-1">
@@ -979,8 +979,8 @@ serve(async (req) => {
           error: 'unauthorized',
           message: 'Please login to use AI features'
         }),
-        { 
-          status: 401, 
+        {
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -996,8 +996,8 @@ serve(async (req) => {
           message: 'Active subscription required. Please purchase a plan.',
           redirectUrl: 'https://edlide.com/pricing'
         }),
-        { 
-          status: 403, 
+        {
+          status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -1012,8 +1012,8 @@ serve(async (req) => {
           message: `Daily limit exceeded (${rateLimitCheck.used}/${rateLimitCheck.limit})`,
           resetTime: 'tomorrow at 00:00 UTC'
         }),
-        { 
-          status: 429, 
+        {
+          status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -1047,14 +1047,14 @@ serve(async (req) => {
       // Streaming response
       const reader = chutesResponse.body?.getReader();
       const encoder = new TextEncoder();
-      
+
       const streamResponse = new ReadableStream({
         async start(controller) {
           try {
             while (true) {
               const { done, value } = await reader!.read();
               if (done) break;
-              
+
               const chunk = new TextDecoder().decode(value);
               responseText += chunk;
               controller.enqueue(encoder.encode(chunk));
@@ -1087,7 +1087,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify(chutesData),
-        { 
+        {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -1095,14 +1095,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Chat proxy error:', error);
-    
+
     return new Response(
       JSON.stringify({
         error: 'internal_error',
         message: 'Failed to process request'
       }),
-      { 
-        status: 500, 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
@@ -1117,7 +1117,7 @@ export const checkRateLimit = async (subscription: any): Promise<{allowed: boole
   // Проверяем, нужно ли сбросить счетчик (новый день)
   const today = new Date().toISOString().split('T')[0];
   const lastReset = subscription.last_reset_date;
-  
+
   if (lastReset !== today) {
     // Сбрасываем счетчик
     await supabase
@@ -1127,16 +1127,16 @@ export const checkRateLimit = async (subscription: any): Promise<{allowed: boole
         last_reset_date: today
       })
       .eq('id', subscription.id);
-    
+
     return {
       allowed: true,
       used: 0,
       limit: subscription.requests_per_day
     };
   }
-  
+
   const isAllowed = subscription.requests_used_today < subscription.requests_per_day;
-  
+
   return {
     allowed: isAllowed,
     used: subscription.requests_used_today,
@@ -1145,9 +1145,9 @@ export const checkRateLimit = async (subscription: any): Promise<{allowed: boole
 };
 
 export const incrementUsage = async (
-  userId: string, 
-  chutesAccountId: string, 
-  model: string, 
+  userId: string,
+  chutesAccountId: string,
+  model: string,
   tokens: number,
   deviceInfo: string
 ) => {
@@ -1155,7 +1155,7 @@ export const incrementUsage = async (
   await supabase.rpc('increment_daily_usage', {
     p_chutes_account_id: chutesAccountId
   });
-  
+
   // Логируем запрос
   await supabase
     .from('usage_logs')
@@ -1178,10 +1178,10 @@ CREATE OR REPLACE FUNCTION increment_daily_usage(
 )
 RETURNS VOID AS $$
 BEGIN
-  UPDATE chutes_accounts 
+  UPDATE chutes_accounts
   SET requests_used_today = requests_used_today + 1,
       updated_at = NOW()
-  WHERE id = p_chutes_account_id 
+  WHERE id = p_chutes_account_id
     AND status = 'active'
     AND expires_at > NOW();
 END;
@@ -1204,7 +1204,7 @@ export const SUBSCRIPTION_PLANS = {
     chutes_plan: 'month' // соответствует $3 плану Chutes
   },
   pro: {
-    name: "Pro", 
+    name: "Pro",
     price: 1000, // в копейках ($10.00)
     duration_days: 30,
     requests_per_day: 2000,
@@ -1230,18 +1230,18 @@ import { sendTelegramNotification } from '../notifications/telegram.ts';
 serve(async (req) => {
   const signature = req.headers.get('Dodo-Signature');
   const body = await req.text();
-  
+
   // Проверяем подпись
   const isValidSignature = await verifyWebhookSignature(body, signature);
   if (!isValidSignature) {
     return new Response('Invalid signature', { status: 401 });
   }
-  
+
   const event = JSON.parse(body);
-  
+
   if (event.event === 'payment.completed') {
     const { user_id, plan, amount, payment_id } = event.data;
-    
+
     try {
       // Обновляем статус подписки
       const { data: subscription } = await supabase
@@ -1250,16 +1250,16 @@ serve(async (req) => {
         .eq('dodo_payment_id', payment_id)
         .select()
         .single();
-      
+
       // Создаем аккаунт в Chutes
       const chutesAccount = await createChutesAccount(user_id, plan);
-      
+
       // Привязываем Chutes аккаунт к подписке
       await supabase
         .from('subscriptions')
         .update({ chutes_account_id: chutesAccount.id })
         .eq('id', subscription.id);
-      
+
       // Отправляем уведомление в Telegram
       await sendTelegramNotification({
         type: 'new_subscription',
@@ -1268,13 +1268,13 @@ serve(async (req) => {
         amount,
         chutesEmail: chutesAccount.email
       });
-      
+
     } catch (error) {
       console.error('Webhook processing error:', error);
       return new Response('Processing failed', { status: 500 });
     }
   }
-  
+
   return new Response('OK', { status: 200 });
 });
 ```
@@ -1284,14 +1284,14 @@ serve(async (req) => {
 // supabase/functions/payments/chutes-account-creator.ts
 export const createChutesAccount = async (userId: string, plan: string) => {
   const planConfig = SUBSCRIPTION_PLANS[plan];
-  
+
   // Генерируем email для Chutes аккаунта
   const chutesEmail = `user-${userId.slice(0, 8)}@edlide-user.com`;
-  
+
   // Создаем аккаунт в Chutes (пока вручную через их API или интерфейс)
   // TODO: Интегрировать с Chutes API когда будет доступно
   const chutesApiKey = await createChutesAccountManual(chutesEmail, planConfig.chutes_plan);
-  
+
   // Сохраняем в БД
   const { data: chutesAccount } = await supabase
     .from('chutes_accounts')
@@ -1306,7 +1306,7 @@ export const createChutesAccount = async (userId: string, plan: string) => {
     })
     .select()
     .single();
-  
+
   return chutesAccount;
 };
 
@@ -1314,7 +1314,7 @@ export const createChutesAccount = async (userId: string, plan: string) => {
 const createChutesAccountManual = async (email: string, plan: string): Promise<string> => {
   // Здесь логика для создания аккаунта через Chutes панель
   // или API если будет доступно
-  
+
   // Возвращаем тестовый ключ для разработки
   if (plan === 'month') {
     return 'cpk_starter_test_key';
@@ -1338,11 +1338,11 @@ import { IStorageService } from 'vscode/platform/storage/common/storage.ts';
 export class EdlideAuthService {
   private readonly EDLIDE_API_URL = 'https://api.edlide.com';
   private readonly storageKey = 'edlide.auth.token';
-  
+
   constructor(
     @IStorageService private readonly storageService: IStorageService
   ) {}
-  
+
   async login(email: string, password: string): Promise<{success: boolean, user?: any, error?: string}> {
     try {
       const response = await fetch(`${this.EDLIDE_API_URL}/api/auth/login`, {
@@ -1357,13 +1357,13 @@ export class EdlideAuthService {
           deviceInfo: 'Edlide IDE'
         })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Сохраняем токен
         await this.storageService.store(this.storageKey, data.token);
-        
+
         return {
           success: true,
           user: data.user
@@ -1374,7 +1374,7 @@ export class EdlideAuthService {
           error: data.message
         };
       }
-      
+
     } catch (error) {
       return {
         success: false,
@@ -1382,15 +1382,15 @@ export class EdlideAuthService {
       };
     }
   }
-  
+
   async logout(): Promise<void> {
     await this.storageService.remove(this.storageKey);
   }
-  
+
   async getCurrentUser(): Promise<{user?: any, subscription?: any} | null> {
     const token = await this.storageService.get(this.storageKey);
     if (!token) return null;
-    
+
     try {
       const response = await fetch(`${this.EDLIDE_API_URL}/api/auth/verify`, {
         method: 'POST',
@@ -1399,9 +1399,9 @@ export class EdlideAuthService {
           'User-Agent': 'Edlide IDE'
         }
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         return {
           user: data.user,
@@ -1412,12 +1412,12 @@ export class EdlideAuthService {
         await this.logout();
         return null;
       }
-      
+
     } catch {
       return null;
     }
   }
-  
+
   async getAuthToken(): Promise<string | null> {
     return await this.storageService.get(this.storageKey);
   }
@@ -1432,11 +1432,11 @@ import { EdlideAuthService } from './edlideAuth.ts';
 
 export class EdlideSettingsUI {
   private authService: EdlideAuthService;
-  
+
   constructor(authService: EdlideAuthService) {
     this.authService = authService;
   }
-  
+
   async showLoginDialog(): Promise<void> {
     const email = await vscode.window.showInputBox({
       prompt: 'Enter your Edlide email',
@@ -1448,9 +1448,9 @@ export class EdlideSettingsUI {
         return null;
       }
     });
-    
+
     if (!email) return;
-    
+
     const password = await vscode.window.showInputBox({
       prompt: 'Enter your Edlide password',
       password: true,
@@ -1461,9 +1461,9 @@ export class EdlideSettingsUI {
         return null;
       }
     });
-    
+
     if (!password) return;
-    
+
     // Показываем прогресс
     await vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
@@ -1471,15 +1471,15 @@ export class EdlideSettingsUI {
       cancellable: false
     }, async (progress) => {
       const result = await this.authService.login(email, password);
-      
+
       if (result.success) {
         vscode.window.showInformationMessage(
           `✅ Successfully logged in as ${result.user.email}`
         );
-        
+
         // Обновляем UI
         this.updateAccountUI(result.user, result.subscription);
-        
+
       } else {
         vscode.window.showErrorMessage(
           `❌ Login failed: ${result.error}`
@@ -1487,10 +1487,10 @@ export class EdlideSettingsUI {
       }
     });
   }
-  
+
   async showAccountPanel(): Promise<void> {
     const currentUser = await this.authService.getCurrentUser();
-    
+
     if (!currentUser) {
       vscode.window.showInformationMessage(
         'Not logged in. Please login to your Edlide account.',
@@ -1502,10 +1502,10 @@ export class EdlideSettingsUI {
       });
       return;
     }
-    
+
     this.updateAccountUI(currentUser.user, currentUser.subscription);
   }
-  
+
   private updateAccountUI(user: any, subscription: any): void {
     // Создаем или обновляем Webview панель
     const panel = vscode.window.createWebviewPanel(
@@ -1517,10 +1517,10 @@ export class EdlideSettingsUI {
         retainContextWhenHidden: true
       }
     );
-    
+
     panel.webview.html = this.getAccountWebviewContent(user, subscription);
   }
-  
+
   private getAccountWebviewContent(user: any, subscription: any): string {
     return `
       <!DOCTYPE html>
@@ -1589,7 +1589,7 @@ export class EdlideSettingsUI {
           <h1>Edlide Account</h1>
           <p>Email: <strong>${user.email}</strong></p>
         </div>
-        
+
         <div class="info-grid">
           <div class="info-card">
             <h3>Subscription Status</h3>
@@ -1604,7 +1604,7 @@ export class EdlideSettingsUI {
               <button onclick="window.open('https://edlide.com/pricing')">Choose Plan</button>
             `}
           </div>
-          
+
           <div class="info-card">
             <h3>Daily Usage</h3>
             ${subscription?.active ? `
@@ -1618,7 +1618,7 @@ export class EdlideSettingsUI {
             `}
           </div>
         </div>
-        
+
         <div style="text-align: center; margin-top: 30px;">
           <button onclick="window.open('https://edlide.com/dashboard')">Open Dashboard</button>
           <button onclick="window.open('https://edlide.com/profile')">Manage Account</button>
@@ -1643,17 +1643,17 @@ export const adminUsersHandler = async (req: Request) => {
   if (!authHeader?.startsWith('Basic ')) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  
+
   const [username, password] = atob(authHeader.slice(6)).split(':');
   if (username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
     return Response.json({ error: 'Invalid credentials' }, { status: 401 });
   }
-  
+
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = (page - 1) * limit;
-  
+
   // Получаем пользователей с полной информацией
   const { data: users, error } = await supabase
     .from('users')
@@ -1678,22 +1678,22 @@ export const adminUsersHandler = async (req: Request) => {
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
-  
+
   if (error) {
     return Response.json({ error: 'Database error' }, { status: 500 });
   }
-  
+
   // Получаем общую статистику
   const { data: stats } = await supabase
     .from('users')
     .select('id, chutes_accounts!left(status)')
     .order('created_at', { ascending: false });
-  
+
   const totalUsers = stats?.length || 0;
-  const activeSubscriptions = stats?.filter(u => 
+  const activeSubscriptions = stats?.filter(u =>
     u.chutes_accounts?.some(ca => ca.status === 'active')
   ).length || 0;
-  
+
   return Response.json({
     users: users.map(user => ({
       id: user.id,
@@ -1738,7 +1738,7 @@ export const adminUsersHandler = async (req: Request) => {
 // supabase/functions/admin/chutes-keys.ts
 export const chutesKeysHandler = async (req: Request) => {
   // Basic auth проверка...
-  
+
   if (req.method === 'GET') {
     // Получаем все Chutes аккаунты
     const { data: accounts } = await supabase
@@ -1749,7 +1749,7 @@ export const chutesKeysHandler = async (req: Request) => {
         subscriptions(plan, amount, created_at)
       `)
       .order('created_at', { ascending: false });
-    
+
     return Response.json({
       accounts: accounts.map(account => ({
         id: account.id,
@@ -1768,11 +1768,11 @@ export const chutesKeysHandler = async (req: Request) => {
       }))
     });
   }
-  
+
   if (req.method === 'POST') {
     // Добавляем новый API ключ для пользователя
     const { userId, chutesApiKey, plan } = await req.json();
-    
+
     const { data: newAccount } = await supabase
       .from('chutes_accounts')
       .insert({
@@ -1786,24 +1786,24 @@ export const chutesKeysHandler = async (req: Request) => {
       })
       .select()
       .single();
-    
+
     return Response.json({
       success: true,
       account: newAccount
     });
   }
-  
+
   if (req.method === 'PUT') {
     // Обновляем существующий аккаунт
     const { accountId, updates } = await req.json();
-    
+
     const { data: updatedAccount } = await supabase
       .from('chutes_accounts')
       .update(updates)
       .eq('id', accountId)
       .select()
       .single();
-    
+
     return Response.json({
       success: true,
       account: updatedAccount
@@ -1830,14 +1830,14 @@ interface TelegramNotification {
 export const sendTelegramNotification = async (notification: TelegramNotification) => {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  
+
   if (!botToken || !chatId) {
     console.warn('Telegram credentials not configured');
     return;
   }
-  
+
   let message = '';
-  
+
   switch (notification.type) {
     case 'new_subscription':
       message = `🎉 *New Subscription!*\n\n` +
@@ -1847,7 +1847,7 @@ export const sendTelegramNotification = async (notification: TelegramNotificatio
         `🔑 *Chutes Email:* ${notification.chutesEmail}\n` +
         `⏰ *Time:* ${new Date().toLocaleString()}`;
       break;
-      
+
     case 'payment_failed':
       message = `❌ *Payment Failed*\n\n` +
         `👤 *User:* ${notification.userEmail}\n` +
@@ -1855,13 +1855,13 @@ export const sendTelegramNotification = async (notification: TelegramNotificatio
         `💰 *Amount:* $${(notification.amount! / 100).toFixed(2)}\n` +
         `⏰ *Time:* ${new Date().toLocaleString()}`;
       break;
-      
+
     case 'account_created':
       message = `👋 *New User Registered*\n\n` +
         `👤 *Email:* ${notification.userEmail}\n` +
         `⏰ *Time:* ${new Date().toLocaleString()}`;
       break;
-      
+
     case 'limit_warning':
       message = `⚠️ *User Near Daily Limit*\n\n` +
         `👤 *User:* ${notification.userEmail}\n` +
@@ -1869,7 +1869,7 @@ export const sendTelegramNotification = async (notification: TelegramNotificatio
         `⏰ *Time:* ${new Date().toLocaleString()}`;
       break;
   }
-  
+
   try {
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -1905,7 +1905,7 @@ JWT_EXPIRES_IN=7d
 # Chutes AI
 CHUTES_BASE_URL=https://llm.chutes.ai/v1
 
-# Dodo Payments  
+# Dodo Payments
 DODO_API_KEY=your-dodo-api-key
 DODO_SECRET_KEY=your-dodo-secret-key
 DODO_WEBHOOK_SECRET=your-webhook-secret
@@ -1946,18 +1946,18 @@ describe('Authentication API', () => {
         lastName: 'User'
       })
     });
-    
+
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.success).toBe(true);
     expect(data.user.email).toBe('test@example.com');
     expect(data.token).toBeDefined();
   });
-  
+
   test('POST /api/auth/login - IDE login', async () => {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Edlide IDE'
       },
@@ -1967,13 +1967,13 @@ describe('Authentication API', () => {
         deviceInfo: 'Edlide IDE Windows'
       })
     });
-    
+
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.success).toBe(true);
     expect(data.subscription).toBeDefined();
   });
-  
+
   test('POST /api/auth/verify - token validation', async () => {
     // Сначала логинимся
     const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
@@ -1984,15 +1984,15 @@ describe('Authentication API', () => {
         password: 'password123'
       })
     });
-    
+
     const { token } = await loginResponse.json();
-    
+
     // Проверяем токен
     const verifyResponse = await fetch(`${API_URL}/api/auth/verify`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    
+
     expect(verifyResponse.status).toBe(200);
     const data = await verifyResponse.json();
     expect(data.success).toBe(true);
@@ -2003,7 +2003,7 @@ describe('Authentication API', () => {
 // tests/api/chat.test.ts
 describe('Chat API', () => {
   let authToken: string;
-  
+
   beforeEach(async () => {
     // Получаем токен для тестов
     const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
@@ -2014,11 +2014,11 @@ describe('Chat API', () => {
         password: 'password123'
       })
     });
-    
+
     const { token } = await loginResponse.json();
     authToken = token;
   });
-  
+
   test('POST /api/chat - successful request with active subscription', async () => {
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
@@ -2031,13 +2031,13 @@ describe('Chat API', () => {
         model: 'zai-org/GLM-4.6-turbo'
       })
     });
-    
+
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.choices).toBeDefined();
     expect(data.choices[0].message.content).toBeDefined();
   });
-  
+
   test('POST /api/chat - rejected without subscription', async () => {
     // Создаем пользователя без подписки
     const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
@@ -2050,9 +2050,9 @@ describe('Chat API', () => {
         lastName: 'Subscription'
       })
     });
-    
+
     const { token } = await registerResponse.json();
-    
+
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: {
@@ -2064,12 +2064,12 @@ describe('Chat API', () => {
         model: 'zai-org/GLM-4.6-turbo'
       })
     });
-    
+
     expect(response.status).toBe(403);
     const data = await response.json();
     expect(data.error).toBe('subscription_required');
   });
-  
+
   test('POST /api/chat - daily limit exceeded', async () => {
     // Имитируем превышение лимита
     // TODO: Реализовать в зависимости от тестовой среды
@@ -2083,8 +2083,8 @@ describe('Chat API', () => {
 describe('Chat API Load Testing', () => {
   test('should handle 50 concurrent requests', async () => {
     const authToken = await getTestAuthToken();
-    
-    const promises = Array(50).fill(null).map((_, index) => 
+
+    const promises = Array(50).fill(null).map((_, index) =>
       fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: {
@@ -2097,24 +2097,24 @@ describe('Chat API Load Testing', () => {
         })
       })
     );
-    
+
     const startTime = Date.now();
     const responses = await Promise.all(promises);
     const endTime = Date.now();
-    
+
     // Все запросы должны быть успешными
     expect(responses.every(r => r.status === 200)).toBe(true);
-    
+
     // Время ответа должно быть приемлемым (< 10 секунд для 50 запросов)
     expect(endTime - startTime).toBeLessThan(10000);
-    
+
     console.log(`Processed 50 requests in ${endTime - startTime}ms`);
   });
-  
+
   test('should handle streaming responses under load', async () => {
     const authToken = await getTestAuthToken();
-    
-    const promises = Array(10).fill(null).map(() => 
+
+    const promises = Array(10).fill(null).map(() =>
       fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: {
@@ -2128,23 +2128,23 @@ describe('Chat API Load Testing', () => {
         })
       })
     );
-    
+
     const responses = await Promise.all(promises);
-    
+
     for (const response of responses) {
       expect(response.status).toBe(200);
       expect(response.headers.get('Content-Type')).toContain('text/event-stream');
-      
+
       // Читаем stream
       const reader = response.body?.getReader();
       let chunks = 0;
-      
+
       while (true) {
         const { done } = await reader!.read();
         if (done) break;
         chunks++;
       }
-      
+
       expect(chunks).toBeGreaterThan(0);
     }
   });
@@ -2229,7 +2229,7 @@ export class EdlideAPI {
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
   }
-  
+
   // Auth endpoints
   static async register(data: {
     email: string;
@@ -2242,10 +2242,10 @@ export class EdlideAPI {
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
     });
-    
+
     return response.json();
   }
-  
+
   static async login(data: {
     email: string;
     password: string;
@@ -2256,48 +2256,48 @@ export class EdlideAPI {
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
     });
-    
+
     const result = await response.json();
-    
+
     if (result.success) {
       localStorage.setItem('edlide_token', result.token);
     }
-    
+
     return result;
   }
-  
+
   static async logout() {
     localStorage.removeItem('edlide_token');
   }
-  
+
   static async verifyToken() {
     const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
       method: 'POST',
       headers: this.getAuthHeaders()
     });
-    
+
     return response.json();
   }
-  
+
   // User endpoints
   static async getUserStatus() {
     const response = await fetch(`${API_BASE_URL}/api/user/status`, {
       method: 'POST',
       headers: this.getAuthHeaders()
     });
-    
+
     return response.json();
   }
-  
+
   static async getUserUsage() {
     const response = await fetch(`${API_BASE_URL}/api/user/usage`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });
-    
+
     return response.json();
   }
-  
+
   // Chat endpoint (для тестирования)
   static async chatRequest(messages: any[], model: string) {
     const response = await fetch(`${API_BASE_URL}/api/chat`, {
@@ -2305,7 +2305,7 @@ export class EdlideAPI {
       headers: this.getAuthHeaders(),
       body: JSON.stringify({ messages, model })
     });
-    
+
     return response.json();
   }
 }
@@ -2365,7 +2365,7 @@ const response = await chatService.sendMessage(messages, model);
 
 1. User opens Edlide IDE
 2. Goes to Settings → Account
-3. Clicks "Login" 
+3. Clicks "Login"
 4. Enters email/password (same as website)
 5. Backend validates credentials
 6. IDE receives JWT token
@@ -2531,11 +2531,11 @@ Usage Monitoring (каждые 5 минут):
 
 Этот план даёт нам полную дорожную карту для создания:
 
-✅ **Единой экосистемы** - сайт + IDE + бэкенд  
-✅ **Единой авторизации** - email/password для всего  
-✅ **Гибких тарифов** - 100/2000/5000 запросов в день  
-✅ **Полного контроля** - управление Chutes ключами  
-✅ **Мониторинга** - админ панель + Telegram  
-✅ **Масштабируемости** - готовность к росту  
+✅ **Единой экосистемы** - сайт + IDE + бэкенд
+✅ **Единой авторизации** - email/password для всего
+✅ **Гибких тарифов** - 100/2000/5000 запросов в день
+✅ **Полного контроля** - управление Chutes ключами
+✅ **Мониторинга** - админ панель + Telegram
+✅ **Масштабируемости** - готовность к росту
 
 **Следующий шаг: начинаем с Phase 1 - настройка Supabase проекта?** 🎯
