@@ -1,6 +1,26 @@
 {
   "mcpServers": {
-    "brave-search": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_2ff4c3162e42dd835b84d5adb460a16880dd1fb7"
+      ],
+      "alwaysAllow": [
+        "list_tables"
+      ]
+    },
+    "dodopayments_api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.dodopayments.com/sse"
+      ]
+    },
+      "brave-search": {
       "command": "npx",
       "args": [
         "-y",
@@ -8,7 +28,48 @@
       ],
       "env": {
         "BRAVE_API_KEY": "BSA2qyPi4UylVxr1ppHH0npK1grHefx"
-      }
+      },
+      "alwaysAllow": [
+        "brave_web_search",
+        "brave_local_search"
+      ]
+    },
+      "zai-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@z_ai/mcp-server"
+      ],
+      "env": {
+        "Z_AI_API_KEY": "your_api_key",
+        "Z_AI_MODE": "ZAI"
+      },
+      "alwaysAllow": [
+        "analyze_image",
+        "analyze_video"
+      ]
+    },
+        "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "alwaysAllow": [
+        "resolve-library-id",
+        "get-library-docs"
+      ]
+    },
+       "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "alwaysAllow": [
+        "sequentialthinking"
+      ]
     }
   }
 }
