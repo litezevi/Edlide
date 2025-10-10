@@ -8,6 +8,8 @@
 2. **Service-First Design**: All functionality implemented as services before UI
 3. **React Component Integration**: Modern React UI with Tailwind CSS
 4. **Privacy-First Data Flow**: Direct provider communication without intermediaries
+5. **Centralized Hub Architecture**: Supabase as central coordination point
+6. **Droplet Proxy Infrastructure**: Scalable proxy server layer with flexible routing
 
 ### Process Separation
 
@@ -25,6 +27,97 @@
      │                                               │
      │              Service Communication             │
      └───────────────────Channel─────────────────────┘
+```
+
+## Backend Architecture (Droplet Infrastructure)
+
+### New Data Flow Architecture
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              COMPLETE EDLIDE ARCHITECTURE                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────┐  ┌─────────────────────────────────────────┐  │
+│  │         IDE Layer            │  │        Backend Services                  │  │
+│  │                             │  │                                     │  │
+│  │  ┌─────────────────────┐  │  │  ┌─────────────────────────────────────┐ │  │
+│  │  │    UI Components   │  │  │  │            Supabase Hub           │ │  │
+│  │  │                   │  │  │  │                               │ │  │
+│  │  │  • Chat Interface │◄─┼──►  │  │  • User Management                │  │
+│  │  │  • Settings      │  │  │  │  • Droplet Routing              │  │
+│  │  │  • Auth Forms     │  │  │  │  • Analytics & Logs              │  │
+│  │  │  │             │  │  │  │ • Payment Processing            │ │  │
+│  │  └─────────────────────┘  │  │  │  • Edge Functions              │ │  │
+│  │                             │  │  └─────────────────────────────────────┘ │  │
+│  └─────────────────────┬───────┘  │                                     │  │
+│                    │          │  ┌─────────────────────────────────────┐ │  │
+│                    │          │  │      Droplet Proxy Layer          │ │  │
+│                    │          │  │  │                               │  │
+│                    │          │  │ │  ┌────┐ ┌────┐ ┌─────┐       │ │  │
+│                    │          │  │  │  │D1  │ D2  │ D3  │       │  │  │
+│                    │          │  │  │  │     │     │     │       │  │  │
+│                    │          │  │  │  │droplet droplet droplet│       │ │  │
+│                    │          │  │  │  │proxy      proxy       │       │ │  │
+│ │                  │          │  │  │ │     │     │     │       │ │  │
+│ │                  │          │  │  │  │     ↓     ↓     │       │ │  │
+│ │                  │          │  │  │  │ │Chutes Chutes Chutes│       │ │  │
+│ │                  │          │  │  │  │ │AI     AI     AI│       │ │  │
+│ │                  │          │  │  │  │           └─────┘       │ │  │
+│ │                  │          │  │  │  └─────────────────────────────────────┘ │  │
+│ │                  │          │  │  │                 │                     │  │ │
+│ │                  │          │  │  │                 │      Response        │ │  │
+│ │                  │          │  │  │                 └─────────────────────┘  │  │
+│ │                  │          │  │  │                           │              │  │
+│ │                  │          │  │  │                 └─────┬────────┘  │  │
+│ │                  │          │  │  │                           │                │  │
+│ │                  │          │  │  │                   ┌──────────┘ │  │
+│ │                  │          │  │  │                   │ Droplet │  │  │
+│ │                  │          │  │  │           ──────► Routing │  │  │
+│ │                  │          │  │  │                   │ └───────┬┘  │  │
+│                  │          │  │  │                   │        │ │  │
+│  │                  │          │  │  │                   │   ┌──────▼─┐ │  │ │
+│  │                  │          │  │  │                   │   │Response │ │ │ │
+│  │                  │          │ └─◄┘ └─────────────────────────────────────┘ │ │ │
+│  │                  │                 │                                 │ │ │
+│  └─────────────────────┴───────────────────────────────────────────────────┘
+```
+
+### Backend Service Dependencies (New)
+```
+Supabase Hub (central coordination)
+├── Droplet Management Service
+│   ├── DigitalOcean API integration
+│   ├── Droplet provisioning and configuration
+│   └── IP address and health monitoring
+├── User Management Service
+│   ├── User-Droplet association
+│   ├── Load balancing logic
+│   └── Session maintenance
+├── Routing Service
+│   ├── Request routing to proper Droplet
+│   │
+│
+│   ├── Fallback handling
+│   └── Health check integration
+├── Chutes API Management
+│   ├── API key rotation per Droplet
+│   ├── Load distribution across Droplets
+│   └── Health monitoring
+├── Analytics Service
+│   ├── Usage statistics collection
+│   ├── Performance metrics
+│   └── Error logging
+└── Notification Service
+    ├── Email alerts for Droplet failures
+    ├── Health status updates
+    └── System monitoring
+
+Edge Functions (serverless API)
+├── Authentication endpoints
+├── Chat routing middleware
+├── User droplet assignment
+├── Payment processing
+└── Health check endpoints
 ```
 
 ## Source Code Paths
