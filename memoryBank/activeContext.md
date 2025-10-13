@@ -10,16 +10,16 @@
 - **Strategic Positioning**: Context bar positioned left of submit/cancel buttons in bottom row
 - **Model-Specific Context Limits**: Different token limits for each Edlide model:
   - **Kimi-K2**: 256,000 tokens
-  - **GLM-4.6**: 200,000 tokens  
+  - **GLM-4.6**: 200,000 tokens
   - **DeepSeek-V3.1-Terminus**: 162,000 tokens
   - **Default**: 128,000 tokens fallback
 - **Visual Design**: Clean circular progress bar matching button size (22px) without white borders
 - **Progress Visualization**: Gray ring with white fill showing context usage percentage
-- **Enhanced Tooltip System**: 
+- **Enhanced Tooltip System**:
   - Quick hover: "15234 / 162000 tokens used"
   - Press and hold (300ms): "15234 / 162000 tokens used (45% full)"
 - **Smart Model Detection**: Automatic detection of model names with multiple matching patterns
-- **Component Architecture**: 
+- **Component Architecture**:
   - `ContextProgressBar` with press-and-hold tooltip functionality
   - `useContextTracker` hook with model-specific context limits
   - Enhanced `VoidChatArea` and `SidebarChat` integration
@@ -44,7 +44,7 @@
 - **Visual Design**: White circular bar matching stop button design, positioned top-right of input field
 - **Chat-specific Context**: Each chat thread has its own context tracking that persists across navigation
 - **Smart Calculations**: Estimates token usage from messages, files, selections, and reasoning content
-- **Integration Points**: 
+- **Integration Points**:
   - New `ContextProgressBar` component in `inputs.tsx`
   - `useContextTracker` hook for real-time context monitoring
   - Enhanced `VoidChatArea` with context bar props
@@ -72,7 +72,7 @@
 - **Autocomplete Location**: Was in Actions section - now completely hidden with `className='hidden'`
 - **Opt-out Default**: Changed `useIsOptedOut` default from `false` to `true` in services.tsx
 - **Autocomplete Default**: Already was `false` by default in voidSettingsTypes.ts
-- **Files Modified**: 
+- **Files Modified**:
   - `Settings.tsx` - Added `hidden` class to both sections
   - `services.tsx` - Changed default opt-out value to `true`
 
@@ -86,8 +86,8 @@
 
 ### Edlide Provider Details:
 - **Base URL**: `https://llm.chutes.ai/v1/`
-- **API Key**: `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`
-- **Models**: 
+- **API Key**: "API_KEY"
+- **Models**:
   - `zai-org/GLM-4.6-turbo`
   - `deepseek-ai/DeepSeek-V3.1-Terminus`
   - `moonshotai/Kimi-K2-Instruct-0905`
@@ -233,7 +233,7 @@
    - Changes: Added ContextProgressBar component with press-and-hold tooltips, model-specific context limits, and strategic positioning
    - Features: Edlide-only detection, real-time percentage calculation, chat-specific persistence, model-aware token limits
    - Visual Design: 22px circular progress bar with gray ring and white fill, positioned left of action buttons
-   - **Technical Implementation**: 
+   - **Technical Implementation**:
      - `ContextProgressBar` component with SVG circular progress and press-and-hold tooltip system
      - `useContextTracker` hook with model-specific context limit detection
      - Enhanced `VoidChatArea` with context props and strategic button row positioning

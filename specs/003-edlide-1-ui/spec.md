@@ -35,7 +35,7 @@
 
     - Используется фиксированный **API key**:
 
-        `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`
+        "API_KEY"
 
     - Этот ключ и адрес должны быть **зашиты в бэкенд**.
 
@@ -83,7 +83,7 @@
 - **FR-002**: System MUST размещать Edlide выше Anthropic в списке провайдеров и делать его выбранным по умолчанию при первом запуске
 - **FR-003**: System MUST предоставлять 4 предустановленные модели Edlide: `zai-org/GLM-4.6-turbo`, `deepseek-ai/DeepSeek-V3.2-Exp`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Instruct-0905`
 - **FR-004**: System MUST включать все модели Edlide по умолчанию без дополнительной настройки и выбирать `zai-org/GLM-4.6-turbo` как модель по умолчанию
-- **FR-005**: System MUST использовать встроенный API ключ `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5` для всех запросов к Edlide
+- **FR-005**: System MUST использовать встроенный API ключ "API_KEY" для всех запросов к Edlide
 - **FR-006**: System MUST использовать встроенный base URL `https://llm.chutes.ai/v1/` для всех запросов к Edlide
 - **FR-007**: System MUST полностью скрывать API ключ и base URL от пользователя в UI для провайдера Edlide, не отображать их нигде в интерфейсе
 - **FR-008**: System MUST исключать Edlide из выпадающего списка "Add a Model" для добавления кастомных моделей

@@ -40,7 +40,7 @@
 **Edlide Integration Requirements:**
 - Add `edlide` case to `newOpenAICompatibleSDK()`
 - Use hardcoded API endpoint: `https://llm.chutes.ai/v1/`
-- Use hardcoded API key: `cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`
+- Use hardcoded API key: `"API_KEY"
 
 ### 4. UI Integration (`Settings.tsx`)
 
