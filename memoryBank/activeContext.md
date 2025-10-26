@@ -5,8 +5,24 @@
 **Session Date**: 2025-10-07 (Updated)
 **Branch**: `main`
 **Primary Feature**: Context Progress Bar - Added visual context tracking for Edlide models
+- **Exclusive Model Implementation**:
+  - Removed "openai/gpt-oss-20b" from general Edlide model list
+  - Configured SCM to use dedicated model by default: `{ providerName: 'edlide', modelName: 'openai/gpt-oss-20b' }`
+  - Model is completely hidden from users and only accessible via commit generator
+- **UI Cleanup**:
+  - Completely hidden "Commit Message Generator" section from Actions settings
+  - Removed ModelDropdown for SCM from sidebar interface
+  - Users cannot see or change SCM model configuration
+- **Past Tense Commit Messages**:
+  - Updated commit prompt to generate messages in past tense only
+  - Modified system message: "Write ALL commit messages in past tense as if the changes have already been completed"
+  - Updated examples: "Fixed login bug..." instead of "Fix login bug..."
+  - Changed reasoning examples to past tense: "This commit updated..." instead of "This commit updates..."
 
-### Latest Changes (2025-10-27 - Complete Edlide Model UI Overhaul)
+### Latest Changes (2025-10-27 - SCM Commit Generator Optimization & Provider Cleanup)
+- **Dedicated SCM Model**: Configured exclusive "openai/gpt-oss-20b" model for commit message generation
+
+### Previous Changes (2025-10-07 - - Complete Edlide Model UI Overhaul)
 - **Backend Model Update**: Changed `zai-org/GLM-4.6-turbo` to `zai-org/GLM-4.6-FP8` in backend
 - **Base URL Update**: Changed from `https://llm.chutes.ai/v1/` to `https://zzevi-ai.bekaitegin.me/v1/`
 - **Pretty Model Names Implementation**:
