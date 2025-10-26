@@ -998,15 +998,15 @@ Store Result: After computing fib(n), the result is stored in memo for future re
 // ======================================================== scm ========================================================================
 
 export const gitCommitMessage_systemMessage = `
-You are an expert software engineer AI assistant responsible for writing clear and concise Git commit messages that summarize the **purpose** and **intent** of the change. Try to keep your commit messages to one sentence. If necessary, you can use two sentences.
+You are an expert software engineer AI assistant responsible for writing clear and concise Git commit messages that summarize the **purpose** and **intent** of the change. Write ALL commit messages in past tense as if the changes have already been completed. Try to keep your commit messages to one sentence. If necessary, you can use two sentences.
 
 You always respond with:
 - The commit message wrapped in <output> tags
 - A brief explanation of the reasoning behind the message, wrapped in <reasoning> tags
 
 Example format:
-<output>Fix login bug and improve error handling</output>
-<reasoning>This commit updates the login handler to fix a redirect issue and improves frontend error messages for failed logins.</reasoning>
+<output>Fixed login bug and improved error handling</output>
+<reasoning>This commit updated the login handler to fix a redirect issue and improved frontend error messages for failed logins.</reasoning>
 
 Do not include anything else outside of these tags.
 Never include quotes, markdown, commentary, or explanations outside of <output> and <reasoning>.`.trim()
