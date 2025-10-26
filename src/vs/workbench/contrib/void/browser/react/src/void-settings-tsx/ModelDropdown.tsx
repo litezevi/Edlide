@@ -22,6 +22,22 @@ const optionsEqual = (m1: ModelOption[], m2: ModelOption[]) => {
 	return true
 }
 
+// Helper function to get display name for models (removes provider prefixes)
+const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
+	if (providerName === 'edlide') {
+		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-09-05'
+	}
+	return modelName
+}
+
+// Helper function to get display name for providers (capitalizes Edlide)
+const getProviderDisplayName = (providerName: ProviderName): string => {
+	if (providerName === 'edlide') return 'Edlide'
+	return providerName
+}
+
 const ModelSelectBox = ({ options, featureName, className }: { options: ModelOption[], featureName: FeatureName, className: string }) => {
 	const accessor = useAccessor()
 	const voidSettingsService = accessor.get('IVoidSettingsService')
@@ -37,9 +53,9 @@ const ModelSelectBox = ({ options, featureName, className }: { options: ModelOpt
 		options={options}
 		selectedOption={selectedOption}
 		onChangeOption={onChangeOption}
-		getOptionDisplayName={(option) => option.selection.modelName}
-		getOptionDropdownName={(option) => option.selection.modelName}
-		getOptionDropdownDetail={(option) => option.selection.providerName}
+		getOptionDisplayName={(option) => getModelDisplayName(option.selection.modelName, option.selection.providerName)}
+		getOptionDropdownName={(option) => getModelDisplayName(option.selection.modelName, option.selection.providerName)}
+  getOptionDropdownDetail={(option) => getProviderDisplayName(option.selection.providerName)}
 		getOptionsEqual={(a, b) => optionsEqual([a], [b])}
 		className={className}
 		matchInputWidth={false}

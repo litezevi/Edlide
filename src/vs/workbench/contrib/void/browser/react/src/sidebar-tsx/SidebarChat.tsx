@@ -35,6 +35,17 @@ import { ToolApprovalTypeSwitch } from '../void-settings-tsx/Settings.js';
 
 import { persistentTerminalNameOfId } from '../../../terminalToolService.js';
 import { removeMCPToolNamePrefix } from '../../../../common/mcpServiceTypes.js';
+import { ProviderName } from '../../../../../../../workbench/contrib/void/common/voidSettingsTypes.js';
+
+// Helper function to get display name for models (removes provider prefixes)
+const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
+	if (providerName === 'edlide') {
+		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-09-05'
+	}
+	return modelName
+}
 
 // Hook for tracking context window usage
 const useContextTracker = (threadId: string, featureName: FeatureName) => {
@@ -73,7 +84,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
 				return 256000; // kimi-k2: 256k tokens
 			}
-			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6')) {
+			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
 				return 200000; // glm-4.6: 200k tokens
 			}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
@@ -3056,7 +3067,7 @@ export const SidebarChat = () => {
 		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
 			return 256000; // kimi-k2: 256k tokens
 		}
-		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6')) {
+		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
 			return 200000; // glm-4.6: 200k tokens
 		}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {

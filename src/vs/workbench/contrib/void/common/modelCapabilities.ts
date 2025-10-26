@@ -11,7 +11,7 @@ import { FeatureName, ModelSelectionOptions, OverridesOfModel, ProviderName } fr
 
 export const defaultProviderSettings = {
 	edlide: {
-		apiKey: 'cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5',
+		apiKey: 'sk-zzevi-ccefee02d905839882a7d657e9f0510973c58f7e0124d3e1c1eac2037b2195e9',
 	},
 	anthropic: {
 		apiKey: '',
@@ -76,7 +76,7 @@ export const defaultProviderSettings = {
 
 export const defaultModelsOfProvider = {
 	edlide: [
-		'zai-org/GLM-4.6-turbo',
+		'zai-org/GLM-4.6-FP8',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
 		'moonshotai/Kimi-K2-Instruct-0905'
 	],
@@ -1116,7 +1116,7 @@ const microsoftAzureSettings: VoidStaticProviderInfo = {
 const awsBedrockModelOptions = {
 } as const satisfies Record<string, VoidStaticModelInfo>
 
-	const awsBedrockSettings: VoidStaticProviderInfo = {
+const awsBedrockSettings: VoidStaticProviderInfo = {
 	modelOptions: awsBedrockModelOptions,
 	modelOptionsFallback: (modelName) => { return null },
 	providerReasoningIOSettings: {
@@ -1126,7 +1126,7 @@ const awsBedrockModelOptions = {
 
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
-	'zai-org/GLM-4.6-turbo': {
+	'zai-org/GLM-4.6-FP8': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },

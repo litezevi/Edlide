@@ -6,7 +6,27 @@
 **Branch**: `main`
 **Primary Feature**: Context Progress Bar - Added visual context tracking for Edlide models
 
-### Latest Changes (2025-10-07 - Final Context Progress Bar Implementation)
+### Latest Changes (2025-10-27 - Complete Edlide Model UI Overhaul)
+- **Backend Model Update**: Changed `zai-org/GLM-4.6-turbo` to `zai-org/GLM-4.6-FP8` in backend
+- **Base URL Update**: Changed from `https://llm.chutes.ai/v1/` to `https://zzevi-ai.bekaitegin.me/v1/`
+- **Pretty Model Names Implementation**:
+  - **Backend IDs**: `zai-org/GLM-4.6-FP8`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Instruct-0905`
+  - **Frontend Display**: `glm-4.6`, `deepseek-v3.1-terminus`, `kimi-k2-09-05` (provider prefixes removed)
+- **UI Components Updated**:
+  - `ModelDropdown.tsx`: Added `getModelDisplayName()` function for pretty model names
+  - `SidebarChat.tsx`: Added `getModelDisplayName()` function for pretty model names
+  - `Settings.tsx`: Added `getModelDisplayName()` function for pretty model names
+  - All settings dialog updated to use pretty model names
+- **Context Tracker Updated**: Added GLM-4.6-FP8 pattern recognition for context limits
+- **Provider Name Capitalization**: Fixed `edlide` → `Edlide` in sidebar chat display
+- **Complete UI Consistency**: Now ALL UI locations show pretty model names:
+  - Model selection dropdowns
+  - Settings panels
+  - Chat interface
+  - Modal dialogs
+  - Context bars
+
+### Previous Changes (2025-10-07 - Final Context Progress Bar Implementation)
 - **Strategic Positioning**: Context bar positioned left of submit/cancel buttons in bottom row
 - **Model-Specific Context Limits**: Different token limits for each Edlide model:
   - **Kimi-K2**: 256,000 tokens

@@ -29,6 +29,16 @@ import { IVoidModelService } from '../../../../common/voidModelService.js';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../../../../base/common/buffer.js';
 
+// Helper function to get display name for models (removes provider prefixes)
+const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
+	if (providerName === 'edlide') {
+		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-09-05'
+	}
+	return modelName
+}
+
 type Tab =
 	| 'general'
 	| 'actions'
@@ -559,7 +569,7 @@ const SimpleModelSettingsDialog = ({
 			>
 				<div className="flex justify-between items-center mb-4">
 					<h3 className="text-lg font-medium">
-						Change Defaults for {modelName} ({displayInfoOfProviderName(providerName).title})
+  Change Defaults for {getModelDisplayName(modelName, providerName)} ({displayInfoOfProviderName(providerName).title})
 					</h3>
 					<button
 						onClick={onClose}
@@ -571,10 +581,10 @@ const SimpleModelSettingsDialog = ({
 
 				{/* Display model recognition status */}
 				<div className="text-sm text-void-fg-3 mb-4">
-					{type === 'default' ? `${modelName} comes packaged with Edlide, so you shouldn't need to change these settings.`
-						: isUnrecognizedModel
-							? `Model not recognized by Edlide.`
-							: `Edlide recognizes ${modelName} ("${recognizedModelName}").`}
+	{type === 'default' ? `${getModelDisplayName(modelName, providerName)} comes packaged with Edlide, so you shouldn't need to change these settings.`
+		: isUnrecognizedModel
+			? `Model not recognized by Edlide.`
+			: `Edlide recognizes ${getModelDisplayName(modelName, providerName)} ("${recognizedModelName}").`}
 				</div>
 
 
@@ -725,7 +735,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 				{/* left part is width:full */}
 				<div className={`flex flex-grow items-center gap-4`}>
 					<span className='w-full max-w-32'>{isNewProviderName ? providerTitle : ''}</span>
-					<span className='w-fit max-w-[400px] truncate'>{modelName}</span>
+  <span className='w-fit max-w-[400px] truncate'>{getModelDisplayName(modelName, providerName)}</span>
 				</div>
 
 				{/* right part is anything that fits */}
