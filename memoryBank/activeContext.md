@@ -19,8 +19,20 @@
   - Updated examples: "Fixed login bug..." instead of "Fix login bug..."
   - Changed reasoning examples to past tense: "This commit updated..." instead of "This commit updates..."
 
-### Latest Changes (2025-10-27 - SCM Commit Generator Optimization & Provider Cleanup)
+### Latest Changes (2025-10-27 - Edlide Model Configuration Optimization & Advanced Settings Cleanup)
+- **Enhanced Context Windows**: Updated default context window sizes for Edlide models:
+  - **zai-org/GLM-4.6-FP8**: 202,752 tokens (increased from 128,000)
+  - **moonshotai/Kimi-K2-Instruct-0905**: 262,144 tokens (increased from 128,000)
+  - **deepseek-ai/DeepSeek-V3.1-Terminus**: 163,840 tokens (increased from 128,000)
+- **Standardized Output Space**: Set reservedOutputTokenSpace to 32,768 tokens for all Edlide models
+- **Advanced Settings Hidden**: Removed "Advanced Settings" button from UI for Edlide provider models
+- **User Experience Simplification**: Edlide users now have optimized defaults without confusing advanced options
+- **Backend Compatibility**: All functionality preserved, only UI access restricted
+- **File Modified**: Updated `src/vs/workbench/contrib/void/common/modelCapabilities.ts` and `Settings.tsx`
+
+### Previous Changes (2025-10-27 - SCM Commit Generator Optimization & Provider Cleanup)
 - **Dedicated SCM Model**: Configured exclusive "openai/gpt-oss-20b" model for commit message generation
+>>>>>>> REPLACE
 
 ### Previous Changes (2025-10-07 - - Complete Edlide Model UI Overhaul)
 - **Backend Model Update**: Changed `zai-org/GLM-4.6-turbo` to `zai-org/GLM-4.6-FP8` in backend
@@ -278,7 +290,16 @@
      - Press-and-hold tooltip system with 300ms delay for enhanced information display
    - **Latest Update**: Final implementation with model-specific limits, clean visual design, and optimized tooltip system
 
-4. **Project Rules File Management**
+4. **Edlide Model Configuration Management**
+   - Location: `src/vs/workbench/contrib/void/common/modelCapabilities.ts` and `Settings.tsx`
+   - Status: Enhanced - Optimized context windows and simplified UI
+   - Changes: Updated model capabilities and hidden advanced settings for Edlide provider
+   - Context Windows: Significantly increased for all Edlide models with optimal token allocation
+   - UI Simplification: Advanced settings button hidden for Edlide models to reduce complexity
+   - File Operations: Enhanced user experience with pre-configured optimal defaults
+   - **Latest Update**: Production-ready model configuration with simplified user interface
+
+5. **Project Rules File Management**
    - Location: `Settings.tsx` lines 312-327, 238, 206
    - Status: Enhanced - New tab opening and improved UI filename display
    - Changes: Updated handleEditFile command, simplified UI filename display
@@ -287,7 +308,7 @@
    - File Operations: Maintains full file paths internally for system operations
    - **Latest Update**: Enhanced user experience with better tab management and cleaner interface
 
-3. **Chat Interface Updates**
+6. **Chat Interface Updates**
    - Location: `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
    - Status: Complete - Chat mode naming and descriptions updated
    - Changes: Updated nameOfChatMode and detailOfChatMode objects
@@ -298,15 +319,16 @@
      - Agent: "Edits files and uses tools" (full functionality)
    - **Latest Update**: Fixed capitalization for professional appearance in chat descriptions
 
-3. **Constitution & Templates**
+7. **Constitution & Templates**
    - Location: `.specify/` directory
    - Status: Recently updated with AI integration principles
    - Templates: Updated for new feature workflow
 
-4. **Memory Bank System**
+8. **Memory Bank System**
    - Location: `memoryBank/` directory
    - Status: Actively maintained with current project state
    - Coverage: All core files regularly updated
+>>>>>>> REPLACE
 
 ## Immediate Technical Debt
 
@@ -409,8 +431,10 @@ Most TypeScript warnings in Settings.tsx have been resolved:
 - ✅ **NEW: Strategic Positioning**: Context bar positioned left of submit/cancel buttons in bottom row
 - ✅ **NEW: Clean Visual Design**: No white borders, gray ring with white fill, matching button size
 - ✅ **NEW: Smart Model Detection**: Multiple matching patterns for accurate model identification
+- ✅ **NEW: Edlide Model Optimization**: Enhanced context windows with standardized output space and simplified UI
 
 ### Short Term (Next Session - NEW FOCUS AREAS)
+>>>>>>> REPLACE
 - **ENHANCED CONTEXT BAR TESTING**: Verify improved positioning and tooltip functionality work correctly
 - **TOOLTIP ACCURACY VALIDATION**: Test token count display matches actual context usage across different scenarios
 - **UI INTEGRATION TESTING**: Ensure context bar positioning inside input area doesn't interfere with text input
