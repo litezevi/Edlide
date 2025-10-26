@@ -283,10 +283,11 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 			if (typeof readS.globalSettings.autoApprove === 'boolean') readS.globalSettings.autoApprove = {}
 
 			// 1.3.5 add source control feature
-			if (readS.modelSelectionOfFeature && !readS.modelSelectionOfFeature['SCM']) {
-				readS.modelSelectionOfFeature['SCM'] = deepClone(readS.modelSelectionOfFeature['Chat'])
-				readS.optionsOfModelSelection['SCM'] = deepClone(readS.optionsOfModelSelection['Chat'])
-			}
+		if (readS.modelSelectionOfFeature && !readS.modelSelectionOfFeature['SCM']) {
+			// Set SCM to use the specific gpt-oss-20b model for commit message generation
+			readS.modelSelectionOfFeature['SCM'] = { providerName: 'edlide', modelName: 'openai/gpt-oss-20b' }
+			readS.optionsOfModelSelection['SCM'] = {}
+		}
 			// add disableSystemMessage feature
 			if (readS.globalSettings.disableSystemMessage === undefined) readS.globalSettings.disableSystemMessage = false;
 			

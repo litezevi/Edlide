@@ -78,8 +78,7 @@ export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6-FP8',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
-		'moonshotai/Kimi-K2-Instruct-0905',
-		'openai/gpt-oss-20b'
+		'moonshotai/Kimi-K2-Instruct-0905'
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
 		'gpt-5-high',
@@ -1148,16 +1147,6 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'moonshotai/Kimi-K2-Instruct-0905': {
-		contextWindow: 128_000,
-		reservedOutputTokenSpace: 8_192,
-		cost: { input: 0, output: 0 },
-		downloadable: false,
-		supportsFIM: false,
-		supportsSystemMessage: 'system-role',
-		specialToolFormat: 'openai-style',
-		reasoningCapabilities: false,
-	},
-	'openai/gpt-oss-20b': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },

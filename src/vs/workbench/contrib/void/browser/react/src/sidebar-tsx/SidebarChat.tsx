@@ -518,16 +518,16 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 
 			{/* Bottom row */}
 			<div className='flex flex-row justify-between items-end gap-1'>
-				{showModelDropdown && (
-					<div className='flex flex-col gap-y-1'>
-						<ReasoningOptionSlider featureName={featureName} />
+			{showModelDropdown && featureName !== 'SCM' && (
+				<div className='flex flex-col gap-y-1'>
+					<ReasoningOptionSlider featureName={featureName} />
 
-						<div className='flex items-center flex-wrap gap-x-2 gap-y-1 text-nowrap '>
-							{featureName === 'Chat' && <ChatModeDropdown className='text-xs text-void-fg-3 bg-void-bg-1 border border-void-border-2 rounded py-0.5 px-1' />}
-							<ModelDropdown featureName={featureName} className='text-xs text-void-fg-3 bg-void-bg-1 rounded' />
-						</div>
+					<div className='flex items-center flex-wrap gap-x-2 gap-y-1 text-nowrap '>
+						{featureName === 'Chat' && <ChatModeDropdown className='text-xs text-void-fg-3 bg-void-bg-1 border border-void-border-2 rounded py-0.5 px-1' />}
+						<ModelDropdown featureName={featureName} className='text-xs text-void-fg-3 bg-void-bg-1 rounded' />
 					</div>
-				)}
+				</div>
+			)}
 
 				<div className="flex items-center gap-2">
 
