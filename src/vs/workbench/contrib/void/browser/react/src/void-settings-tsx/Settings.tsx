@@ -741,8 +741,8 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 				{/* right part is anything that fits */}
 				<div className="flex items-center gap-2 w-fit">
 
-					{/* Advanced Settings button (gear). Hide entirely when provider/model disabled. */}
-					{disabled ? null : (
+					{/* Advanced Settings button (gear). Hide entirely when provider/model disabled or for edlide provider. */}
+					{disabled || providerName === 'edlide' ? null : (
 						<div className="w-5 flex items-center justify-center">
 							<button
 								onClick={() => { setOpenSettingsModel({ modelName, providerName, type }) }}
