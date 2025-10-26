@@ -654,7 +654,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	const modelDump: (VoidStatefulModelInfo & { providerName: ProviderName, providerEnabled: boolean })[] = []
 
 	// Providers to exclude from add model dropdown
-	const providersToExcludeFromAddModel: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide']
+	const providersToExcludeFromAddModel: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide', 'openAICompatible']
 
 	// Providers to exclude from models display (only exclude local providers that need refresh)
 	const providersToExcludeFromModels: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock']
@@ -1016,8 +1016,8 @@ export const SettingsForProvider = ({ providerName, showProviderTitle, showProvi
 
 
 export const VoidProviderSettings = ({ providerNames }: { providerNames: ProviderName[] }) => {
-  // Providers to completely exclude from Main Providers (headings and settings)
-  const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide']
+	// Providers to completely exclude from Main Providers (headings and settings)
+	const providersToExclude: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM', 'googleVertex', 'microsoftAzure', 'awsBedrock', 'edlide', 'openAICompatible']
 
 	// Filter out excluded providers
 	const visibleProviders = providerNames.filter(providerName => !providersToExclude.includes(providerName))
