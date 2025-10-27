@@ -52,7 +52,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	const accessor = useAccessor();
 	const voidSettingsService = accessor.get('IVoidSettingsService');
 	const chatThreadService = accessor.get('IChatThreadService');
-	
+
 	const [contextPercentage, setContextPercentage] = useState(0);
 	const [showContextBar, setShowContextBar] = useState(false);
 
@@ -78,20 +78,20 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		// Get model-specific context limit
 		const modelSelection = voidSettingsService.state.modelSelectionOfFeature[featureName];
 		const modelName = modelSelection?.modelName || '';
-		
+
 		// Model-specific context limits
 		const getModelContextLimit = (modelName: string): number => {
 			if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-				return 256000; // kimi-k2: 256k tokens
+				return 262144; // kimi-k2: 256k tokens
 			}
 			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
-				return 200000; // glm-4.6: 200k tokens
+				return 202752; // glm-4.6: 200k tokens
 			}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
-			return 162000; // deepseek v3.1 terminus: 162k tokens
+			return 163840; // deepseek v3.1 terminus: 162k tokens
 		}
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
-			return 162000; // deepseek v3.1 terminus: 162k tokens (exact match)
+			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 162000; // deepseek v3.1 variants: 162k tokens
@@ -445,7 +445,7 @@ interface VoidChatAreaProps {
 	onClose?: () => void;
 
 	featureName: FeatureName;
-	
+
 	// Context bar props
 	contextPercentage?: number;
 	showContextBar?: boolean;
@@ -533,8 +533,8 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 
 					{/* Context bar - positioned left of stop/submit buttons */}
 					{showContextBar && (
-						<ContextProgressBar 
-							percentage={contextPercentage} 
+						<ContextProgressBar
+							percentage={contextPercentage}
 							size="md"
 							tooltipText={contextTooltipText}
 						/>
@@ -3062,7 +3062,7 @@ export const SidebarChat = () => {
 	// Get current model and calculate exact token count for tooltip
 	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
 	const modelName = modelSelection?.modelName || '';
-	
+
 	const getModelContextLimit = (modelName: string): number => {
 		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
 			return 256000; // kimi-k2: 256k tokens
