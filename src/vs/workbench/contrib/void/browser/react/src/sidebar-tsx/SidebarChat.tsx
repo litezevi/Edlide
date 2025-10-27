@@ -3065,16 +3065,16 @@ export const SidebarChat = () => {
 
 	const getModelContextLimit = (modelName: string): number => {
 		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-			return 256000; // kimi-k2: 256k tokens
+			return 262144; // kimi-k2: 256k tokens
 		}
 		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
-			return 200000; // glm-4.6: 200k tokens
+			return 202752; // glm-4.6: 200k tokens
 		}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
-			return 162000; // deepseek v3.1 terminus: 162k tokens
+			return 163840; // deepseek v3.1 terminus: 162k tokens
 		}
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
-			return 162000; // deepseek v3.1 terminus: 162k tokens (exact match)
+			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 162000; // deepseek v3.1 variants: 162k tokens
