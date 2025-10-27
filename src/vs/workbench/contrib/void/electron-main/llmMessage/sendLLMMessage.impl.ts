@@ -345,15 +345,47 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 	let toolId = ''
 	let toolParamsStr = ''
 
+	// JSON input logging removed as requested
+
 	openai.chat.completions
 		.create(options)
 		.then(async response => {
 			_setAborter(() => response.controller.abort())
-			// when receive text
-			for await (const chunk of response) {
-				// message
-				const newText = chunk.choices[0]?.delta?.content ?? ''
-				fullTextSoFar += newText
+			
+		// Variables to collect full response data
+		let fullResponseData: any = {
+			usage: null,
+			model: modelName,
+			created: null,
+			id: null,
+			object: null
+		}
+
+		// when receive text
+		for await (const chunk of response) {
+			// Log each raw chunk to see complete response
+			console.log(`[EDLIDE JSON RAW CHUNK] ${providerName} ${modelName}:`, JSON.stringify(chunk, null, 2))
+			
+			// Collect usage info when available
+			if (chunk.usage) {
+				fullResponseData.usage = chunk.usage
+			}
+			if (chunk.model) {
+				fullResponseData.model = chunk.model
+			}
+			if (chunk.created) {
+				fullResponseData.created = chunk.created
+			}
+			if (chunk.id) {
+				fullResponseData.id = chunk.id
+			}
+			if (chunk.object) {
+				fullResponseData.object = chunk.object
+			}
+
+			// message
+			const newText = chunk.choices[0]?.delta?.content ?? ''
+			fullTextSoFar += newText
 
 				// tool call
 				for (const tool of chunk.choices[0]?.delta?.tool_calls ?? []) {
@@ -384,9 +416,29 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 			}
 			// on final
 			if (!fullTextSoFar && !fullReasoningSoFar && !toolName) {
+				console.log(`[EDLIDE JSON RESPONSE EMPTY] ${providerName} ${modelName}:`, JSON.stringify({
+					provider: providerName,
+					model: modelName,
+					fullResponseData: fullResponseData,
+					timestamp: new Date().toISOString()
+				}, null, 2))
 				onError({ message: 'Edlide: Response from model was empty.', fullError: null })
 			}
 			else {
+				// Log complete response with full API data including total_tokens
+				console.log(`[EDLIDE JSON RESPONSE COMPLETE] ${providerName} ${modelName}:`, JSON.stringify({
+					provider: providerName,
+					raw_response: fullResponseData,
+					response_text: fullTextSoFar,
+					response_reasoning: fullReasoningSoFar,
+					tool_call: toolName ? {
+						name: toolName,
+						id: toolId,
+						params: toolParamsStr
+					} : null,
+					timestamp: new Date().toISOString()
+				}, null, 2))
+				
 				const toolCall = rawToolCallObjOfParamsStr(toolName, toolParamsStr, toolId)
 				const toolCallObj = toolCall ? { toolCall } : {}
 				onFinalMessage({ fullText: fullTextSoFar, fullReasoning: fullReasoningSoFar, anthropicReasoning: null, ...toolCallObj });
@@ -394,6 +446,18 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 		})
 		// when error/fail - this catches errors of both .create() and .then(for await)
 		.catch(error => {
+			console.log(`[EDLIDE JSON RESPONSE ERROR] ${providerName} ${modelName}:`, JSON.stringify({
+				provider: providerName,
+				model: modelName,
+				error: {
+					message: error.message,
+					status: (error as any).status,
+					type: error.constructor.name,
+					full_error: error + ''
+				},
+				timestamp: new Date().toISOString()
+			}, null, 2))
+			
 			if (error instanceof OpenAI.APIError && error.status === 401) { onError({ message: invalidApiKeyMessage(providerName), fullError: error }); }
 			else { onError({ message: error + '', fullError: error }); }
 		})
