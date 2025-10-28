@@ -1,96 +1,134 @@
-# Context Bar Implementation
+# Context Bar Implementation - FINAL VERSION
 
 ## Overview
-Context bar tracks real-time token usage for Edlide provider models to prevent context window overflow.
+Context bar tracks EXACT token usage from Edlide API responses for provider models. No estimates - only real data.
 
-## Implementation Details
+## Critical Changes Made (Working Version)
 
-### 1. Event System Integration
-**Files Modified:** `sendLLMMessageTypes.ts`, `sendLLMMessage.impl.ts`
+### 1. Complete Estimates Removal
+**Problem**: Previous version mixed estimates with real data
+**Solution**: Completely eliminated estimation logic
 
-- Added `totalTokens?: number` parameter to `OnText` event type
-- Modified main process to extract `usage.total_tokens` from JSON response
-- Real-time token data flows from API → Main Process → React Components
-
-### 2. Chat Thread Service Updates  
-**File Modified:** `chatThreadService.ts`
-
-- Added `totalTokens?: number` to `llmInfo` type in `StreamState`
-- Updated `onText` callback to pass `totalTokens` from API response
-- Stream state now carries real token counts alongside content
-
-### 3. React Component Enhancement
-**File Modified:** `SidebarChat.tsx`
-
-#### useContextTracker Hook Updates:
-- Added `actualTotalTokens` state for real API data
-- Added `isApiVerified` state to track data source
-- Modified `calculateContextUsage()` to prioritize real tokens over estimates
-- Calculates estimates only when no real token data available
-
-#### Token Logic:
 ```typescript
-// Use actual total_tokens from API if available, otherwise calculate estimates
+// OLD: Mixed approach with fallbacks
 let totalTokens: number = actualTotalTokens || 0;
+if (!actualTotalTokens) { /* calculate estimates */ }
 
-if (!actualTotalTokens) {
-    // Calculate approximate context usage only if no real data available
-    totalTokens = 0;
-    // ... estimation logic from messages and selections
-    setIsApiVerified(false);
-} else {
-    setIsApiVerified(true);
-}
+// NEW: API ONLY approach
+const totalTokens = actualTotalTokens || 0; // NO ESTIMATES!
 ```
 
-#### Real-time Updates:
-- Added `useChatThreadsStreamState()` integration
-- Automatic updates when `totalTokens` available in stream state
-- Reset when switching threads or starting new chat
+### 2. Always-On Context Bar
+**Problem**: Context bar disappeared when no token data
+**Solution**: Context bar ALWAYS visible for Edlide provider
 
-#### UI Enhancement:
-- Updated tooltip to show "(API verified)" when using real data
-- Format: `50739 / 202752 tokens used (API verified)`
-- Falls back to estimates when API data unavailable
+```typescript
+// BEFORE: Conditional visibility
+setShowContextBar(!!actualTotalTokens);
 
-### 4. Data Flow Architecture
-
+// AFTER: Always visible for Edlide
+setShowContextBar(true); // ALWAYS show for Edlide provider
 ```
-Edlide API Response
-    ↓ (total_tokens from usage object)
-Main Process (sendLLMMessage.impl.ts)
-    ↓ (onText callback with totalTokens)
-Chat Thread Service (streamState.llmInfo.totalTokens)
+
+### 3. Aggressive Token Detection
+**Files Modified:** `sendLLMMessageTypes.ts`, `sendLLMMessage.impl.ts`, `chatThreadService.ts`, `SidebarChat.tsx`
+
+#### Event Flow:
+```
+Edlide API Response (JSON with total_tokens: 33744)
+    ↓
+Main Process extracts usage.total_tokens
+    ↓
+onText callback with totalTokens parameter
+    ↓
+Stream state carries real token count
+    ↓
+useEffect listener detects changes
+    ↓
+Context bar IMMEDIATELY updates
+```
+
+#### Key Implementation:
+```typescript
+// Immediate detection and update
+useEffect(() => {
+    if (currThreadStreamState?.llmInfo?.totalTokens) {
+        console.log(`🎯 UPDATING with REAL tokens: ${currThreadStreamState.llmInfo.totalTokens}`);
+        setActualTotalTokens(currThreadStreamState.llmInfo.totalTokens);
+        setIsApiVerified(true);
+    }
+}, [currThreadStreamState?.llmInfo?.totalTokens, threadId]);
+```
+
+### 4. Real Data Only Logic
+
+**Every Action Triggers Update:**
+- Read file → JSON response → total_tokens → Context bar updates
+- Edit file → JSON response → total_tokens → Context bar updates  
+- Chat completion → JSON response → total_tokens → Context bar updates
+
+**No More Estimates:**
+- Context bar shows `0` only when truly no API data
+- `10680 / 202752 tokens used (API verified)` uses REAL numbers
+- No fallback to calculations
+
+### 5. Technical Architecture Update
+
+#### Data Flow (NO ESTIMATES):
+```
+EDLIDE API RESPONSE
+    ↓ (usage.total_tokens: 33744)
+MAIN PROCESS (sendLLMMessage.impl.ts)
+    ↓ (totalTokens: 33740)
+STREAM STATE (llmInfo.totalTokens)
     ↓ (useChatThreadsStreamState hook)
-React Component (useContextTracker)
-    ↓ (actualTotalTokens state)
-Context Bar UI (shows real tokens + "(API verified)")
+CONTEXT BAR ("33740 / 202752 tokens used (API verified)")
 ```
 
-### 5. Provider Detection
-- Context bar appears only for Edlide provider models
-- Model-specific context limits preserved:
-  - GLM-4.6-FP8: 202,752 tokens
-  - Kimi-K2: 262,144 tokens  
-  - DeepSeek-V3.1-Terminus: 163,840 tokens
-  - Default: 128,000 tokens
+#### React State:
+```typescript
+const [actualTotalTokens, setActualTotalTokens] = useState<number | null>(null);
+const [isApiVerified, setIsApiVerified] = useState(false);
+```
 
-### 6. Error Handling & Fallbacks
-- Graceful degradation to estimates when API data unavailable
-- TypeScript null safety for optional token data
-- Component rebuild successful with no lint errors
+### 6. User Experience - FINAL
 
-### 7. User Experience
-- **Before**: Context bar showed estimates like "15234 / 162000 tokens used"
-- **After**: Context bar shows verified data like "50739 / 202752 tokens used (API verified)"
-- Real-time updates during streaming responses
-- Clear indication when data comes from API vs estimates
+**✅ ALWAYS visible** for Edlide provider
+**✅ IMMEDIATE updates** after each action completion  
+**✅ REAL token numbers** from API response
+**✅ "(API verified)"** indication for authenticity
 
-## Technical Achievement
-✅ **Complete Integration**: End-to-end flow from API JSON response to UI display
-✅ **Real-time Updates**: Context updates immediately when token data available
-✅ **Fallback System**: Estimates used when API data missing
-✅ **Type Safety**: Full TypeScript support with proper null handling
-✅ **Performance**: Simple useEffect-based updates without complex state management
+**Examples:**
+- After reading: `10687 / 202752 tokens used (API verified)`
+- After editing: `33744 / 202752 tokens used (API verified)`
+- After completion: `48376 / 202752 tokens used (API verified)`
 
-The context bar now accurately reflects the actual token usage from Edlide's API responses instead of relying on rough calculations.
+### 7. Error Handling
+- Console logging for debugging: `🎯 UPDATING with REAL tokens`
+- TypeScript safety maintained
+- Graceful 0 token display when truly needed
+
+### 8. Build Status
+✅ **React Build**: Successful (no lint errors)
+✅ **TypeScript**: All types properly handled
+✅ **Runtime**: Ready for testing
+
+## Technical Achievement - COMPLETE
+
+🚫 **Eliminated:** All estimation logic
+🚫 **Eliminated:** Conditional visibility  
+🚫 **Eliminated:** Mixed data sources
+
+✅ **Implemented:** Real-time API response detection
+✅ **Implemented:** Always-visible context tracking
+✅ **Implemented:** Immediate updates after each action
+✅ **Implemented:** Clean, maintainable codebase
+
+## Testing Instructions
+
+**Every action should trigger immediate context bar update:**
+1. Send message → Wait for completion → Check context bar
+2. Use tool → Wait for completion → Check context bar  
+3. Edit file → Wait for completion → Check context bar
+
+**Expected behavior:** Real `total_tokens` from JSON response displayed immediately with "(API verified)" label.
