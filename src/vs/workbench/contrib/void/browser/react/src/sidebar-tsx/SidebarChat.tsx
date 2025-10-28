@@ -103,47 +103,18 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 
   	const maxContextTokens = getModelContextLimit(modelName);
 
-  	// Use actual total_tokens from API if available, otherwise calculate estimates
-		let totalTokens: number = actualTotalTokens || 0;
+  	// ALWAYS use real total_tokens from API - no estimates!
+		const totalTokens = actualTotalTokens || 0;
 		
-		if (!actualTotalTokens) {
-			// Calculate approximate context usage only if no real data available
-			totalTokens = 0;
-
-			// Count tokens from messages
-			for (const message of thread.messages) {
-				if (message.role === 'user') {
-					// User messages have content and displayContent
-					totalTokens += Math.ceil(message.content.length / 4);
-					totalTokens += Math.ceil(message.displayContent.length / 4);
-				}
-				else if (message.role === 'assistant') {
-					// Assistant messages have displayContent and reasoning
-					totalTokens += Math.ceil(message.displayContent.length / 4);
-					totalTokens += Math.ceil(message.reasoning.length / 4);
-				}
-				else if (message.role === 'tool') {
-					// Tool messages have content
-					totalTokens += Math.ceil(message.content.length / 4);
-				}
-				// Checkpoint and other message types are typically not sent to LLM
-			}
-
-			// Add estimated tokens from selections
-			if (thread.state.stagingSelections) {
-				for (const selection of thread.state.stagingSelections) {
-					// Rough estimation for file content
-					totalTokens += 1000; // Approximate tokens per file
-				}
-			}
-			setIsApiVerified(false);
-		} else {
+		if (actualTotalTokens) {
 			setIsApiVerified(true);
+		} else {
+			setIsApiVerified(false);
 		}
 
-		const percentage = Math.min(100, (totalTokens / maxContextTokens) * 100);
+  	const percentage = actualTotalTokens ? Math.min(100, (actualTotalTokens / maxContextTokens) * 100) : 0;
 		setContextPercentage(percentage);
-		setShowContextBar(true);
+		setShowContextBar(true); // ALWAYS show for Edlide provider
   	}, [threadId, featureName, voidSettingsService, chatThreadService, actualTotalTokens]);
 
 	// Update context usage when thread changes
@@ -174,14 +145,18 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		calculateContextUsage();
 	}, [threadId]);
 
-	// Listen for real-time total tokens from stream state
+  	// Listen for real-time total tokens from stream state
 	const currThreadStreamState = useChatThreadsStreamState(threadId);
+	
+  	// Aggressive JSON response listener for total_tokens
+	// This fires every time streaming completes with new token data
 	useEffect(() => {
 		if (currThreadStreamState?.llmInfo?.totalTokens) {
+			console.log(`[CONTEXT BAR] 🎯 UPDATING with REAL tokens: ${currThreadStreamState.llmInfo.totalTokens}`);
 			setActualTotalTokens(currThreadStreamState.llmInfo.totalTokens);
 			setIsApiVerified(true);
 		}
-	}, [currThreadStreamState?.llmInfo?.totalTokens]);
+	}, [currThreadStreamState?.llmInfo?.totalTokens, threadId]);
 
   	return {
 		contextPercentage,
@@ -3122,7 +3097,7 @@ export const SidebarChat = () => {
 	};
 
   	const maxTokens = getModelContextLimit(modelName);
-	const currentTokens = actualTotalTokens || Math.round((contextPercentage / 100) * maxTokens);
+  	const currentTokens = actualTotalTokens || 0;
 
 	// ----- SIDEBAR CHAT state (local) -----
 
