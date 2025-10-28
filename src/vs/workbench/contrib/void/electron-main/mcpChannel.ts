@@ -17,6 +17,7 @@ import { MCPConfigFileJSON, MCPConfigFileEntryJSON, MCPServer, RawMCPToolCall, M
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { MCPUserStateOfName } from '../common/voidSettingsTypes.js';
+import * as childProcess from 'child_process';
 
 const getClientConfig = (serverName: string) => {
 	return {
@@ -25,6 +26,152 @@ const getClientConfig = (serverName: string) => {
 		// debug: true,
 	}
 }
+
+// Helper function to find npx on macOS with systematic PATH detection
+const findNpxPath = (): string => {
+	if (process.platform !== 'darwin') {
+		return 'npx'; // Only apply special handling on macOS
+	}
+
+	// Systematic PATH detection for macOS GUI apps
+	const systemPaths = [
+		// Homebrew paths (Apple Silicon first, then Intel)
+		'/opt/homebrew/bin',
+		'/usr/local/bin',
+		// Node.js typical installation paths
+		'/usr/bin',
+		'/bin',
+		// User-specific paths (check common NVM locations)
+		process.env.HOME ? `${process.env.HOME}/.nvm/versions/node/*/bin` : undefined,
+		process.env.HOME ? `${process.env.HOME}/.npm-global/bin` : undefined,
+	].filter(Boolean) as string[];
+
+	// Create comprehensive PATH for macOS GUI environments
+	const comprehensivePATH = [
+		...systemPaths,
+		// Current PATH (may be incomplete but include it)
+		...(process.env.PATH ? process.env.PATH.split(':') : []),
+	].join(':');
+
+	console.log('MCP: Comprehensive PATH for npx detection:', comprehensivePATH);
+
+	// Try to find npx using the comprehensive PATH
+	try {
+		const result = childProcess.spawnSync('which', ['npx'], { 
+			stdio: 'pipe',
+			env: { ...process.env, PATH: comprehensivePATH }
+		});
+		if (result.status === 0 && result.stdout.toString().trim()) {
+			const foundPath = result.stdout.toString().trim();
+			console.log(`MCP: Found npx at: ${foundPath}`);
+			return foundPath; // Return full path, not just 'npx'
+		}
+	} catch (e) {
+		console.warn('MCP: which command failed, trying manual search');
+	}
+
+	// Manual search through common installation directories
+	for (const basePath of systemPaths) {
+		const npxCandidates = [
+			`${basePath}/npx`,
+			// Also check if there's a Node.js installation with npx
+		];
+		
+		for (const npxPath of npxCandidates) {
+			try {
+				const fs = require('fs');
+				if (fs.existsSync(npxPath) && fs.accessSync(npxPath)) {
+					console.log(`MCP: Found npx via manual search: ${npxPath}`);
+					return npxPath;
+				}
+			} catch (e) {
+				// Continue to next path
+			}
+		}
+	}
+
+	// As last resort, try NVM detection
+	if (process.env.HOME) {
+		try {
+			const nvmBaseDir = `${process.env.HOME}/.nvm/versions/node`;
+			if (require('fs').existsSync(nvmBaseDir)) {
+				const nodeVersions = require('fs').readdirSync(nvmBaseDir);
+				for (const version of nodeVersions.sort().reverse()) { // Check latest first
+					const npxPath = `${nvmBaseDir}/${version}/bin/npx`;
+					if (require('fs').existsSync(npxPath)) {
+						console.log(`MCP: Found npx via NVM: ${npxPath}`);
+						return npxPath;
+					}
+				}
+			}
+		} catch (e) {
+			// Continue to fallback
+		}
+	}
+
+	console.warn('MCP: npx not found in any standard location. Last attempt with original npx command.');
+	return 'npx'; // Final fallback
+};
+
+// Helper function to get enhanced environment for CLI tools (same systematic approach)
+const getEnhancedEnv = (serverEnv?: Record<string, string>): Record<string, string> => {
+	const env = {
+		...serverEnv,
+		...process.env
+	} as Record<string, string>;
+
+	if (process.platform === 'darwin') {
+		// Use the same systematic PATH detection as findNpxPath
+		const systemPaths = [
+			'/opt/homebrew/bin',
+			'/usr/local/bin', 
+			'/usr/bin',
+			'/bin',
+		];
+
+		// Add user-specific paths if they exist
+		if (process.env.HOME) {
+			const userPaths = [
+				`${process.env.HOME}/.npm-global/bin`,
+				`${process.env.HOME}/.nvm/versions/node/*/bin`,
+			];
+			systemPaths.push(...userPaths);
+		}
+
+		// Create comprehensive PATH
+		const currentPath = env.PATH || '';
+		const pathSeparator = currentPath.includes(';') ? ';' : ':';
+		const currentPaths = currentPath.split(pathSeparator);
+		
+		// Add system paths to the beginning if not already present
+		const additionalPaths = systemPaths.filter(p => !currentPaths.includes(p));
+		if (additionalPaths.length > 0) {
+			env.PATH = additionalPaths.join(pathSeparator) + pathSeparator + currentPath;
+			console.log('MCP: Enhanced PATH for macOS GUI:', env.PATH);
+		}
+	}
+
+	return env;
+};
+
+// Check if MCP is available and working
+const isMCPAvailable = (): boolean => {
+	try {
+		// Try to run npx with our enhanced environment
+		const enhancedEnv = getEnhancedEnv();
+		const npxPath = findNpxPath();
+		
+		const result = childProcess.spawnSync(npxPath, ['--version'], { 
+			stdio: 'pipe',
+			env: enhancedEnv,
+			timeout: 5000 
+		});
+		return result.status === 0;
+	} catch (e) {
+		console.warn('MCP: npx not available:', e);
+		return false;
+	}
+};
 
 type MCPServerNonError = MCPServer & { status: Omit<MCPServer['status'], 'error'> }
 type MCPServerError = MCPServer & { status: 'error' }
@@ -66,7 +213,23 @@ export class MCPChannel implements IServerChannel {
 	}
 
 	constructor(
-	) { }
+	) {
+		// Initialize enhanced PATH for macOS GUI apps at startup
+		this.initializeMacOSPath();
+	}
+
+	private initializeMacOSPath(): void {
+		// Only apply to macOS
+		if (process.platform !== 'darwin') {
+			return;
+		}
+
+		const enhancedEnv = getEnhancedEnv();
+		process.env.PATH = enhancedEnv.PATH;
+		
+		console.log('MCP: macOS PATH initialized for GUI app');
+		console.log('MCP: Current PATH:', process.env.PATH?.substring(0, 200) + '...');
+	}
 
 	// browser uses this to listen for changes
 	listen(_: unknown, event: string): Event<any> {
@@ -195,15 +358,34 @@ export class MCPChannel implements IServerChannel {
 				}
 			}
 		} else if (server.command) {
-			// console.log('ENV DATA: ', server.env)
-			transport = new StdioClientTransport({
-				command: server.command,
-				args: server.args,
-				env: {
-					...server.env,
-					...process.env
-				} as Record<string, string>,
-			});
+			// Handle CLI commands with enhanced environment and path resolution
+			let command = server.command;
+			const env = getEnhancedEnv(server.env);
+
+			// Special handling for npx on macOS
+			if (process.platform === 'darwin' && server.command === 'npx') {
+				command = findNpxPath();
+				if (command !== 'npx') {
+					console.log(`MCP: Using resolved npx path: ${command}`);
+				}
+			}
+			
+			// Check if MCP tools are available before attempting connection
+			if (!isMCPAvailable()) {
+				console.warn('MCP: Tools not available, skipping transport creation');
+				throw new Error(`MCP tools not available for command: ${command}`);
+			}
+			
+			try {
+				transport = new StdioClientTransport({
+					command: command,
+					args: server.args,
+					env: env,
+				});
+			} catch (error) {
+				console.error('MCP: Failed to create transport:', error);
+				throw new Error(`Failed to create MCP transport for ${command}: ${error.message}`);
+			}
 
 			await client.connect(transport)
 

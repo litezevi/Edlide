@@ -33,6 +33,20 @@ This repo contains the full sourcecode for Void. If you're new, welcome!
 
 Void is a fork of the [vscode](https://github.com/microsoft/vscode) repository. For a guide to the codebase, see [VOID_CODEBASE_GUIDE](https://github.com/voideditor/void/blob/main/VOID_CODEBASE_GUIDE.md).
 
+## 🔧 MCP Support
+
+Void includes **automatic MCP (Model Context Protocol) support** with:
+
+- ✅ **Automatic PATH detection** for macOS GUI applications
+- ✅ **Zero configuration required** - works out of the box  
+- ✅ **Support for all Node.js installations** (Homebrew, NVM, NPM global)
+- ✅ **ARM64 native support** on Apple Silicon Macs
+- ✅ **Comprehensive error handling** and fallback mechanisms
+
+**Common Issue Fixed**: Resolves `"spawn npx ENOENT"` error on macOS that affects other IDEs.
+
+For detailed information, see [README-MCP-FIX](https://github.com/voideditor/void/blob/main/README-MCP-FIX.md).
+
 ## Note
 Work is temporarily paused on the Void IDE (this repo) while we experiment with a few novel AI coding ideas for Void. Stay alerted with new releases in our Discord channel.
 
