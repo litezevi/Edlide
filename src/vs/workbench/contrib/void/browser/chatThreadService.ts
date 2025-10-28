@@ -481,9 +481,6 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 
 
 	private _setStreamState(threadId: string, state: ThreadStreamState[string]) {
-		if (state?.llmInfo?.totalTokens !== undefined) {
-			console.log(`[CHAT THREAD SERVICE] 🔥 FIRING stream state change with tokens: ${state.llmInfo.totalTokens}`);
-		}
 		this.streamState[threadId] = state
 		this._onDidChangeStreamState.fire({ threadId })
 	}
@@ -816,7 +813,6 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 					logging: { loggingName: `Chat - ${chatMode}`, loggingExtras: { threadId, nMessagesSent, chatMode } },
 					separateSystemMessage: separateSystemMessage,
     onText: ({ fullText, fullReasoning, toolCall, totalTokens }) => {
-						console.log(`[CHAT THREAD SERVICE] 🎯 SETTING STREAM STATE with tokens: ${totalTokens}`);
 						this._setStreamState(threadId, { isRunning: 'LLM', llmInfo: { displayContentSoFar: fullText, reasoningSoFar: fullReasoning, toolCallSoFar: toolCall ?? null, totalTokens }, interrupt: Promise.resolve(() => { if (llmCancelToken) this._llmMessageService.abort(llmCancelToken) }) })
 					},
 					onFinalMessage: async ({ fullText, fullReasoning, toolCall, anthropicReasoning, }) => {

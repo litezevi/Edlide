@@ -136,13 +136,16 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 				if (e.threadId === threadId) {
 					const streamState = chatThreadService.streamState[threadId];
 					if (streamState?.llmInfo?.totalTokens !== undefined) {
-						console.log(`[SIDEBAR CHAT] 🎯 DIRECT UPDATE with tokens: ${streamState.llmInfo.totalTokens}`);
-						// Update global state directly
+						console.log(`[SEND LLM] 🎯 FINAL onText call with TOTAL TOKENS: ${streamState.llmInfo.totalTokens}`);
+						
+						// Store per-chat tokens
 						if (typeof window !== 'undefined') {
-							(window as any).__contextBarData = {
+							if (!(window as any).__chatTokens) {
+								(window as any).__chatTokens = {};
+							}
+							(window as any).__chatTokens[threadId] = {
 								actualTotalTokens: streamState.llmInfo.totalTokens,
 								isApiVerified: true,
-								threadId,
 								timestamp: Date.now()
 							};
 							// Force React update by triggering custom event
@@ -216,7 +219,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			};
 		}
 	}, [threadId, isEdlideProvider]);
-	
+
 	// ALWAYS ACTIVE JSON response listener for total_tokens
 	// This fires EVERY time onText callback provides new token data
 	useEffect(() => {
@@ -228,7 +231,24 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 	}, [currThreadStreamState?.llmInfo?.totalTokens, currThreadStreamState?.llmInfo]);
 
-  	return {
+	// Load per-chat tokens on mount and when thread changes
+	useEffect(() => {
+		if (isEdlideProvider() && typeof window !== 'undefined') {
+			const chatTokens = (window as any).__chatTokens?.[threadId];
+			if (chatTokens) {
+				console.log(`[CONTEXT BAR] 📁 LOADING saved tokens for chat ${threadId}: ${chatTokens.actualTotalTokens}`);
+				setActualTotalTokens(chatTokens.actualTotalTokens);
+				setIsApiVerified(chatTokens.isApiVerified);
+			} else {
+				// NEW CHAT - start with 0 tokens
+				console.log(`[CONTEXT BAR] 🆕 NEW CHAT ${threadId}, starting with 0 tokens`);
+				setActualTotalTokens(null);
+				setIsApiVerified(false);
+			}
+		}
+	}, [threadId, isEdlideProvider]);
+
+	return {
 		contextPercentage,
 		showContextBar,
 		isEdlideProvider: isEdlideProvider(),
