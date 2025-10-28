@@ -106,11 +106,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
   	// ALWAYS use real total_tokens from API - no estimates!
 		const totalTokens = actualTotalTokens || 0;
 		
-		if (actualTotalTokens) {
-			setIsApiVerified(true);
-		} else {
-			setIsApiVerified(false);
-		}
+		// Update API verified status based on actual tokens
+		setIsApiVerified(!!actualTotalTokens);
 
   	const percentage = actualTotalTokens ? Math.min(100, (actualTotalTokens / maxContextTokens) * 100) : 0;
 		setContextPercentage(percentage);
@@ -122,13 +119,55 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		calculateContextUsage();
 	}, [calculateContextUsage]);
 
-  	// Listen for thread changes and total tokens updates
+	// Listen for real-time total tokens from stream state
+	const currThreadStreamState = useChatThreadsStreamState(threadId);
+	
+	// Debug logging to see what stream state we're getting
+	useEffect(() => {
+		if (currThreadStreamState?.llmInfo?.totalTokens !== undefined) {
+			console.log(`[SIDEBAR CHAT] 📋 Received stream state update with tokens: ${currThreadStreamState.llmInfo.totalTokens}`);
+		}
+	}, [currThreadStreamState?.llmInfo?.totalTokens]);
+
+	// DIRECT LISTENER - bypass hooks for reliable updates
+	useEffect(() => {
+		const disposables = [
+			chatThreadService.onDidChangeStreamState((e) => {
+				if (e.threadId === threadId) {
+					const streamState = chatThreadService.streamState[threadId];
+					if (streamState?.llmInfo?.totalTokens !== undefined) {
+						console.log(`[SIDEBAR CHAT] 🎯 DIRECT UPDATE with tokens: ${streamState.llmInfo.totalTokens}`);
+						// Update global state directly
+						if (typeof window !== 'undefined') {
+							(window as any).__contextBarData = {
+								actualTotalTokens: streamState.llmInfo.totalTokens,
+								isApiVerified: true,
+								threadId,
+								timestamp: Date.now()
+							};
+							// Force React update by triggering custom event
+							window.dispatchEvent(new CustomEvent('contextBarUpdate', { 
+								detail: { tokens: streamState.llmInfo.totalTokens, threadId }
+							}));
+						}
+					}
+				}
+			})
+		];
+		
+		return () => {
+			disposables.forEach(d => d.dispose());
+		};
+	}, [threadId, chatThreadService]);
+
+	// Listen for thread changes and stream state changes
 	useEffect(() => {
 		const disposables = [
 			chatThreadService.onDidChangeCurrentThread(() => {
 				calculateContextUsage();
 			}),
 			chatThreadService.onDidChangeStreamState(() => {
+				// Always recalculate when stream state changes
 				calculateContextUsage();
 			})
 		];
@@ -138,25 +177,56 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		};
 	}, [calculateContextUsage, chatThreadService]);
 
-	// Reset actual tokens when switching threads or starting new chat
+	// Always keep context tracking active across threads
 	useEffect(() => {
-		setActualTotalTokens(null);
-		setIsApiVerified(false);
-		calculateContextUsage();
-	}, [threadId]);
+		if (isEdlideProvider()) {
+			calculateContextUsage();
+		}
+	}, [threadId, isEdlideProvider, calculateContextUsage]);
 
-  	// Listen for real-time total tokens from stream state
-	const currThreadStreamState = useChatThreadsStreamState(threadId);
-	
-  	// Aggressive JSON response listener for total_tokens
-	// This fires every time streaming completes with new token data
+	// Aggressive listener for any stream state changes
 	useEffect(() => {
-		if (currThreadStreamState?.llmInfo?.totalTokens) {
-			console.log(`[CONTEXT BAR] 🎯 UPDATING with REAL tokens: ${currThreadStreamState.llmInfo.totalTokens}`);
-			setActualTotalTokens(currThreadStreamState.llmInfo.totalTokens);
+		if (isEdlideProvider() && currThreadStreamState) {
+			// Check for totalTokens in any stream update
+			const tokens = currThreadStreamState.llmInfo?.totalTokens;
+			if (tokens !== undefined && tokens !== null) {
+				console.log(`[CONTEXT BAR] 🔄 AGGRESSIVE UPDATE: ${tokens}`);
+				setActualTotalTokens(tokens);
+				setIsApiVerified(true);
+			}
+		}
+	}, [currThreadStreamState, isEdlideProvider]);
+
+	// Global event listener for immediate updates
+	useEffect(() => {
+		if (isEdlideProvider()) {
+			const handleContextUpdate = (event: any) => {
+				const { tokens, threadId: eventThreadId } = event.detail;
+				if (eventThreadId === threadId) {
+					console.log(`[CONTEXT BAR] 🌍 GLOBAL EVENT UPDATE: ${tokens}`);
+					setActualTotalTokens(tokens);
+					setIsApiVerified(true);
+				}
+			};
+
+			window.addEventListener('contextBarUpdate', handleContextUpdate);
+			
+			return () => {
+				window.removeEventListener('contextBarUpdate', handleContextUpdate);
+			};
+		}
+	}, [threadId, isEdlideProvider]);
+	
+	// ALWAYS ACTIVE JSON response listener for total_tokens
+	// This fires EVERY time onText callback provides new token data
+	useEffect(() => {
+		const newTokens = currThreadStreamState?.llmInfo?.totalTokens;
+		if (newTokens !== undefined && newTokens !== null) {
+			console.log(`[CONTEXT BAR] 🎯 UPDATING with REAL tokens: ${newTokens}`);
+			setActualTotalTokens(newTokens);
 			setIsApiVerified(true);
 		}
-	}, [currThreadStreamState?.llmInfo?.totalTokens, threadId]);
+	}, [currThreadStreamState?.llmInfo?.totalTokens, currThreadStreamState?.llmInfo]);
 
   	return {
 		contextPercentage,
@@ -3062,17 +3132,6 @@ export const SidebarChat = () => {
 	// Context tracking for Edlide provider
     const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
 
-	// Local state for real-time token updates
-	const [realtimeTotalTokens, setRealtimeTotalTokens] = useState<number | null>(null);
-
-	// Store the update function in a ref to access it from onText callback
-	const actualTokensRef = React.useRef<(tokens: number) => void>(() => {});
-	React.useEffect(() => {
-		actualTokensRef.current = (tokens: number) => {
-			setRealtimeTotalTokens(tokens);
-		};
-	}, []);
-
 	// Get current model and calculate exact token count for tooltip
 	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
 	const modelName = modelSelection?.modelName || '';
@@ -3268,7 +3327,7 @@ export const SidebarChat = () => {
 		onClickAnywhere={() => { textAreaRef.current?.focus() }}
 		contextPercentage={contextPercentage}
 		showContextBar={showContextBar}
-  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${actualTotalTokens ? ' (API verified)' : ''}`}
+  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
 	>
 		<VoidInputBox2
 			enableAtToMention

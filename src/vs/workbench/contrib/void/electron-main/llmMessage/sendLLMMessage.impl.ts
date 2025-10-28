@@ -407,11 +407,15 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 				}
 
 				// call onText with real total_tokens if available
+				const currentTotalTokens = fullResponseData.usage?.total_tokens;
+				if (currentTotalTokens) {
+					console.log(`[SEND LLM] 🎯 CALLING onText with TOTAL TOKENS: ${currentTotalTokens}`);
+				}
 				onText({
 					fullText: fullTextSoFar,
 					fullReasoning: fullReasoningSoFar,
 					toolCall: !toolName ? undefined : { name: toolName, rawParams: {}, isDone: false, doneParams: [], id: toolId },
-					totalTokens: fullResponseData.usage?.total_tokens,
+					totalTokens: currentTotalTokens,
 				})
 
 			}
@@ -426,7 +430,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 				onError({ message: 'Edlide: Response from model was empty.', fullError: null })
 			}
 			else {
-				// Log complete response with full API data including total_tokens
+			// Log complete response with full API data including total_tokens
 				console.log(`[EDLIDE JSON RESPONSE COMPLETE] ${providerName} ${modelName}:`, JSON.stringify({
 					provider: providerName,
 					raw_response: fullResponseData,
@@ -438,10 +442,22 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 						params: toolParamsStr
 					} : null,
 					timestamp: new Date().toISOString()
-				}, null, 2))
+			}, null, 2))
 				
 				const toolCall = rawToolCallObjOfParamsStr(toolName, toolParamsStr, toolId)
 				const toolCallObj = toolCall ? { toolCall } : {}
+				
+				// Final call to onText with totalTokens for reliable context bar update
+				if (fullResponseData.usage?.total_tokens) {
+					console.log(`[SEND LLM] 🎯 FINAL onText call with TOTAL TOKENS: ${fullResponseData.usage.total_tokens}`);
+					onText({
+						fullText: fullTextSoFar,
+						fullReasoning: fullReasoningSoFar,
+						toolCall: !toolName ? undefined : { name: toolName, rawParams: {}, isDone: false, doneParams: [], id: toolId },
+						totalTokens: fullResponseData.usage.total_tokens,
+					});
+				}
+				
 				onFinalMessage({ fullText: fullTextSoFar, fullReasoning: fullReasoningSoFar, anthropicReasoning: null, ...toolCallObj });
 			}
 		})
