@@ -55,6 +55,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 
 	const [contextPercentage, setContextPercentage] = useState(0);
 	const [showContextBar, setShowContextBar] = useState(false);
+	const [actualTotalTokens, setActualTotalTokens] = useState<number | null>(null);
+	const [isApiVerified, setIsApiVerified] = useState(false);
 
 	// Check if current model is from Edlide provider
 	const isEdlideProvider = () => {
@@ -99,49 +101,57 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		return 128000; // Default fallback
 		};
 
-		const maxContextTokens = getModelContextLimit(modelName);
+  	const maxContextTokens = getModelContextLimit(modelName);
 
-		// Calculate approximate context usage
-		let totalTokens = 0;
+  	// Use actual total_tokens from API if available, otherwise calculate estimates
+		let totalTokens: number = actualTotalTokens || 0;
+		
+		if (!actualTotalTokens) {
+			// Calculate approximate context usage only if no real data available
+			totalTokens = 0;
 
-		// Count tokens from messages
-		for (const message of thread.messages) {
-			if (message.role === 'user') {
-				// User messages have content and displayContent
-				totalTokens += Math.ceil(message.content.length / 4);
-				totalTokens += Math.ceil(message.displayContent.length / 4);
+			// Count tokens from messages
+			for (const message of thread.messages) {
+				if (message.role === 'user') {
+					// User messages have content and displayContent
+					totalTokens += Math.ceil(message.content.length / 4);
+					totalTokens += Math.ceil(message.displayContent.length / 4);
+				}
+				else if (message.role === 'assistant') {
+					// Assistant messages have displayContent and reasoning
+					totalTokens += Math.ceil(message.displayContent.length / 4);
+					totalTokens += Math.ceil(message.reasoning.length / 4);
+				}
+				else if (message.role === 'tool') {
+					// Tool messages have content
+					totalTokens += Math.ceil(message.content.length / 4);
+				}
+				// Checkpoint and other message types are typically not sent to LLM
 			}
-			else if (message.role === 'assistant') {
-				// Assistant messages have displayContent and reasoning
-				totalTokens += Math.ceil(message.displayContent.length / 4);
-				totalTokens += Math.ceil(message.reasoning.length / 4);
-			}
-			else if (message.role === 'tool') {
-				// Tool messages have content
-				totalTokens += Math.ceil(message.content.length / 4);
-			}
-			// Checkpoint and other message types are typically not sent to LLM
-		}
 
-		// Add estimated tokens from selections
-		if (thread.state.stagingSelections) {
-			for (const selection of thread.state.stagingSelections) {
-				// Rough estimation for file content
-				totalTokens += 1000; // Approximate tokens per file
+			// Add estimated tokens from selections
+			if (thread.state.stagingSelections) {
+				for (const selection of thread.state.stagingSelections) {
+					// Rough estimation for file content
+					totalTokens += 1000; // Approximate tokens per file
+				}
 			}
+			setIsApiVerified(false);
+		} else {
+			setIsApiVerified(true);
 		}
 
 		const percentage = Math.min(100, (totalTokens / maxContextTokens) * 100);
 		setContextPercentage(percentage);
 		setShowContextBar(true);
-	}, [threadId, featureName, voidSettingsService, chatThreadService]);
+  	}, [threadId, featureName, voidSettingsService, chatThreadService, actualTotalTokens]);
 
 	// Update context usage when thread changes
 	useEffect(() => {
 		calculateContextUsage();
 	}, [calculateContextUsage]);
 
-	// Listen for thread changes
+  	// Listen for thread changes and total tokens updates
 	useEffect(() => {
 		const disposables = [
 			chatThreadService.onDidChangeCurrentThread(() => {
@@ -157,10 +167,28 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		};
 	}, [calculateContextUsage, chatThreadService]);
 
-	return {
+	// Reset actual tokens when switching threads or starting new chat
+	useEffect(() => {
+		setActualTotalTokens(null);
+		setIsApiVerified(false);
+		calculateContextUsage();
+	}, [threadId]);
+
+	// Listen for real-time total tokens from stream state
+	const currThreadStreamState = useChatThreadsStreamState(threadId);
+	useEffect(() => {
+		if (currThreadStreamState?.llmInfo?.totalTokens) {
+			setActualTotalTokens(currThreadStreamState.llmInfo.totalTokens);
+			setIsApiVerified(true);
+		}
+	}, [currThreadStreamState?.llmInfo?.totalTokens]);
+
+  	return {
 		contextPercentage,
 		showContextBar,
-		isEdlideProvider: isEdlideProvider()
+		isEdlideProvider: isEdlideProvider(),
+		actualTotalTokens,
+		isApiVerified
 	};
 };
 
@@ -3057,7 +3085,18 @@ export const SidebarChat = () => {
 	const toolIsGenerating = toolCallSoFar && !toolCallSoFar.isDone // show loading for slow tools (right now just edit)
 
 	// Context tracking for Edlide provider
-	const { contextPercentage, showContextBar, isEdlideProvider } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
+    const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
+
+	// Local state for real-time token updates
+	const [realtimeTotalTokens, setRealtimeTotalTokens] = useState<number | null>(null);
+
+	// Store the update function in a ref to access it from onText callback
+	const actualTokensRef = React.useRef<(tokens: number) => void>(() => {});
+	React.useEffect(() => {
+		actualTokensRef.current = (tokens: number) => {
+			setRealtimeTotalTokens(tokens);
+		};
+	}, []);
 
 	// Get current model and calculate exact token count for tooltip
 	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
@@ -3082,8 +3121,8 @@ export const SidebarChat = () => {
 		return 128000; // Default fallback
 	};
 
-	const maxTokens = getModelContextLimit(modelName);
-	const currentTokens = Math.round((contextPercentage / 100) * maxTokens);
+  	const maxTokens = getModelContextLimit(modelName);
+	const currentTokens = actualTotalTokens || Math.round((contextPercentage / 100) * maxTokens);
 
 	// ----- SIDEBAR CHAT state (local) -----
 
@@ -3254,7 +3293,7 @@ export const SidebarChat = () => {
 		onClickAnywhere={() => { textAreaRef.current?.focus() }}
 		contextPercentage={contextPercentage}
 		showContextBar={showContextBar}
-  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used`}
+  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${actualTotalTokens ? ' (API verified)' : ''}`}
 	>
 		<VoidInputBox2
 			enableAtToMention

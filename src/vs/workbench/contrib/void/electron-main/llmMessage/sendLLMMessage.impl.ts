@@ -406,11 +406,12 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 					fullReasoningSoFar += newReasoning
 				}
 
-				// call onText
+				// call onText with real total_tokens if available
 				onText({
 					fullText: fullTextSoFar,
 					fullReasoning: fullReasoningSoFar,
 					toolCall: !toolName ? undefined : { name: toolName, rawParams: {}, isDone: false, doneParams: [], id: toolId },
+					totalTokens: fullResponseData.usage?.total_tokens,
 				})
 
 			}
