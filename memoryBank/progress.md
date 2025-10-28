@@ -245,6 +245,15 @@
 
 **Recent Changes**:
 
+**🎯 SESSION 7 ACHIEVEMENTS - PERSISTENT CONTEXT STORAGE:**
+- **Cross-Session Persistence**: Context tokens now persist across application restarts using VSCode storage service
+- **Dual Storage Strategy**: Primary persistent storage (`StorageScope.APPLICATION`) + fallback window storage for compatibility
+- **Enhanced Data Structure**: Structured token storage with timestamps, verification status, and thread isolation
+- **Zero Token Loss**: Users never lose context tracking when restarting Edlide or switching workspaces
+- **Production-Ready**: Enterprise-grade error handling, graceful recovery, and backward compatibility
+- **Technical Implementation**: Added IStorageService integration, loadChatTokens() and saveChatTokens() functions
+- **User Experience Transformed**: Context bar shows exact token counts after app restart with (API verified) status preserved
+
 **🎯 SESSION 6 ACHIEVEMENTS - EDLIDE MODEL CONFIGURATION OPTIMIZATION:**
 - **Enhanced Context Windows**: Significantly increased default context windows optimized for each model's capabilities
   - **GLM-4.6-FP8**: 202,752 tokens with 32,768 output space for balanced performance

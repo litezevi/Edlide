@@ -8,6 +8,7 @@ import React, { ButtonHTMLAttributes, FormEvent, FormHTMLAttributes, Fragment, K
 
 import { useAccessor, useChatThreadsState, useChatThreadsStreamState, useSettingsState, useActiveURI, useCommandBarState, useFullChatThreadsStreamState } from '../util/services.js';
 import { ScrollType } from '../../../../../../../editor/common/editorCommon.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../../../platform/storage/common/storage.js';
 
 import { ChatMarkdownRender, ChatMessageLocation, getApplyBoxId } from '../markdown/ChatMarkdownRender.js';
 import { URI } from '../../../../../../../base/common/uri.js';
@@ -52,6 +53,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	const accessor = useAccessor();
 	const voidSettingsService = accessor.get('IVoidSettingsService');
 	const chatThreadService = accessor.get('IChatThreadService');
+	const storageService = accessor.get('IStorageService');
 
 	const [contextPercentage, setContextPercentage] = useState(0);
 	const [showContextBar, setShowContextBar] = useState(false);
@@ -63,6 +65,46 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		const modelSelection = voidSettingsService.state.modelSelectionOfFeature[featureName];
 		return modelSelection?.providerName === 'edlide';
 	};
+
+	// Persistent storage key for chat tokens
+	const CHAT_TOKENS_STORAGE_KEY = 'void.chatTokens';
+
+	// Load chat tokens from persistent storage
+	const loadChatTokens = useCallback(() => {
+		if (!isEdlideProvider()) return null;
+		
+		try {
+			const storedTokens = storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION);
+			if (storedTokens) {
+				const chatTokens = JSON.parse(storedTokens);
+				return chatTokens[threadId] || null;
+			}
+		} catch (e) {
+			console.warn('[CONTEXT BAR] Failed to load chat tokens from storage:', e);
+		}
+		return null;
+	}, [threadId, isEdlideProvider, storageService]);
+
+	// Save chat tokens to persistent storage
+	const saveChatTokens = useCallback((tokens: number, verified: boolean) => {
+		if (!isEdlideProvider()) return;
+
+		try {
+			const existingTokensStr = storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION) || '{}';
+			const existingTokens = JSON.parse(existingTokensStr);
+			
+			existingTokens[threadId] = {
+				actualTotalTokens: tokens,
+				isApiVerified: verified,
+				timestamp: Date.now()
+			};
+
+			storageService.store(CHAT_TOKENS_STORAGE_KEY, JSON.stringify(existingTokens), StorageScope.APPLICATION, StorageTarget.USER);
+			console.log(`[CONTEXT BAR] 💾 SAVED ${tokens} tokens for chat ${threadId} to persistent storage`);
+		} catch (e) {
+			console.warn('[CONTEXT BAR] Failed to save chat tokens to storage:', e);
+		}
+	}, [threadId, isEdlideProvider, storageService]);
 
 	// Calculate context usage based on current thread state
 	const calculateContextUsage = useCallback(() => {
@@ -138,7 +180,10 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 					if (streamState?.llmInfo?.totalTokens !== undefined) {
 						console.log(`[SEND LLM] 🎯 FINAL onText call with TOTAL TOKENS: ${streamState.llmInfo.totalTokens}`);
 						
-						// Store per-chat tokens
+						// Store per-chat tokens to persistent storage
+						saveChatTokens(streamState.llmInfo.totalTokens, true);
+						
+						// Also store in window for backwards compatibility
 						if (typeof window !== 'undefined') {
 							if (!(window as any).__chatTokens) {
 								(window as any).__chatTokens = {};
@@ -148,11 +193,12 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 								isApiVerified: true,
 								timestamp: Date.now()
 							};
-							// Force React update by triggering custom event
-							window.dispatchEvent(new CustomEvent('contextBarUpdate', { 
-								detail: { tokens: streamState.llmInfo.totalTokens, threadId }
-							}));
 						}
+						
+						// Force React update by triggering custom event
+						window.dispatchEvent(new CustomEvent('contextBarUpdate', { 
+							detail: { tokens: streamState.llmInfo.totalTokens, threadId }
+						}));
 					}
 				}
 			})
@@ -161,7 +207,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		return () => {
 			disposables.forEach(d => d.dispose());
 		};
-	}, [threadId, chatThreadService]);
+	}, [threadId, chatThreadService, saveChatTokens]);
 
 	// Listen for thread changes and stream state changes
 	useEffect(() => {
@@ -196,9 +242,11 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 				console.log(`[CONTEXT BAR] 🔄 AGGRESSIVE UPDATE: ${tokens}`);
 				setActualTotalTokens(tokens);
 				setIsApiVerified(true);
+				// Also save to persistent storage
+				saveChatTokens(tokens, true);
 			}
 		}
-	}, [currThreadStreamState, isEdlideProvider]);
+	}, [currThreadStreamState, isEdlideProvider, saveChatTokens]);
 
 	// Global event listener for immediate updates
 	useEffect(() => {
@@ -209,6 +257,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 					console.log(`[CONTEXT BAR] 🌍 GLOBAL EVENT UPDATE: ${tokens}`);
 					setActualTotalTokens(tokens);
 					setIsApiVerified(true);
+					// Also save to persistent storage
+					saveChatTokens(tokens, true);
 				}
 			};
 
@@ -218,7 +268,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 				window.removeEventListener('contextBarUpdate', handleContextUpdate);
 			};
 		}
-	}, [threadId, isEdlideProvider]);
+	}, [threadId, isEdlideProvider, saveChatTokens]);
 
 	// ALWAYS ACTIVE JSON response listener for total_tokens
 	// This fires EVERY time onText callback provides new token data
@@ -228,25 +278,38 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			console.log(`[CONTEXT BAR] 🎯 UPDATING with REAL tokens: ${newTokens}`);
 			setActualTotalTokens(newTokens);
 			setIsApiVerified(true);
+			// Also save to persistent storage
+			saveChatTokens(newTokens, true);
 		}
-	}, [currThreadStreamState?.llmInfo?.totalTokens, currThreadStreamState?.llmInfo]);
+	}, [currThreadStreamState?.llmInfo?.totalTokens, currThreadStreamState?.llmInfo, saveChatTokens]);
 
-	// Load per-chat tokens on mount and when thread changes
+	// Load per-chat tokens on mount and when thread changes - NOW FROM PERSISTENT STORAGE
 	useEffect(() => {
-		if (isEdlideProvider() && typeof window !== 'undefined') {
-			const chatTokens = (window as any).__chatTokens?.[threadId];
-			if (chatTokens) {
-				console.log(`[CONTEXT BAR] 📁 LOADING saved tokens for chat ${threadId}: ${chatTokens.actualTotalTokens}`);
-				setActualTotalTokens(chatTokens.actualTotalTokens);
-				setIsApiVerified(chatTokens.isApiVerified);
+		if (isEdlideProvider()) {
+			// First try to load from persistent storage
+			const savedTokens = loadChatTokens();
+			if (savedTokens) {
+				console.log(`[CONTEXT BAR] 📁 LOADING saved tokens for chat ${threadId} from persistent storage: ${savedTokens.actualTotalTokens}`);
+				setActualTotalTokens(savedTokens.actualTotalTokens);
+				setIsApiVerified(savedTokens.isApiVerified);
 			} else {
 				// NEW CHAT - start with 0 tokens
 				console.log(`[CONTEXT BAR] 🆕 NEW CHAT ${threadId}, starting with 0 tokens`);
 				setActualTotalTokens(null);
 				setIsApiVerified(false);
 			}
+			
+			// Also maintain window storage for backwards compatibility
+			if (typeof window !== 'undefined') {
+				if (!(window as any).__chatTokens) {
+					(window as any).__chatTokens = {};
+				}
+				if (savedTokens) {
+					(window as any).__chatTokens[threadId] = savedTokens;
+				}
+			}
 		}
-	}, [threadId, isEdlideProvider]);
+	}, [threadId, isEdlideProvider, loadChatTokens]);
 
 	return {
 		contextPercentage,
