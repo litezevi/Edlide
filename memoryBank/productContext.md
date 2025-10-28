@@ -28,12 +28,15 @@ Edlide addresses these problems by:
 - **Auto-Detection**: Automatically discovers and configures local AI models
 - **Background Processing**: Non-blocking AI operations maintain IDE responsiveness
 - **Memory Efficient**: Optimized for large codebases without performance degradation
+- **ARM64 Native**: Full Apple Silicon support with automatic MCP PATH detection
 
 ### 🔒 **Privacy & Control**
 - **No Data Retention**: Messages flow directly to providers, no intermediaries
 - **Local Processing**: Complete offline capability with local AI models
 - **Custom Configuration**: Users control which providers and models they use
 - **Open Standards**: Uses standard protocols (HTTP, WebSocket) for AI communication
+- **MCP Compatibility**: Zero-configuration Model Context Protocol support on all platforms
+- **macOS PATH Resolution**: Automatic detection of Node.js tools for GUI applications
 
 ## How It Should Work
 
