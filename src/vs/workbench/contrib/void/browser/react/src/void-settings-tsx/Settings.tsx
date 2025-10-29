@@ -1621,12 +1621,12 @@ export const Settings = () => {
 												</div>
 
 
-												<div className='my-2'>
-													{/* Fast Apply Method Dropdown */}
+												{/* Fast Apply Method Dropdown - Hidden */}
+												{/* <div className='my-2'>
 													<div className='flex items-center gap-x-2 my-2'>
 														<FastApplyMethodDropdown />
 													</div>
-												</div>
+												</div> */}
 
 											</div>
 										</ErrorBoundary>
