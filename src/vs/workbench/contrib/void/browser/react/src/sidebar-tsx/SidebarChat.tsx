@@ -3439,8 +3439,8 @@ export const SidebarChat = () => {
 
 	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full text-nowrap text-void-fg-3 select-none'>
 		{[
-			'Summarize my codebase',
-			'How do types work in Rust?',
+			'How do types work in Swift?',
+			'What is async programming?',
 			'Create a .edliderules file for me'
 		].map((text, index) => (
 			<div
