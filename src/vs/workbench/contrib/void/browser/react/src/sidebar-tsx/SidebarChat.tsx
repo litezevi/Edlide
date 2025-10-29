@@ -44,6 +44,8 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
 		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-09-05'
+		if (modelName === 'MiniMaxAI/MiniMax-M2')
+		return 'minimax-m2'
 	}
 	return modelName
 }
@@ -72,7 +74,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	// Load chat tokens from persistent storage
 	const loadChatTokens = useCallback(() => {
 		if (!isEdlideProvider()) return null;
-		
+
 		try {
 			const storedTokens = storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION);
 			if (storedTokens) {
@@ -92,7 +94,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		try {
 			const existingTokensStr = storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION) || '{}';
 			const existingTokens = JSON.parse(existingTokensStr);
-			
+
 			existingTokens[threadId] = {
 				actualTotalTokens: tokens,
 				isApiVerified: verified,
@@ -137,6 +139,9 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
+		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2')) {
+			return 196608; // Minimax M2: 200k tokens
+		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 162000; // deepseek v3.1 variants: 162k tokens
 		}
@@ -147,7 +152,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 
   	// ALWAYS use real total_tokens from API - no estimates!
 		const totalTokens = actualTotalTokens || 0;
-		
+
 		// Update API verified status based on actual tokens
 		setIsApiVerified(!!actualTotalTokens);
 
@@ -163,7 +168,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 
 	// Listen for real-time total tokens from stream state
 	const currThreadStreamState = useChatThreadsStreamState(threadId);
-	
+
 	// Debug logging to see what stream state we're getting
 	useEffect(() => {
 		if (currThreadStreamState?.llmInfo?.totalTokens !== undefined) {
@@ -179,10 +184,10 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 					const streamState = chatThreadService.streamState[threadId];
 					if (streamState?.llmInfo?.totalTokens !== undefined) {
 						console.log(`[SEND LLM] 🎯 FINAL onText call with TOTAL TOKENS: ${streamState.llmInfo.totalTokens}`);
-						
+
 						// Store per-chat tokens to persistent storage
 						saveChatTokens(streamState.llmInfo.totalTokens, true);
-						
+
 						// Also store in window for backwards compatibility
 						if (typeof window !== 'undefined') {
 							if (!(window as any).__chatTokens) {
@@ -194,16 +199,16 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 								timestamp: Date.now()
 							};
 						}
-						
+
 						// Force React update by triggering custom event
-						window.dispatchEvent(new CustomEvent('contextBarUpdate', { 
+						window.dispatchEvent(new CustomEvent('contextBarUpdate', {
 							detail: { tokens: streamState.llmInfo.totalTokens, threadId }
 						}));
 					}
 				}
 			})
 		];
-		
+
 		return () => {
 			disposables.forEach(d => d.dispose());
 		};
@@ -263,7 +268,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			};
 
 			window.addEventListener('contextBarUpdate', handleContextUpdate);
-			
+
 			return () => {
 				window.removeEventListener('contextBarUpdate', handleContextUpdate);
 			};
@@ -298,7 +303,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 				setActualTotalTokens(null);
 				setIsApiVerified(false);
 			}
-			
+
 			// Also maintain window storage for backwards compatibility
 			if (typeof window !== 'undefined') {
 				if (!(window as any).__chatTokens) {
@@ -3231,6 +3236,9 @@ export const SidebarChat = () => {
 		}
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
+		}
+		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2')) {
+			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 162000; // deepseek v3.1 variants: 162k tokens
