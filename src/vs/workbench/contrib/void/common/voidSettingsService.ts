@@ -288,8 +288,7 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 			readS.modelSelectionOfFeature['SCM'] = { providerName: 'edlide', modelName: 'openai/gpt-oss-20b' }
 			readS.optionsOfModelSelection['SCM'] = {}
 		}
-			// add disableSystemMessage feature
-			if (readS.globalSettings.disableSystemMessage === undefined) readS.globalSettings.disableSystemMessage = false;
+			
 			
 			// add autoAcceptLLMChanges feature
 			if (readS.globalSettings.autoAcceptLLMChanges === undefined) readS.globalSettings.autoAcceptLLMChanges = false;

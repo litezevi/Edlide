@@ -272,9 +272,9 @@ const prepareOpenAIOrAnthropicMessages = ({
 	// A COMPLETE HACK: last message is system message for context purposes
 
 	const sysMsgParts: string[] = []
-	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the user's .edliderules file):\n${aiInstructions}`)
 	if (systemMessage) sysMsgParts.push(systemMessage)
-	const combinedSystemMessage = sysMsgParts.join('\n\n')
+	if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Prompt settings and .edliderules files) ===\n${aiInstructions}\n=== END USER-DEFINED RULES ===`)
+	const combinedSystemMessage = sysMsgParts.join('')
 
 	messages.unshift({ role: 'system', content: combinedSystemMessage })
 
@@ -731,9 +731,8 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 			supportsSystemMessage,
 		} = getModelCapabilities(providerName, modelName, overridesOfModel)
 
-		const { disableSystemMessage } = this.voidSettingsService.state.globalSettings;
 		const fullSystemMessage = await this._generateChatMessagesSystemMessage(chatMode, specialToolFormat, modelName)
-		const systemMessage = disableSystemMessage ? '' : fullSystemMessage;
+		const systemMessage = fullSystemMessage; // System prompts are always enabled
 
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection['Chat'][modelSelection.providerName]?.[modelSelection.modelName]
 

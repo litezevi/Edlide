@@ -2,7 +2,14 @@
 
 ## Project Milestones
 
-### 🚀 **Latest Achievement (2025-10-28) - Context Window Optimization**
+### 🚀 **Latest Achievement (2025-10-29) - System/User Rules Separation**
+- [x] **Complete Architecture Separation**: System prompts always active, user rules optional
+- [x] **UI Cleanup**: Removed confusing "Disable system message" toggle completely
+- [x] **Confidentiality Protection**: AI instructed to never reveal system prompts to users
+- [x] **Clean User Experience**: Users only see and manage their own rules, not system internals
+- [x] **System Stability**: Critical system instructions can no longer be disabled by users
+
+### 🚀 **Previous Achievement (2025-10-28) - Context Window Optimization**
 - [x] **Full Context Utilization**: Eliminated artificial 158k token limits
 - [x] **+24,576 tokens gain**: 15-24% increase in available context for all models
 - [x] **Model Configuration**: Optimized `reservedOutputTokenSpace` from 32,768 to 8,192

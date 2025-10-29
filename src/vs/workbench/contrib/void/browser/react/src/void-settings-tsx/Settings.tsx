@@ -1769,28 +1769,7 @@ Use Model Context Protocol to provide Agent mode with more tools.
 												Your System Prompt
 											</div>
 
-											{/* --- Disable System Message Toggle --- */}
-											<div className='my-6'>
-												<ErrorBoundary>
-													<div className='flex items-center gap-x-2'>
-														<VoidSwitch
-															size='xs'
-															value={!!settingsState.globalSettings.disableSystemMessage}
-															onChange={(newValue) => {
-																voidSettingsService.setGlobalSetting('disableSystemMessage', newValue);
-															}}
-														/>
-														<span className='text-void-fg-3 text-xs pointer-events-none'>
-															{'Disable system message'}
-														</span>
-													</div>
-												</ErrorBoundary>
-											</div>
-
-											{/* System Message Description */}
-											<div className='text-void-fg-3 text-xs mt-2 mb-4'>
-												{`When disabled, Edlide will not include anything in the system message except for content you specified above.`}
-											</div>
+											
 										</div>
 
 										{/* Project Rules section */}
