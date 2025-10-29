@@ -78,7 +78,8 @@ export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6-FP8',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
-		'MiniMaxAI/MiniMax-M2'
+		'MiniMaxAI/MiniMax-M2',
+		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
 		'gpt-5-high',
@@ -1149,6 +1150,16 @@ const edlideModelOptions = {
 	'MiniMaxAI/MiniMax-M2': {
 		contextWindow: 196608,
 		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'openai/gpt-oss-20b': {
+		contextWindow: 128000,
+		reservedOutputTokenSpace: 4096,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,

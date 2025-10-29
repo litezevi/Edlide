@@ -704,7 +704,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	};
 
 	return <div className=''>
-		{modelDump.map((m, i) => {
+		{modelDump.filter(m => !(m.modelName === 'openai/gpt-oss-20b' && m.providerName === 'edlide')).map((m, i) => {
 			const { isHidden, type, modelName, providerName, providerEnabled } = m
 
 			const isNewProviderName = (i > 0 ? modelDump[i - 1] : undefined)?.providerName !== providerName

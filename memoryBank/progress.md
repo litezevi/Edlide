@@ -2,12 +2,14 @@
 
 ## Project Milestones
 
-### 🚀 **Latest Achievement (2025-10-29) - System/User Rules Separation**
+### 🚀 **Latest Achievement (2025-10-29) - System/User Rules Separation + Hidden SCM Model + Complete UI Removal**
 - [x] **Complete Architecture Separation**: System prompts always active, user rules optional
 - [x] **UI Cleanup**: Removed confusing "Disable system message" toggle completely
 - [x] **Confidentiality Protection**: AI instructed to never reveal system prompts to users
 - [x] **Clean User Experience**: Users only see and manage their own rules, not system internals
 - [x] **System Stability**: Critical system instructions can no longer be disabled by users
+- [x] **Hidden SCM Model**: Added `openai/gpt-oss-20b` as hidden Edlide model, available only for commit generation
+- [x] **Complete UI Removal**: Model completely invisible in all UI components through direct filtering
 
 ### 🚀 **Previous Achievement (2025-10-28) - Context Window Optimization**
 - [x] **Full Context Utilization**: Eliminated artificial 158k token limits

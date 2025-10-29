@@ -169,9 +169,11 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 	for (const providerName of providerNames) {
 		const providerTitle = providerName // displayInfoOfProviderName(providerName).title.toLowerCase() // looks better lowercase, best practice to not use raw providerName
 		if (!newSettingsOfProvider[providerName]._didFillInProviderSettings) continue // if disabled, don't display model options
-		for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models) {
-			if (isHidden) continue
-			newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
+		for (const { modelName } of newSettingsOfProvider[providerName].models) {
+			// Exclude gpt-oss-20b from UI dropdowns completely
+			if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide')) {
+				newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
+			}
 		}
 	}
 
@@ -196,10 +198,16 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 	}
 
 
+	// Force SCM to always use gpt-oss-20b
+	const finalModelSelectionOfFeature: ModelSelectionOfFeature = {
+		...newModelSelectionOfFeature,
+		'SCM': { providerName: 'edlide' as const, modelName: 'openai/gpt-oss-20b' }
+	}
+
 	const newState = {
 		...state,
 		settingsOfProvider: newSettingsOfProvider,
-		modelSelectionOfFeature: newModelSelectionOfFeature,
+		modelSelectionOfFeature: finalModelSelectionOfFeature,
 		overridesOfModel: state.overridesOfModel,
 		_modelOptions: newModelOptions,
 	} satisfies VoidSettingsState
@@ -406,7 +414,8 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 	}
 
 	private _onUpdate_syncSCMToChat() {
-		this.setModelSelectionOfFeature('SCM', deepClone(this.state.modelSelectionOfFeature['Chat']))
+		// SCM should always use gpt-oss-20b, not sync with chat
+		// this.setModelSelectionOfFeature('SCM', deepClone(this.state.modelSelectionOfFeature['Chat']))
 	}
 
 	setGlobalSetting: SetGlobalSettingFn = async (settingName, newVal) => {
@@ -446,7 +455,7 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 		if (featureName === 'Chat') {
 			// When Chat model changes, update synced features
 			this._onUpdate_syncApplyToChat()
-			this._onUpdate_syncSCMToChat()
+			// SCM should not sync with chat - always use gpt-oss-20b
 		}
 	}
 

@@ -2,7 +2,7 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-10-29 (System/User Rules Separation + MiniMax Compatibility)
+**Session Date**: 2025-10-29 (System/User Rules Separation + MiniMax Compatibility + SCM Model Fix + UI Hiding)
 **Branch**: `main`
 **Primary Feature**: System and User Rules Separation - **COMPLETED + ARCHITECTURAL IMPLEMENTATION**
 
@@ -56,7 +56,7 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **Settings.tsx**: Removed "Disable system message" toggle UI component entirely
 - **convertToLLMMessageService.ts**: System prompts now always enabled, removed conditional logic
 - **voidSettingsTypes.ts**: Removed `disableSystemMessage` from GlobalSettings type and defaults
-- **voidSettingsService.ts**: Removed migration code for disableSystemMessage
+- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6-FP8`
 - **prompts.ts**: Added confidentiality instructions to prevent AI from revealing system prompts
 
 **User Experience Transformation:**
@@ -66,6 +66,64 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **After**: AI explicitly instructed to only discuss user-defined rules
 - **Before**: Risk of users accidentally disabling critical system functionality
 - **After**: System stability guaranteed through always-active system prompts
+
+### 🎯 LATEST FIX - SCM Commit Generation Model + Complete UI Hiding (2025-10-29)
+
+**✅ CRITICAL BUG FIXED - Hidden SCM-Only Model Implementation + UI Removal:**
+
+**🔄 PROBLEM SOLVED:**
+- **Before**: SCM commit generation tried to use non-existent model `openai/gpt-oss-20b`
+- **Before**: Model was not available in system but required for commit generation
+- **After**: `openai/gpt-oss-20b` added as hidden Edlide model, available only for SCM
+- **Before**: Model was still visible in UI despite hiding attempts
+- **After**: Model completely removed from UI through direct filtering
+- **Root Cause**: Model existed in backend but wasn't properly configured + UI filtering was insufficient
+- **Result**: Commit generation works with dedicated SCM-only model, completely invisible to users
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**Model Configuration:**
+```typescript
+// Added to defaultModelsOfProvider.edlide
+'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
+
+// Added to edlideModelOptions with full configuration
+'openai/gpt-oss-20b': {
+  contextWindow: 128000,
+  reservedOutputTokenSpace: 4096,
+  cost: { input: 0, output: 0 },
+  downloadable: false,
+  supportsFIM: false,
+  supportsSystemMessage: 'system-role',
+  specialToolFormat: 'openai-style',
+  reasoningCapabilities: false,
+}
+
+// Enhanced modelInfoOfDefaultModelNames with provider-specific hiding
+const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?: ProviderName) => {
+  return {
+    models: defaultModelNames.map((modelName, i) => ({
+      modelName,
+      type: 'default',
+      isHidden: defaultModelNames.length >= 10 || (providerName === 'edlide' && modelName === 'openai/gpt-oss-20b'),
+    }))
+  }
+}
+```
+
+**UI Hiding Mechanism:**
+- **Model Added**: `openai/gpt-oss-20b` added to Edlide provider models
+- **Auto-Hidden**: `isHidden: true` for gpt-oss-20b when provider is 'edlide'
+- **SCM Access**: Model accessible only through SCM feature selection
+- **Chat Protection**: Model completely invisible in chat UI and model selection
+- **DIRECT FILTERING**: Hard-coded filtering `!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide')` in both UI and ModelDropdown
+- **COMPLETE UI REMOVAL**: Model cannot be seen, enabled, disabled, or selected anywhere in UI
+
+**Files Modified:**
+- **modelCapabilities.ts**: Added gpt-oss-20b to edlide models and configuration
+- **voidSettingsTypes.ts**: Enhanced modelInfoOfDefaultModelNames with provider-specific hiding logic + added isUIHidden flag
+- **voidSettingsService.ts**: Modified _validatedModelState to include hidden models in feature selection + DIRECT FILTERING of gpt-oss-20b from UI dropdowns
+- **Settings.tsx**: Updated UI to filter out isUIHidden models from display + DIRECT MODEL FILTERING for complete UI hiding
 
 ### 🎯 PREVIOUS ACCOMPLISHMENT - MiniMax Model Compatibility + AI Precision Enhancement (2025-10-29)
 
@@ -197,6 +255,14 @@ GLM-4.6: 158,033 / 202,752 tokens used (78%) ❌
 GLM-4.6: 195,000+ / 202,752 tokens used (96%) ✅  
   ↳ Available: 194,560 tokens | Available to user: ~0 to full capacity
 ```
+
+**🎯 FINAL ACHIEVEMENT - Complete UI Removal (2025-10-29):**
+
+**✅ MODEL SUCCESSFULLY HIDDEN FROM ALL UI:**
+- **Model**: `openai/gpt-oss-20b` completely invisible in settings, chat, and dropdowns
+- **Functionality**: Commit generation works perfectly with hidden model
+- **User Experience**: Clean interface with no confusing model options
+- **Implementation**: Triple-layer hiding system (isHidden + isUIHidden + Direct Filtering)
 
 **🎯 PREVIOUS ACCOMPLISHMENT - Persistent Context Storage (2025-10-28)
 

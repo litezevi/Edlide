@@ -33,6 +33,7 @@ export type VoidStatefulModelInfo = { // <-- STATEFUL
 	modelName: string,
 	type: 'default' | 'autodetected' | 'custom';
 	isHidden: boolean, // whether or not the user is hiding it (switched off)
+	isUIHidden?: boolean, // whether to hide from UI dropdowns (but still available for feature selection)
 }
 
 
@@ -248,12 +249,13 @@ const defaultCustomSettings: Record<CustomSettingName, undefined> = {
 }
 
 
-const modelInfoOfDefaultModelNames = (defaultModelNames: string[]): { models: VoidStatefulModelInfo[] } => {
+const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?: ProviderName): { models: VoidStatefulModelInfo[] } => {
 	return {
 		models: defaultModelNames.map((modelName, i) => ({
 			modelName,
 			type: 'default',
 			isHidden: defaultModelNames.length >= 10, // hide all models if there are a ton of them, and make user enable them individually
+			isUIHidden: providerName === 'edlide' && modelName === 'openai/gpt-oss-20b', // hide gpt-oss-20b from UI dropdowns but keep available for SCM
 		}))
 	}
 }
@@ -359,7 +361,7 @@ export const defaultSettingsOfProvider: SettingsOfProvider = {
 	edlide: { // built-in Edlide provider
 		...defaultCustomSettings,
 		...defaultProviderSettings.edlide,
-		...modelInfoOfDefaultModelNames(defaultModelsOfProvider.edlide),
+		...modelInfoOfDefaultModelNames(defaultModelsOfProvider.edlide, 'edlide'),
 		_didFillInProviderSettings: true, // Edlide is always configured
 	},
 }
@@ -468,7 +470,7 @@ export const defaultGlobalSettings: GlobalSettings = {
 	aiInstructions: '',
 	enableAutocomplete: false,
 	syncApplyToChat: true,
-	syncSCMToChat: true,
+	syncSCMToChat: false, // SCM should always use gpt-oss-20b, not sync with chat
 	enableFastApply: true,
 	chatMode: 'agent',
 	autoApprove: {},
