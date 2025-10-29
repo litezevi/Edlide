@@ -34,7 +34,6 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
-		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-09-05'
 		if (modelName === 'MiniMaxAI/MiniMax-M2')
 		return 'minimax-m2'
 	}

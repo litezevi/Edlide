@@ -78,7 +78,6 @@ export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6-FP8',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
-		'moonshotai/Kimi-K2-Instruct-0905',
 		'MiniMaxAI/MiniMax-M2'
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
@@ -1140,16 +1139,6 @@ const edlideModelOptions = {
 	'deepseek-ai/DeepSeek-V3.1-Terminus': {
 		contextWindow: 163840,
 		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 95% of context
-		cost: { input: 0, output: 0 },
-		downloadable: false,
-		supportsFIM: false,
-		supportsSystemMessage: 'system-role',
-		specialToolFormat: 'openai-style',
-		reasoningCapabilities: false,
-	},
-	'moonshotai/Kimi-K2-Instruct-0905': {
-		contextWindow: 262144,
-		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 97% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
