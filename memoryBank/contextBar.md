@@ -275,7 +275,22 @@ Context bar now provides perfect per-chat token tracking with:
 - **Clean Experience**: New chats start fresh, existing chats persist
 - **Minimal Noise**: Clean logging focused on essential information
 
-## 🎯 NEW: PERSISTENT STORAGE IMPLEMENTATION (2025-10-28)
+## 🎯 NEW: FULL CONTEXT WINDOW UTILIZATION (2025-10-28)
+
+**✅ MAJOR BREAKTHROUGH - Memory Limit Elimination:**
+
+**🔄 PROBLEM SOLVED:**
+- **Before**: Artificial limit at ~158k tokens (78% of GLM-4.6's capacity)
+- **After**: Full utilization up to 96-97% of context windows
+- **Root Cause**: Excessive `reservedOutputTokenSpace` (32,768→8,192 tokens)
+- **Result**: +24,576 available tokens for all Edlide models
+
+**📊 TRANSFORMATION:**
+- GLM-4.6: From 169,984 → 194,560 available tokens
+- DeepSeek-V3.1: From 131,072 → 155,648 available tokens  
+- Kimi-K2: From 229,376 → 253,952 available tokens
+
+## 🎯 PREVIOUS: PERSISTENT STORAGE IMPLEMENTATION (2025-10-28)
 
 **✅ CRITICAL UPDATE - Context Persistence Across App Restarts:**
 

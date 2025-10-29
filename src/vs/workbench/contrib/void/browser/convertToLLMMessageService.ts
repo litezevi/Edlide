@@ -263,7 +263,7 @@ const prepareOpenAIOrAnthropicMessages = ({
 }): { messages: AnthropicOrOpenAILLMMessage[], separateSystemMessage: string | undefined } => {
 
 	reservedOutputTokenSpace = Math.max(
-		contextWindow * 1 / 2, // reserve at least 1/4 of the token window length
+		contextWindow * 1 / 10, // reserve at least 10% of the token window length for output
 		reservedOutputTokenSpace ?? 4_096 // defaults to 4096
 	)
 	let messages: (SimpleLLMMessage | { role: 'system', content: string })[] = deepClone(messages_)
@@ -285,82 +285,97 @@ const prepareOpenAIOrAnthropicMessages = ({
 
 	// ================ fit into context ================
 
-	// the higher the weight, the higher the desire to truncate - TRIM HIGHEST WEIGHT MESSAGES
-	const alreadyTrimmedIdxes = new Set<number>()
-	const weight = (message: MesType, messages: MesType[], idx: number) => {
-		const base = message.content.length
-
-		let multiplier: number
-		multiplier = 1 + (messages.length - 1 - idx) / messages.length // slow rampdown from 2 to 1 as index increases
-		if (message.role === 'user') {
-			multiplier *= 1
-		}
-		else if (message.role === 'system') {
-			multiplier *= .01 // very low weight
-		}
-		else {
-			multiplier *= 10 // llm tokens are far less valuable than user tokens
-		}
-
-		// any already modified message should not be trimmed again
-		if (alreadyTrimmedIdxes.has(idx)) {
-			multiplier = 0
-		}
-		// 1st and last messages should be very low weight
-		if (idx <= 1 || idx >= messages.length - 1 - 3) {
-			multiplier *= .05
-		}
-		return base * multiplier
-	}
-
-	const _findLargestByWeight = (messages_: MesType[]) => {
-		let largestIndex = -1
-		let largestWeight = -Infinity
-		for (let i = 0; i < messages.length; i += 1) {
-			const m = messages[i]
-			const w = weight(m, messages_, i)
-			if (w > largestWeight) {
-				largestWeight = w
-				largestIndex = i
-			}
-		}
-		return largestIndex
-	}
-
 	let totalLen = 0
 	for (const m of messages) { totalLen += m.content.length }
+	const maxAllowedChars = (contextWindow - reservedOutputTokenSpace) * CHARS_PER_TOKEN
+	
+	// Check if we're approaching the real context limit (95% of context window)
+	const contextUsagePercentage = totalLen / (contextWindow * CHARS_PER_TOKEN)
+	if (contextUsagePercentage > 0.95) {
+		// We're at the real limit - throw error to start new chat
+		throw new Error('Context window limit reached. Please start a new chat to continue.')
+	}
+
+	// Only trim if we exceed the allowed space (90% of context window)
 	const charsNeedToTrim = totalLen - Math.max(
-		(contextWindow - reservedOutputTokenSpace) * CHARS_PER_TOKEN, // can be 0, in which case charsNeedToTrim=everything, bad
+		maxAllowedChars, // can be 0, in which case charsNeedToTrim=everything, bad
 		5_000 // ensure we don't trim at least 5k chars (just a random small value)
 	)
 
+	// If we don't need to trim, return messages as-is
+	if (charsNeedToTrim <= 0) {
+		// No trimming needed
+	} else {
+		// the higher the weight, the higher the desire to truncate - TRIM HIGHEST WEIGHT MESSAGES
+		const alreadyTrimmedIdxes = new Set<number>()
+		const weight = (message: MesType, messages: MesType[], idx: number) => {
+			const base = message.content.length
 
-	// <----------------------------------------->
-	// 0                      |    |             |
-	//                        |    contextWindow |
-	//                     contextWindow - maxOut|putTokens
-	//                                          totalLen
-	let remainingCharsToTrim = charsNeedToTrim
-	let i = 0
+			let multiplier: number
+			multiplier = 1 + (messages.length - 1 - idx) / messages.length // slow rampdown from 2 to 1 as index increases
+			if (message.role === 'user') {
+				multiplier *= 1
+			}
+			else if (message.role === 'system') {
+				multiplier *= .01 // very low weight
+			}
+			else {
+				multiplier *= 10 // llm tokens are far less valuable than user tokens
+			}
 
-	while (remainingCharsToTrim > 0) {
-		i += 1
-		if (i > 100) break
-
-		const trimIdx = _findLargestByWeight(messages)
-		const m = messages[trimIdx]
-
-		// if can finish here, do
-		const numCharsWillTrim = m.content.length - TRIM_TO_LEN
-		if (numCharsWillTrim > remainingCharsToTrim) {
-			// trim remainingCharsToTrim + '...'.length chars
-			m.content = m.content.slice(0, m.content.length - remainingCharsToTrim - '...'.length).trim() + '...'
-			break
+			// any already modified message should not be trimmed again
+			if (alreadyTrimmedIdxes.has(idx)) {
+				multiplier = 0
+			}
+			// 1st and last messages should be very low weight
+			if (idx <= 1 || idx >= messages.length - 1 - 3) {
+				multiplier *= .05
+			}
+			return base * multiplier
 		}
 
-		remainingCharsToTrim -= numCharsWillTrim
-		m.content = m.content.substring(0, TRIM_TO_LEN - '...'.length) + '...'
-		alreadyTrimmedIdxes.add(trimIdx)
+		const _findLargestByWeight = (messages_: MesType[]) => {
+			let largestIndex = -1
+			let largestWeight = -Infinity
+			for (let i = 0; i < messages.length; i += 1) {
+				const m = messages[i]
+				const w = weight(m, messages_, i)
+				if (w > largestWeight) {
+					largestWeight = w
+					largestIndex = i
+				}
+			}
+			return largestIndex
+		}
+
+
+		// <----------------------------------------->
+		// 0                      |    |             |
+		//                        |    contextWindow |
+		//                     contextWindow - maxOut|putTokens
+		//                                          totalLen
+		let remainingCharsToTrim = charsNeedToTrim
+		let i = 0
+
+		while (remainingCharsToTrim > 0) {
+			i += 1
+			if (i > 100) break
+
+			const trimIdx = _findLargestByWeight(messages)
+			const m = messages[trimIdx]
+
+			// if can finish here, do
+			const numCharsWillTrim = m.content.length - TRIM_TO_LEN
+			if (numCharsWillTrim > remainingCharsToTrim) {
+				// trim remainingCharsToTrim + '...'.length chars
+				m.content = m.content.slice(0, m.content.length - remainingCharsToTrim - '...'.length).trim() + '...'
+				break
+			}
+
+			remainingCharsToTrim -= numCharsWillTrim
+			m.content = m.content.substring(0, TRIM_TO_LEN - '...'.length) + '...'
+			alreadyTrimmedIdxes.add(trimIdx)
+		}
 	}
 
 	// ================ system message hack ================

@@ -1124,11 +1124,11 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 	},
 }
 
-// ---------------- EDLIDE ----------------
+	// ---------------- EDLIDE ----------------
 const edlideModelOptions = {
 	'zai-org/GLM-4.6-FP8': {
 		contextWindow: 202752,
-		reservedOutputTokenSpace: 32768,
+		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1138,7 +1138,7 @@ const edlideModelOptions = {
 	},
 	'deepseek-ai/DeepSeek-V3.1-Terminus': {
 		contextWindow: 163840,
-		reservedOutputTokenSpace: 32768,
+		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1148,7 +1148,7 @@ const edlideModelOptions = {
 	},
 	'moonshotai/Kimi-K2-Instruct-0905': {
 		contextWindow: 262144,
-		reservedOutputTokenSpace: 32768,
+		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 97% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,

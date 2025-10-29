@@ -778,11 +778,25 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 			this._setStreamState(threadId, { isRunning: 'idle', interrupt: idleInterruptor })
 
 			const chatMessages = this.state.allThreads[threadId]?.messages ?? []
-			const { messages, separateSystemMessage } = await this._convertToLLMMessagesService.prepareLLMChatMessages({
-				chatMessages,
-				modelSelection,
-				chatMode
-			})
+			let messages, separateSystemMessage
+			try {
+				const result = await this._convertToLLMMessagesService.prepareLLMChatMessages({
+					chatMessages,
+					modelSelection,
+					chatMode
+				})
+				messages = result.messages
+				separateSystemMessage = result.separateSystemMessage
+			} catch (error) {
+				// Handle context window limit error
+				if (error instanceof Error && error.message.includes('Context window limit reached')) {
+					this._notifyError(threadId, 'Context window limit reached. Please start a new chat to continue.')
+					this._setStreamState(threadId, undefined)
+					return
+				}
+				// Re-throw other errors
+				throw error
+			}
 
 			if (interruptedWhenIdle) {
 				this._setStreamState(threadId, undefined)
@@ -1229,6 +1243,15 @@ We only need to do it for files that were edited since `from`, ie files between 
 
 	dismissStreamError(threadId: string): void {
 		this._setStreamState(threadId, undefined)
+	}
+
+	private _notifyError(threadId: string, errorMessage: string): void {
+		this._notificationService.notify({
+			severity: Severity.Error,
+			message: errorMessage,
+			source: 'Chat',
+			sticky: false,
+		})
 	}
 
 
