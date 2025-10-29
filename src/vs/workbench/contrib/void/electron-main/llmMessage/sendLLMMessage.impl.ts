@@ -170,10 +170,10 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 	else if (providerName === 'edlide') {
 		// Hardcoded Edlide provider like openAICompatible
 		return new OpenAI({
-			baseURL: 'https://zzevi-ai.bekaitegin.me/v1/',
-			apiKey: 'sk-zzevi-ccefee02d905839882a7d657e9f0510973c58f7e0124d3e1c1eac2037b2195e9',
+			baseURL: 'https://llm.chutes.ai/v1/',
+			apiKey: 'cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5',
 			defaultHeaders: {
-				'Authorization': `Bearer sk-zzevi-ccefee02d905839882a7d657e9f0510973c58f7e0124d3e1c1eac2037b2195e9`,
+				'Authorization': `Bearer cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`,
 				'Content-Type': 'application/json'
 			},
 			...commonPayloadOpts
@@ -351,41 +351,41 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 		.create(options)
 		.then(async response => {
 			_setAborter(() => response.controller.abort())
-			
-		// Variables to collect full response data
-		let fullResponseData: any = {
-			usage: null,
-			model: modelName,
-			created: null,
-			id: null,
-			object: null
-		}
 
-		// when receive text
-		for await (const chunk of response) {
-			// Log each raw chunk to see complete response
-			console.log(`[EDLIDE JSON RAW CHUNK] ${providerName} ${modelName}:`, JSON.stringify(chunk, null, 2))
-			
-			// Collect usage info when available
-			if (chunk.usage) {
-				fullResponseData.usage = chunk.usage
-			}
-			if (chunk.model) {
-				fullResponseData.model = chunk.model
-			}
-			if (chunk.created) {
-				fullResponseData.created = chunk.created
-			}
-			if (chunk.id) {
-				fullResponseData.id = chunk.id
-			}
-			if (chunk.object) {
-				fullResponseData.object = chunk.object
+			// Variables to collect full response data
+			let fullResponseData: any = {
+				usage: null,
+				model: modelName,
+				created: null,
+				id: null,
+				object: null
 			}
 
-			// message
-			const newText = chunk.choices[0]?.delta?.content ?? ''
-			fullTextSoFar += newText
+			// when receive text
+			for await (const chunk of response) {
+				// Log each raw chunk to see complete response
+				console.log(`[EDLIDE JSON RAW CHUNK] ${providerName} ${modelName}:`, JSON.stringify(chunk, null, 2))
+
+				// Collect usage info when available
+				if (chunk.usage) {
+					fullResponseData.usage = chunk.usage
+				}
+				if (chunk.model) {
+					fullResponseData.model = chunk.model
+				}
+				if (chunk.created) {
+					fullResponseData.created = chunk.created
+				}
+				if (chunk.id) {
+					fullResponseData.id = chunk.id
+				}
+				if (chunk.object) {
+					fullResponseData.object = chunk.object
+				}
+
+				// message
+				const newText = chunk.choices[0]?.delta?.content ?? ''
+				fullTextSoFar += newText
 
 				// tool call
 				for (const tool of chunk.choices[0]?.delta?.tool_calls ?? []) {
@@ -430,7 +430,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 				onError({ message: 'Edlide: Response from model was empty.', fullError: null })
 			}
 			else {
-			// Log complete response with full API data including total_tokens
+				// Log complete response with full API data including total_tokens
 				console.log(`[EDLIDE JSON RESPONSE COMPLETE] ${providerName} ${modelName}:`, JSON.stringify({
 					provider: providerName,
 					raw_response: fullResponseData,
@@ -442,11 +442,11 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 						params: toolParamsStr
 					} : null,
 					timestamp: new Date().toISOString()
-			}, null, 2))
-				
+				}, null, 2))
+
 				const toolCall = rawToolCallObjOfParamsStr(toolName, toolParamsStr, toolId)
 				const toolCallObj = toolCall ? { toolCall } : {}
-				
+
 				// Final call to onText with totalTokens for reliable context bar update
 				if (fullResponseData.usage?.total_tokens) {
 					console.log(`[SEND LLM] 🎯 FINAL onText call with TOTAL TOKENS: ${fullResponseData.usage.total_tokens}`);
@@ -457,7 +457,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 						totalTokens: fullResponseData.usage.total_tokens,
 					});
 				}
-				
+
 				onFinalMessage({ fullText: fullTextSoFar, fullReasoning: fullReasoningSoFar, anthropicReasoning: null, ...toolCallObj });
 			}
 		})
@@ -474,7 +474,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 				},
 				timestamp: new Date().toISOString()
 			}, null, 2))
-			
+
 			if (error instanceof OpenAI.APIError && error.status === 401) { onError({ message: invalidApiKeyMessage(providerName), fullError: error }); }
 			else { onError({ message: error + '', fullError: error }); }
 		})
