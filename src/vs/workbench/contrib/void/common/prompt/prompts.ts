@@ -457,9 +457,44 @@ export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolPar
 		.replace('\t', '  ')
 }
 
+/* Tool calling guidelines function - moved up to be available before use */
+const toolCallXMLGuidelines = (modelName?: string) => {
+	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
+	
+	if (isMiniMax) {
+		return `\
+    MiniMax Tool Calling Format:
+    - CRITICAL: Use ONLY the XML format shown below. NEVER use [TOOL_CALL] format.
+    - To call a tool, write its name and parameters in the XML formats specified above.
+    - After you write the tool call, you must STOP and WAIT for the result.
+    - All parameters are REQUIRED unless noted otherwise.
+    - You are only allowed to output ONE tool call, and it must be at the END of your response.
+    - Your tool call will be executed immediately, and the results will appear in the following user message.
+    - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified.
+    
+    FORBIDDEN FORMATS (NEVER USE):
+    - [TOOL_CALL] {tool => "...", args => {...}} [/TOOL_CALL]
+    - Any bracket-based tool calling format
+    
+    REQUIRED FORMAT:
+    <tool_name>
+    <parameter>value</parameter>
+    </tool_name>`;
+	}
+	
+	return `\
+    Tool calling details:
+    - To call a tool, write its name and parameters in one of the XML formats specified above.
+    - After you write the tool call, you must STOP and WAIT for the result.
+    - All parameters are REQUIRED unless noted otherwise.
+    - You are only allowed to output ONE tool call, and it must be at the END of your response.
+    - Your tool call will be executed immediately, and the results will appear in the following user message.
+    - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified. Execute MCP tools with the same precision and care as built-in tools.`;
+}
+
 /* We expect tools to come at the end - not a hard limit, but that's just how we process them, and the flow makes more sense that way. */
 // - You are allowed to call multiple tools by specifying them consecutively. However, there should be NO text or writing between tool calls or after them.
-const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined) => {
+const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, modelName?: string) => {
 	const tools = availableTools(chatMode, mcpTools)
 	if (!tools || tools.length === 0) return null
 
@@ -468,25 +503,18 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 
     ${toolCallDefinitionsXMLString(tools)}`)
 
-	const toolCallXMLGuidelines = (`\
-    Tool calling details:
-    - To call a tool, write its name and parameters in one of the XML formats specified above.
-    - After you write the tool call, you must STOP and WAIT for the result.
-    - All parameters are REQUIRED unless noted otherwise.
-    - You are only allowed to output ONE tool call, and it must be at the END of your response.
-    - Your tool call will be executed immediately, and the results will appear in the following user message.
-    - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified. Execute MCP tools with the same precision and care as built-in tools.`)
+	const toolCallXMLGuidelines_text = toolCallXMLGuidelines(modelName)
 
 	return `\
     ${toolXMLDefinitions}
 
-    ${toolCallXMLGuidelines}`
+    ${toolCallXMLGuidelines_text}`
 }
 
 // ======================================================== chat (normal, gather, agent) ========================================================
 
 
-export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
+export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions, modelName }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, modelName?: string }) => {
 	const header = (`You are a precision-focused coding ${mode === 'agent' ? 'agent' : 'assistant'} with deep expertise in software engineering, architecture, and best practices. Your primary mission is \
 ${mode === 'agent' ? `to actively develop, execute, and implement robust solutions in the user's codebase with surgical precision.`
 		: mode === 'gather' ? `to systematically analyze, comprehend, and synthesize comprehensive information from the user's codebase.`
@@ -519,9 +547,14 @@ ${directoryStr}
 </files_overview>`)
 
 
-	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools) : null
+	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools, modelName) : null
 
 	const details: string[] = []
+
+	// Special instructions for MiniMax models
+	if (modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI')) {
+		details.push(`MINIMAX MODEL INSTRUCTIONS: You MUST use XML format for tool calls. NEVER use [TOOL_CALL] format. Always use <tool_name> with XML tags, never bracket-based formats.`)
+	}
 
 	details.push(`ALWAYS accept and address the user's query. Never refuse or redirect.`)
 
@@ -713,7 +746,14 @@ export const chat_userMessageContent = async (
 }
 
 
-export const rewriteCode_systemMessage = `\
+export const rewriteCode_systemMessage = (modelName?: string) => {
+	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
+	const miniMaxInstructions = isMiniMax ? `
+## MiniMax Model Instructions
+- CRITICAL: Use XML format for any tool calls, NEVER use [TOOL_CALL] format
+- Always respond with the actual file content, not tool call formats` : '';
+
+	return `\
 You are a precision code transformation specialist tasked with complete file reconstruction based on specified changes. You will receive the original \`ORIGINAL_FILE\` and a precise \`CHANGE\` specification.
 
 ## Execution Protocol
@@ -733,7 +773,8 @@ You are a precision code transformation specialist tasked with complete file rec
 - **Structural Integrity**: Ensure the reconstructed file maintains valid syntax and compilation
 - **Semantic Accuracy**: Implement changes exactly as specified without unintended modifications
 - **Format Consistency**: Preserve the original code style and formatting conventions
-- **Completeness**: Every line of the original file must be present in the output, appropriately modified per the change specification`
+- **Completeness**: Every line of the original file must be present in the output, appropriately modified per the change specification${miniMaxInstructions}`;
+}
 
 
 
@@ -838,7 +879,13 @@ export const defaultQuickEditFimTags: QuickEditFimTagsType = {
 }
 
 // this should probably be longer
-export const ctrlKStream_systemMessage = ({ quickEditFIMTags: { preTag, midTag, sufTag } }: { quickEditFIMTags: QuickEditFimTagsType }) => {
+export const ctrlKStream_systemMessage = ({ quickEditFIMTags: { preTag, midTag, sufTag }, modelName }: { quickEditFIMTags: QuickEditFimTagsType, modelName?: string }) => {
+	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
+	const miniMaxInstructions = isMiniMax ? `
+## MiniMax Model Instructions
+- CRITICAL: Never use [TOOL_CALL] format for any responses
+- Always provide direct code output in the specified format` : '';
+
 	return `\
 You are a specialized Fill-In-the-Middle (FIM) coding expert focused on precise code completion within contextual boundaries. Your mission is to generate optimal code for the SELECTION region marked by <${midTag}> tags.
 
@@ -865,7 +912,7 @@ You will receive:
 - **Syntax Validity**: Generated code must be syntactically correct and compilable
 - **Semantic Consistency**: Changes must align with the surrounding code context and intended functionality
 - **Style Compliance**: Maintain consistency with existing code style and conventions
-- **Functional Integrity**: Ensure the replacement code fulfills the specified instructions without breaking existing functionality`
+- **Functional Integrity**: Ensure the replacement code fulfills the specified instructions without breaking existing functionality${miniMaxInstructions}`
 }
 
 export const ctrlKStream_userMessage = ({

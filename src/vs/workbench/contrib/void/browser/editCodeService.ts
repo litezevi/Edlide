@@ -1393,7 +1393,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 		let separateSystemMessage: string | undefined
 		if (from === 'ClickApply') {
 			const { messages: a, separateSystemMessage: b } = await this._convertToLLMMessageService.prepareLLMSimpleMessages({
-				systemMessage: rewriteCode_systemMessage,
+				systemMessage: rewriteCode_systemMessage(modelSelection?.modelName),
 				simpleMessages: [{ role: 'user', content: rewriteCode_userMessage({ originalCode, applyStr: opts.applyStr, language }), }],
 				featureName,
 				modelSelection,
@@ -1412,7 +1412,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 			const userContent = ctrlKStream_userMessage({ selection: originalCode, instructions: instructions, prefix, suffix, fimTags: quickEditFIMTags, language })
 
 			const { messages: a, separateSystemMessage: b } = await this._convertToLLMMessageService.prepareLLMSimpleMessages({
-				systemMessage: ctrlKStream_systemMessage({ quickEditFIMTags: quickEditFIMTags }),
+				systemMessage: ctrlKStream_systemMessage({ quickEditFIMTags: quickEditFIMTags, modelName: modelSelection?.modelName }),
 				simpleMessages: [{ role: 'user', content: userContent, }],
 				featureName,
 				modelSelection,
