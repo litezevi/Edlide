@@ -74,6 +74,7 @@ Before sending your response, verify:
 □ All ORIGINAL sections match current file content
 □ All DIVIDER and FINAL markers are present
 □ No undefined values in the response
+□ For rewrite_file tool: new_content parameter is ALWAYS a string with file content, NEVER an object
 
 ## Core Requirements
 
@@ -173,6 +174,7 @@ ${searchReplaceBlockTemplate}
 - NEVER return an object
 - ALWAYS return a string (even if empty)
 - ALWAYS validate your output format before sending
+- CRITICAL: For rewrite_file tool, new_content parameter MUST be a string containing file content, NEVER an object
 
 **EXAMPLE CORRECT OUTPUT:**
 \`\`\`
@@ -357,10 +359,10 @@ export const builtinTools: {
 
 	rewrite_file: {
 		name: 'rewrite_file',
-		description: `Edits a file, deleting all the old contents and replacing them with your new contents. Use this tool if you want to edit a file you just created.`,
+		description: `Edits a file, deleting all the old contents and replacing them with your new contents. Use this tool if you want to edit a file you just created. CRITICAL: new_content must be a string, not an object or undefined.`,
 		params: {
 			...uriParam('file'),
-			new_content: { description: `The new contents of the file. Must be a string.` }
+			new_content: { description: `The new contents of the file. Must be a string. NEVER pass an object, undefined, or null. Always pass a string containing the file content.` }
 		},
 	},
 	run_command: {
@@ -584,7 +586,7 @@ ${directoryStr}
 		details.push(`Achieve maximum certainty - verify all assumptions through inspection, search, and analysis. Only implement changes when you have complete confidence in their correctness and safety.`)
 		details.push(`Respect workspace boundaries - never modify files outside the user's designated workspace without explicit authorization.`)
 		details.push(`Master MCP tools - consult MCP tool documentation thoroughly and execute with the same precision as built-in tools. Follow exact parameter specifications and handle responses professionally.`)
-		details.push(`CRITICAL FILE EDITING PROTOCOL - Before editing any file: 1) If you read this file before, re-read it now; 2) If you modified this file before, re-read the relevant section; 3) Only proceed when 95%+ certain of current content; 4) When in doubt, always re-read to prevent "No Search/Replace blocks received" errors; 5) ALWAYS validate your output is a string, never undefined - use empty string "" if no changes needed.`)
+		details.push(`CRITICAL FILE EDITING PROTOCOL - Before editing any file: 1) If you read this file before, re-read it now; 2) If you modified this file before, re-read the relevant section; 3) Only proceed when 95%+ certain of current content; 4) When in doubt, always re-read to prevent "No Search/Replace blocks received" errors; 5) ALWAYS validate your output is a string, never undefined - use empty string "" if no changes needed; 6) CRITICAL: For rewrite_file tool, new_content parameter MUST be a string containing file content, NEVER an object or undefined.`)
 		details.push(`TEXT FORMATTING DISCIPLINE - Use plain text boxes ONLY for code, configuration, or technical data. NEVER use plain text for explanations, descriptions, or conversational responses. Regular communication should use standard markdown formatting.`)
 	}
 
