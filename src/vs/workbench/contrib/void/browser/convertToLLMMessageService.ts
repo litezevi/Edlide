@@ -422,16 +422,17 @@ const prepareOpenAIOrAnthropicMessages = ({
 	}
 
 
-	// ================ no empty message ================
+	// ================ handle empty content ================
 	for (let i = 0; i < llmMessages.length; i += 1) {
 		const currMsg: AnthropicOrOpenAILLMMessage = llmMessages[i]
 		const nextMsg: AnthropicOrOpenAILLMMessage | undefined = llmMessages[i + 1]
 
 		if (currMsg.role === 'tool') continue
 
-		// if content is a string, replace string with empty msg
+		// if content is a string, keep it as is (allow empty strings)
 		if (typeof currMsg.content === 'string') {
-			currMsg.content = currMsg.content || EMPTY_MESSAGE
+			// Don't replace empty content with EMPTY_MESSAGE - keep it empty
+			// currMsg.content = currMsg.content || EMPTY_MESSAGE // REMOVED
 		}
 		else {
 			// allowed to be empty if has a tool in it or following it
@@ -441,11 +442,14 @@ const prepareOpenAIOrAnthropicMessages = ({
 			}
 			if (nextMsg?.role === 'tool') continue
 
-			// replace any empty text entries with empty msg, and make sure there's at least 1 entry
-			for (const c of currMsg.content) {
-				if (c.type === 'text') c.text = c.text || EMPTY_MESSAGE
+			// filter out empty text entries, but don't replace with EMPTY_MESSAGE
+			const filteredContent = currMsg.content.filter(c => !(c.type === 'text' && !c.text))
+			currMsg.content = filteredContent as any
+			
+			// only add empty text if content is completely empty and it's not a tool-related message
+			if (currMsg.content.length === 0) {
+				currMsg.content = [{ type: 'text', text: '' }] as any // Empty string instead of EMPTY_MESSAGE
 			}
-			if (currMsg.content.length === 0) currMsg.content = [{ type: 'text', text: EMPTY_MESSAGE }]
 		}
 	}
 
