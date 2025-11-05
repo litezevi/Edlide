@@ -26,9 +26,10 @@ const optionsEqual = (m1: ModelOption[], m2: ModelOption[]) => {
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6') return 'glm-4.6'
-		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.2-Exp') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2')
 		return 'minimax-m2'
+		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
 	}
 	return modelName
 }

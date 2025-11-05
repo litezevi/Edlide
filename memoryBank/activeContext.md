@@ -2,13 +2,129 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-10-29 (System/User Rules Separation + MiniMax Compatibility + SCM Model Fix + UI Hiding + Fast Apply UI Hidden + rewrite_file Object Error Fix)
+**Session Date**: 2025-11-05 (Edlide Model Updates + Model Disable Bug Fix + DeepSeek V3.2 + Kimi K2-0905 Integration)
 **Branch**: `main`
-**Primary Feature**: System and User Rules Separation - **COMPLETED + ARCHITECTURAL IMPLEMENTATION**
+**Primary Feature**: Edlide Model Configuration Updates and Bug Fixes - **COMPLETED**
 
-### 🎯 LATEST ACCOMPLISHMENT - rewrite_file Object Error Fix + Fast Apply UI Hidden + System/User Rules Separation + AI Transparency Fix (2025-10-29)
+### 🎯 LATEST ACCOMPLISHMENT - Edlide Model Updates + UI Configuration (2025-11-05)
 
-**✅ CRITICAL BUG FIX - rewrite_file Object Error Resolution:**
+**✅ MODEL REPLACEMENT & ADDITION - DeepSeek V3.2 + Kimi K2:**
+
+**🔄 MODELS UPDATED:**
+- **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.2-Exp`
+- **Added**: `moonshotai/Kimi-K2-Instruct-0905`
+- **UI Names**: `"deepseek-v3.2"` and `"kimi-k2-0905"` (short, user-friendly)
+- **Backend Names**: Full API names retained for provider compatibility
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**Model Configuration Updates:**
+```typescript
+// modelCapabilities.ts - Backend model definitions
+edlide: [
+  'zai-org/GLM-4.6',
+  'deepseek-ai/DeepSeek-V3.2-Exp',    // Replaced V3.1-Terminus
+  'MiniMaxAI/MiniMax-M2',
+  'moonshotai/Kimi-K2-Instruct-0905',  // New model added
+  'openai/gpt-oss-20b' // Hidden SCM-only
+]
+
+// UI display name mapping in both ModelDropdown.tsx and Settings.tsx
+const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
+  if (providerName === 'edlide') {
+    if (modelName === 'deepseek-ai/DeepSeek-V3.2-Exp') return 'deepseek-v3.2'
+    if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
+  }
+  return modelName
+}
+```
+
+**Updated Model Capabilities:**
+```typescript
+// DeepSeek V3.2-Exp Configuration
+'deepseek-ai/DeepSeek-V3.2-Exp': {
+  contextWindow: 163840,
+  reservedOutputTokenSpace: 8192, // 95% context utilization
+  cost: { input: 0, output: 0 },
+  downloadable: false,
+  supportsFIM: false,
+  supportsSystemMessage: 'system-role',
+  specialToolFormat: 'openai-style',
+  reasoningCapabilities: false,
+}
+
+// Kimi K2-Instruct-0905 Configuration  
+'moonshotai/Kimi-K2-Instruct-0905': {
+  contextWindow: 262144, // Largest context window
+  reservedOutputTokenSpace: 8192, // 96% context utilization
+  cost: { input: 0, output: 0 },
+  downloadable: false,
+  supportsFIM: false,
+  supportsSystemMessage: 'system-role', 
+  specialToolFormat: 'openai-style',
+  reasoningCapabilities: false,
+}
+```
+
+**✅ CRITICAL BUG FIX - Model Disable/Enable Functionality:**
+
+**🔄 PROBLEM SOLVED:**
+- **Before**: Models disabled in Settings panel still appeared in chat UI dropdowns
+- **Before**: `isHidden` flag was respected in storage but not in UI model list generation
+- **After**: Hidden models completely excluded from all UI components and model selection
+- **Root Cause**: `_validatedModelState` function didn't check `isHidden` flag when building model options
+- **Result**: Proper model disable/enable synchronization between Settings and Chat UI
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**Enhanced Model Filtering Logic:**
+```typescript
+// BEFORE - Only excluded specific SCM model
+for (const { modelName } of newSettingsOfProvider[providerName].models) {
+  // Exclude gpt-oss-20b from UI dropdowns completely
+  if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide')) {
+    newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
+  }
+}
+
+// AFTER - Respect actual isHidden flag
+for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models) {
+  // Exclude gpt-oss-20b AND respect hidden models
+  if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') && !isHidden) {
+    newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
+  }
+}
+```
+
+**Synchronized UI Updates:**
+- **Settings Panel**: Updated `getModelDisplayName()` in Settings.tsx for model list display
+- **Chat Dropdowns**: Updated `getModelDisplayName()` in ModelDropdown.tsx for selection
+- **State Validation**: Enhanced `_validatedModelState()` to properly filter hidden models
+- **User Experience**: Disable/Enable toggle now works instantly across all UI components
+
+**Files Modified:**
+- **modelCapabilities.ts**: Updated model configurations and capabilities
+- **ModelDropdown.tsx**: Updated UI display names for new models
+- **Settings.tsx**: Updated UI display names in Settings model list  
+- **voidSettingsService.ts**: Fixed hidden model filtering logic
+- **React Build**: Successfully compiled with zero errors
+
+**📊 USER EXPERIENCE TRANSFORMED:**
+- **Model Management**: Users can now properly hide/unhide models in Settings
+- **UI Consistency**: Model names identical in Settings and Chat dropdowns
+- **Clean Interface**: Friendly short names (`deepseek-v3.2`, `kimi-k2-0905`) throughout UI
+- **Backend Compatibility**: Full API names preserved for provider communication
+- **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
+
+**🎯 MODEL HIERARCHY ESTABLISHED:**
+- **Largest Context**: Kimi K2 (262,144 tokens) - Maximum context capacity
+- **Balanced Performance**: DeepSeek V3.2 (163,840 tokens) - Updated capabilities
+- **Established Models**: GLM-4.6 (202,752 tokens), MiniMax-M2 (196,608 tokens)
+- **SCM专用**: gpt-oss-20b (128,000 tokens) - Hidden commit generation model
+
+### 🎯 PREVIOUS ACCOMPLISHMENT - rewrite_file Object Error Fix + Fast Apply UI Hidden + System/User Rules Separation + AI Transparency Fix (2025-10-29)
+
+**✅ PREVIOUS BUG FIX - rewrite_file Object Error Resolution:**
 
 **🔄 PROBLEM SOLVED:**
 - **Before**: AI models passed objects instead of strings to rewrite_file tool's new_content parameter

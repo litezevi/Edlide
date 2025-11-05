@@ -77,8 +77,9 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6',
-		'deepseek-ai/DeepSeek-V3.1-Terminus',
+		'deepseek-ai/DeepSeek-V3.2-Exp',
 		'MiniMaxAI/MiniMax-M2',
+		'moonshotai/Kimi-K2-Instruct-0905',
 		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
@@ -1137,7 +1138,7 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-	'deepseek-ai/DeepSeek-V3.1-Terminus': {
+	'deepseek-ai/DeepSeek-V3.2-Exp': {
 		contextWindow: 163840,
 		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
@@ -1149,6 +1150,16 @@ const edlideModelOptions = {
 	},
 	'MiniMaxAI/MiniMax-M2': {
 		contextWindow: 196608,
+		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'moonshotai/Kimi-K2-Instruct-0905': {
+		contextWindow: 262144,
 		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
