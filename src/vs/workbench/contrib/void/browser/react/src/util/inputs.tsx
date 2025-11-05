@@ -850,7 +850,7 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 										className={`
 											flex items-center gap-2
 											px-3 py-1 cursor-pointer
-											${oIdx === optionIdx ? 'bg-blue-500 text-white/80' : 'bg-void-bg-2-alt text-void-fg-1'}
+											${oIdx === optionIdx ? 'bg-gray-500 text-white/80' : 'bg-void-bg-2-alt text-void-fg-1'}
 										`}
 										onClick={() => { onSelectOption(); }}
 										onMouseMove={() => { setOptionIdx(oIdx) }}
@@ -1550,7 +1550,7 @@ export const VoidCustomDropdownBox = <T extends NonNullable<any>>({
 									key={optionName}
 									className={`flex items-center px-2 py-1 pr-4 cursor-pointer whitespace-nowrap
 									transition-all duration-100
-									${thisOptionIsSelected ? 'bg-blue-500 text-white/80' : 'hover:bg-blue-500 hover:text-white/80'}
+									${thisOptionIsSelected ? 'bg-gray-500 text-white/80' : 'hover:bg-gray-500 hover:text-white/80'}
 								`}
 									onClick={() => {
 										onChangeOption(option);
