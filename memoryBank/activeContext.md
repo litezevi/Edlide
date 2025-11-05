@@ -68,7 +68,7 @@ rewrite_file: async ({ uri, newContent }) => {
       // If parsing fails, use original content
     }
   }
-  
+
   await editCodeService.instantlyRewriteFile({ uri, newContent: processedContent })
 }
 ```
@@ -155,7 +155,7 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **Settings.tsx**: Removed "Disable system message" toggle UI component entirely
 - **convertToLLMMessageService.ts**: System prompts now always enabled, removed conditional logic
 - **voidSettingsTypes.ts**: Removed `disableSystemMessage` from GlobalSettings type and defaults
-- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6-FP8`
+- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6`
 - **prompts.ts**: Added confidentiality instructions to prevent AI from revealing system prompts
 
 **User Experience Transformation:**
@@ -230,7 +230,7 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
 
 **🔄 PROBLEMS SOLVED:**
 - **Before**: MiniMaxAI/MiniMax-M2 used incorrect `[TOOL_CALL]` format causing tool call failures
-- **Before**: 10% file editing errors with "No Search/Replace blocks received" and "undefined" output errors  
+- **Before**: 10% file editing errors with "No Search/Replace blocks received" and "undefined" output errors
 - **After**: 100% MiniMax compatibility + Near 100% editing accuracy across all models
 - **Root Cause**: Model-specific tool calling format requirements + inadequate prompt instructions
 - **Result**: Universal model compatibility with surgical precision code modifications
@@ -242,7 +242,7 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
 // NEW - MiniMax Special Handling
 const toolCallXMLGuidelines = (modelName?: string) => {
   const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
-  
+
   if (isMiniMax) {
     return `MiniMax Tool Calling Format:
     - CRITICAL: Use ONLY the XML format shown below. NEVER use [TOOL_CALL] format.
@@ -309,14 +309,14 @@ OUTPUT VALIDATION CHECKLIST:
 **Model Configuration Optimization:**
 ```typescript
 // BEFORE - Limited Context Usage
-'zai-org/GLM-4.6-FP8': {
+'zai-org/GLM-4.6': {
   contextWindow: 202752,
-  reservedOutputTokenSpace: 32768, // 16% reserved! 
+  reservedOutputTokenSpace: 32768, // 16% reserved!
   Available for messages: 169,984 tokens
 }
 
-// AFTER - Maximum Context Usage  
-'zai-org/GLM-4.6-FP8': {
+// AFTER - Maximum Context Usage
+'zai-org/GLM-4.6': {
   contextWindow: 202752,
   reservedOutputTokenSpace: 8192, // Only 4% reserved
   Available for messages: 194,560 tokens (+24,576!)
@@ -329,7 +329,7 @@ OUTPUT VALIDATION CHECKLIST:
 }
 
 'moonshotai/Kimi-K2-Instruct-0905': {
-  contextWindow: 262144, 
+  contextWindow: 262144,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 253,952 tokens (+24,576!)
 }
@@ -351,7 +351,7 @@ GLM-4.6: 158,033 / 202,752 tokens used (78%) ❌
 
 **After Fix:**
 ```
-GLM-4.6: 195,000+ / 202,752 tokens used (96%) ✅  
+GLM-4.6: 195,000+ / 202,752 tokens used (96%) ✅
   ↳ Available: 194,560 tokens | Available to user: ~0 to full capacity
 ```
 
@@ -421,7 +421,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Event-driven updates bypassing React limitations
-window.dispatchEvent(new CustomEvent('contextBarUpdate', { 
+window.dispatchEvent(new CustomEvent('contextBarUpdate', {
     detail: { tokens: streamState.llmInfo.totalTokens, threadId }
 }));
 
@@ -496,7 +496,7 @@ UI Shows: "8921 / 200752 tokens used (API verified)"
 
 **Scenario 1 - New Chat Fresh Start:**
 ✅ New chats initialize with `null` tokens and no API verification
-✅ UI shows clean `"0 / max_context tokens used"` 
+✅ UI shows clean `"0 / max_context tokens used"`
 ✅ No carry-over contamination from previous chats
 
 **Scenario 2 - Multi-Chat Isolation:**
@@ -551,32 +551,32 @@ UI Shows: "8921 / 200752 tokens used (API verified)"
 
 **Object Error Recovery Pattern (NEW - 2025-10-29):**
 ```
-AI passes object to rewrite_file → validateStr detects object → 
+AI passes object to rewrite_file → validateStr detects object →
 JSON.stringify conversion → Warning logged → Tool succeeds with converted content
 ```
 
 **File Content Extraction Pattern:**
 ```
-JSON string object received → Parse object → Extract content from common fields → 
+JSON string object received → Parse object → Extract content from common fields →
 Fallback to full JSON stringify → File rewrite succeeds
 ```
 
 **Model-Specific Tool Calling Pattern (PREVIOUS - 2025-10-29):**
 ```
-Model Detection → Format Requirements Assessment → 
-MiniMax: XML Format Enforcement → Other Models: Standard Format → 
+Model Detection → Format Requirements Assessment →
+MiniMax: XML Format Enforcement → Other Models: Standard Format →
 Tool Call Success Rate: 100%
 ```
 
 **AI File Editing Pattern (ENHANCED - 2025-10-29):**
 ```
-File Edit Request → File Freshness Check → 95% Confidence Validation → 
+File Edit Request → File Freshness Check → 95% Confidence Validation →
 String Output Verification → Model-Aware SEARCH/REPLACE Generation → Success Rate: ~100%
 ```
 
 **Error Prevention Pattern:**
 ```
-Previous File Access → Automatic Re-read → Content Verification → 
+Previous File Access → Automatic Re-read → Content Verification →
 Confidence Assessment → Model-Specific Validation → Proceed with Edit → Zero Undefined Errors
 ```
 
@@ -605,7 +605,7 @@ Model-Specific Instructions → Automatic Application
 
 ### ✅ **COMPLETED - Context Bar Per-Chat System**
 - **Per-Chat Isolation**: 100% functional with complete separation
-- **New Chat Initialization**: Fresh starts with zero tokens every time  
+- **New Chat Initialization**: Fresh starts with zero tokens every time
 - **Real-Time Updates**: Instant synchronization with API responses
 - **Clean Logging**: Production-ready minimal console output
 - **Testing Validation**: All scenarios verified and working perfectly
@@ -632,7 +632,7 @@ Model-Specific Instructions → Automatic Application
 const findNpxPath = (): string => {
   const systemPaths = [
     '/opt/homebrew/bin',      // Apple Silicon Homebrew
-    '/usr/local/bin',        // Intel Homebrew  
+    '/usr/local/bin',        // Intel Homebrew
     '/usr/bin',
     '/bin',
     `${process.env.HOME}/.nvm/versions/node/*/bin`, // NVM
@@ -641,7 +641,7 @@ const findNpxPath = (): string => {
 
   // Create comprehensive PATH and search systematically
   const comprehensivePATH = [...systemPaths, ...process.env.PATH.split(':')].join(':');
-  
+
   // Try each location with proper error handling
   // Return full path, not just 'npx'
 }
@@ -663,7 +663,7 @@ const findNpxPath = (): string => {
 
 **Latest - rewrite_file Object Error Fix (2025-10-29):**
 - **toolsService.ts**: Enhanced validateStr function with intelligent object-to-string conversion
-  - Added automatic JSON.stringify conversion for object parameters  
+  - Added automatic JSON.stringify conversion for object parameters
   - Added warning logs for debugging malformed AI output
   - Enhanced error handling with graceful fallbacks
   - Modified rewrite_file tool to extract content from malformed object structures
@@ -676,7 +676,7 @@ const findNpxPath = (): string => {
 - **prompts.ts**: Complete overhaul with model-specific prompt engineering
   - Added `toolCallXMLGuidelines()` function with MiniMax special handling
   - Enhanced `createSearchReplaceBlocks_systemMessage` with accuracy protocols
-  - Improved `replaceTool_description` with string validation requirements  
+  - Improved `replaceTool_description` with string validation requirements
   - Updated `chat_systemMessage` with modelName parameter and text formatting discipline
   - Added `rewriteCode_systemMessage()` and `ctrlKStream_systemMessage()` with model awareness
   - Added error prevention checklists and confidence thresholds
@@ -700,20 +700,20 @@ const findNpxPath = (): string => {
 
 **Model-Specific Tool Calling Pattern (NEW - 2025-10-29):**
 ```
-Model Detection → Format Requirements Assessment → 
-MiniMax: XML Format Enforcement → Other Models: Standard Format → 
+Model Detection → Format Requirements Assessment →
+MiniMax: XML Format Enforcement → Other Models: Standard Format →
 Tool Call Success Rate: 100%
 ```
 
 **AI File Editing Pattern (ENHANCED - 2025-10-29):**
 ```
-File Edit Request → File Freshness Check → 95% Confidence Validation → 
+File Edit Request → File Freshness Check → 95% Confidence Validation →
 String Output Verification → Model-Aware SEARCH/REPLACE Generation → Success Rate: ~100%
 ```
 
 **Error Prevention Pattern:**
 ```
-Previous File Access → Automatic Re-read → Content Verification → 
+Previous File Access → Automatic Re-read → Content Verification →
 Confidence Assessment → Model-Specific Validation → Proceed with Edit → Zero Undefined Errors
 ```
 
@@ -762,7 +762,7 @@ spawn npx ENOENT → findNpxPath() systematic search → Return full path → Tr
 
 **✅ rewrite_file Object Error Recovery System (LATEST - 2025-10-29):**
 - **Intelligent Error Handling**: Automatic conversion of malformed object parameters to strings
-- **Content Extraction**: Smart extraction of file content from common object structures  
+- **Content Extraction**: Smart extraction of file content from common object structures
 - **Graceful Degradation**: System continues working even when AI passes incorrect data types
 - **Debugging Support**: Warning logs help identify when AI models make formatting errors
 - **Zero User Impact**: File rewrites succeed regardless of AI output formatting issues
@@ -793,9 +793,9 @@ spawn npx ENOENT → findNpxPath() systematic search → Return full path → Tr
 - **Backward Compatible**: Existing functionality preserved with zero breaking changes
 - **Production Ready**: Successfully compiled and tested with comprehensive error recovery
 
-**✅ Context Bar Per-Chat System:** 
+**✅ Context Bar Per-Chat System:**
 - **Perfect Chat Isolation**: Each chat maintains independent token counts
-- **Instant Reliability**: Event-driven updates guarantee 100% success rate  
+- **Instant Reliability**: Event-driven updates guarantee 100% success rate
 - **Clean Architecture**: Minimal dependencies, maximum performance
 - **Professional UX**: Clean interface with intelligent initialization
 - **Enterprise Grade**: Error handling and state management production-ready

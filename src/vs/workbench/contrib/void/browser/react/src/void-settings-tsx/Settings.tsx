@@ -32,7 +32,7 @@ import { VSBuffer } from '../../../../../../../base/common/buffer.js';
 // Helper function to get display name for models (removes provider prefixes)
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
-		if (modelName === 'zai-org/GLM-4.6-FP8') return 'glm-4.6'
+		if (modelName === 'zai-org/GLM-4.6') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
 		if (modelName === 'MiniMaxAI/MiniMax-M2')
 		return 'minimax-m2'
@@ -1769,7 +1769,7 @@ Use Model Context Protocol to provide Agent mode with more tools.
 												Your System Prompt
 											</div>
 
-											
+
 										</div>
 
 										{/* Project Rules section */}
