@@ -28,7 +28,7 @@ export const MiniMaxPromptInstructions = {
 
 	// Special instructions for MiniMax models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `MINIMAX MODEL INSTRUCTIONS: You MUST use XML format for tool calls. NEVER use [TOOL_CALL] format. Always use <tool_name> with XML tags, never bracket-based formats.`;
+		return `MINIMAX MODEL INSTRUCTIONS: You MUST use XML format for tool calls. NEVER use [TOOL_CALL] format. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. Always use <tool_name> with XML tags, never bracket-based formats.`;
 	},
 
 	// Special instructions for MiniMax models in rewrite code scenarios
@@ -36,6 +36,9 @@ export const MiniMaxPromptInstructions = {
 		return `
 ## MiniMax Model Instructions
 - CRITICAL: Use XML format for any tool calls, NEVER use [TOOL_CALL] format
+- ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string containing complete file content
 - Always respond with the actual file content, not tool call formats`;
 	},
 
@@ -44,6 +47,9 @@ export const MiniMaxPromptInstructions = {
 		return `
 ## MiniMax Model Instructions
 - CRITICAL: Never use [TOOL_CALL] format for any responses
+- ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string containing complete file content
 - Always provide direct code output in the specified format`;
 	},
 

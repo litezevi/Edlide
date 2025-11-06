@@ -70,6 +70,8 @@ You are a precision coding assistant specialized in implementing exact code chan
 1. **File Freshness Check**: If you have read this file before OR if you have previously modified this file in the current session, you MUST re-read the file (or at minimum the specific section) before making changes
 2. **95% Confidence Threshold**: Only proceed with edits when you are 95%+ certain the ORIGINAL section matches the current file content exactly
 3. **When in Doubt, Re-read**: If any uncertainty exists about the current state of the file, immediately re-read the relevant section or entire file
+4. **Type Validation**: ALWAYS ensure all tool parameters are valid strings before sending response - NEVER return undefined, null, or objects
+5. **String Format Validation**: For edit_file tool, search_replace_blocks MUST be a string with SEARCH/REPLACE blocks format
 
 **OUTPUT VALIDATION CHECKLIST:**
 Before sending your response, verify:
@@ -79,6 +81,8 @@ Before sending your response, verify:
 □ All DIVIDER and FINAL markers are present
 □ No undefined values in the response
 □ For rewrite_file tool: new_content parameter is ALWAYS a string with file content, NEVER an object
+□ For edit_file tool: search_replace_blocks parameter is ALWAYS a string with SEARCH/REPLACE blocks, NEVER undefined, null, or object
+□ All tool parameters are valid strings before sending response
 
 ## Core Requirements
 
@@ -122,6 +126,15 @@ ${tripleTick[1]}
 - Assuming file content hasn't changed since last read
 - Working from memory instead of current file state
 - Making changes to files that were previously modified
+- Returning undefined, null, or objects instead of strings for tool parameters
+- Not validating that search_replace_blocks is a string before sending
+
+**CRITICAL TYPE SAFETY:**
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string with file content
+- For create_file_or_folder tool: uri MUST be a string with valid path
+- NEVER return undefined, null, or objects for any tool parameter
+- ALWAYS validate parameter types before sending tool call
 
 ## Example Implementation
 
@@ -337,7 +350,7 @@ export const builtinTools: {
 
 	create_file_or_folder: {
 		name: 'create_file_or_folder',
-		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash.`,
+		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. CRITICAL: uri parameter MUST be a string with valid path, never undefined or null.`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -354,7 +367,7 @@ export const builtinTools: {
 
 	edit_file: {
 		name: 'edit_file',
-		description: `Edit the contents of a file. You must provide the file's URI as well as a SINGLE string of SEARCH/REPLACE block(s) that will be used to apply the edit.`,
+		description: `Edit the contents of a file. You must provide the file's URI as well as a SINGLE string of SEARCH/REPLACE block(s) that will be used to apply the edit. CRITICAL: search_replace_blocks parameter MUST be a string, never undefined, null, or object.`,
 		params: {
 			...uriParam('file'),
 			search_replace_blocks: { description: replaceTool_description }
@@ -589,7 +602,7 @@ ${directoryStr}
 		details.push(`Achieve maximum certainty - verify all assumptions through inspection, search, and analysis. Only implement changes when you have complete confidence in their correctness and safety.`)
 		details.push(`Respect workspace boundaries - never modify files outside the user's designated workspace without explicit authorization.`)
 		details.push(`Master MCP tools - consult MCP tool documentation thoroughly and execute with the same precision as built-in tools. Follow exact parameter specifications and handle responses professionally.`)
-		details.push(`CRITICAL FILE EDITING PROTOCOL - Before editing any file: 1) If you read this file before, re-read it now; 2) If you modified this file before, re-read the relevant section; 3) Only proceed when 95%+ certain of current content; 4) When in doubt, always re-read to prevent "No Search/Replace blocks received" errors; 5) ALWAYS validate your output is a string, never undefined - use empty string "" if no changes needed; 6) CRITICAL: For rewrite_file tool, new_content parameter MUST be a string containing file content, NEVER an object or undefined.`)
+		details.push(`CRITICAL FILE EDITING PROTOCOL - Before editing any file: 1) If you read this file before, re-read it now; 2) If you modified this file before, re-read the relevant section; 3) Only proceed when 95%+ certain of current content; 4) When in doubt, always re-read to prevent "No Search/Replace blocks received" errors; 5) ALWAYS validate your output is a string, never undefined - use empty string "" if no changes needed; 6) CRITICAL: For rewrite_file tool, new_content parameter MUST be a string containing file content, NEVER an object or undefined; 7) For edit_file tool, search_replace_blocks MUST be a string with SEARCH/REPLACE blocks, NEVER undefined, null, or object; 8) ALWAYS ensure all tool parameters are valid strings before sending response.`)
 		details.push(`TEXT FORMATTING DISCIPLINE - Use plain text boxes ONLY for code, configuration, or technical data. NEVER use plain text for explanations, descriptions, or conversational responses. Regular communication should use standard markdown formatting.`)
 	}
 

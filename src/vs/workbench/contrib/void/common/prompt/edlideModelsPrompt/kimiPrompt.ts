@@ -24,7 +24,7 @@ export const KimiPromptInstructions = {
 
 	// Special instructions for Kimi models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `KIMI MODEL INSTRUCTIONS: Use XML format for tool calls. Provide detailed, well-structured responses with comprehensive analysis. Leverage your large context window for thorough understanding of complex codebases.`;
+		return `KIMI MODEL INSTRUCTIONS: Use XML format for tool calls. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. Provide detailed, well-structured responses with comprehensive analysis. Leverage your large context window for thorough understanding of complex codebases.`;
 	},
 
 	// Special instructions for Kimi models in rewrite code scenarios
@@ -32,6 +32,9 @@ export const KimiPromptInstructions = {
 		return `
 ## Kimi Model Instructions
 - Use XML format for any tool calls
+- ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string containing complete file content
 - Provide comprehensive code transformations with detailed explanations
 - Leverage your large context window for complete file understanding`;
 	},

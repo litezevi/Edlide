@@ -4,6 +4,77 @@ This file documents repetitive tasks and workflows for future reference. Tasks a
 
 ---
 
+## Fix Tool Calling Issues for AI Models
+
+**Last performed:** 2025-01-27
+**Priority:** Critical - Tool calling stability
+**Status:** ✅ COMPLETED
+
+### Problem Summary
+- **GLM-4.6**: "Error: Invalid LLM output format: searchReplaceBlocks must be a string, but its type is 'undefined'" (4 times consecutively)
+- **MiniMax M2**: "Error: No Search/Replace blocks were received!" (10 times, 70% tool calling rate)
+- **MiniMax M2**: "Error: The edit was not applied. The text in ORIGINAL must EXACTLY match lines of code"
+
+### Root Causes
+1. Models returning undefined/null instead of strings for tool parameters
+2. Incorrect tool calling format usage (XML vs bracket formats)
+3. Insufficient type validation in prompts
+4. Missing parameter type enforcement
+
+### Files Modified
+1. `src/vs/workbench/contrib/void/common/prompt/edlideModelsPrompt/glmPrompt.ts`
+2. `src/vs/workbench/contrib/void/common/prompt/edlideModelsPrompt/minimaxPrompt.ts`
+3. `src/vs/workbench/contrib/void/common/prompt/edlideModelsPrompt/deepseekPrompt.ts`
+4. `src/vs/workbench/contrib/void/common/prompt/edlideModelsPrompt/kimiPrompt.ts`
+5. `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+### Key Changes Applied
+
+#### 1. Enhanced Type Safety (All Models)
+```typescript
+// Added to all model instructions:
+- CRITICAL: Always return valid strings for tool parameters
+- NEVER return undefined, null, or objects
+- For edit_file: search_replace_blocks MUST be a string
+- For rewrite_file: new_content MUST be a string
+- ALWAYS validate parameter types before sending
+```
+
+#### 2. GLM-4.6 Specific Fixes
+- Strengthened XML format enforcement
+- Added explicit string type validation
+- Enhanced error prevention protocols
+
+#### 3. MiniMax M2 Specific Fixes
+- Reinforced XML format (forbidden bracket formats)
+- Added comprehensive parameter validation
+- Enhanced search/replace block instructions
+
+#### 4. Universal Improvements
+- Extended file editing protocol with type checks
+- Added output validation checklist
+- Enhanced error prevention strategies
+- Improved tool descriptions with type requirements
+
+### Expected Results
+- **GLM-4.6**: Eliminate undefined errors (from 4 consecutive to 0)
+- **MiniMax M2**: Increase tool calling success rate from 70% to 95%+
+- **All Models**: Reduce "No Search/Replace blocks received" errors
+- **Overall**: Improve folder creation and block editing success rate
+
+### Architecture Notes
+- edlideModelsPrompt files **supplement** but do **not replace** base prompts
+- Model-specific instructions are **appended** to base system messages
+- Changes maintain backward compatibility with existing functionality
+
+### Testing Recommendations
+1. Test GLM-4.6 with file editing operations
+2. Test MiniMax M2 with search/replace operations
+3. Monitor tool calling success rates
+4. Verify no regression in other model behaviors
+
+---
+
 ## Add New AI Model Support
 
 **Last performed:** 2025-10-04
@@ -504,5 +575,5 @@ npm run smoketest
 
 ---
 
-**Last Updated:** 2025-10-05 (Provider Interface Cleanup + Major Edlide Rebranding Complete)
+**Last Updated:** 2025-01-27 (Critical Tool Calling Fixes + Major Edlide Rebranding Complete)
 **Maintenance**: Review and update tasks monthly or as workflows evolve

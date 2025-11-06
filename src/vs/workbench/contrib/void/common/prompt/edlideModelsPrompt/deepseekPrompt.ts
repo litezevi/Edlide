@@ -24,7 +24,7 @@ export const DeepSeekPromptInstructions = {
 
 	// Special instructions for DeepSeek models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `DEEPSEEK MODEL INSTRUCTIONS: Use XML format for tool calls. Provide precise, analytical responses with strong reasoning capabilities. Focus on efficient problem-solving and optimal code solutions.`;
+		return `DEEPSEEK MODEL INSTRUCTIONS: Use XML format for tool calls. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. Provide precise, analytical responses with strong reasoning capabilities. Focus on efficient problem-solving and optimal code solutions.`;
 	},
 
 	// Special instructions for DeepSeek models in rewrite code scenarios
@@ -32,6 +32,9 @@ export const DeepSeekPromptInstructions = {
 		return `
 ## DeepSeek Model Instructions
 - Use XML format for any tool calls
+- ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string containing complete file content
 - Apply analytical approach to code transformations
 - Focus on optimization and efficiency in code changes`;
 	},
