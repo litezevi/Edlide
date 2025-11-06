@@ -3437,21 +3437,6 @@ export const SidebarChat = () => {
 	const isLandingPage = previousMessages.length === 0
 
 
-	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full text-nowrap text-void-fg-3 select-none'>
-		{[
-			'How do types work in Swift?',
-			'What is async programming?',
-			'Create a .edliderules file for me'
-		].map((text, index) => (
-			<div
-				key={index}
-				className='py-1 px-2 rounded text-sm bg-zinc-700/5 hover:bg-zinc-700/10 dark:bg-zinc-300/5 dark:hover:bg-zinc-300/10 cursor-pointer opacity-80 hover:opacity-100'
-				onClick={() => onSubmit(text)}
-			>
-				{text}
-			</div>
-		))}
-	</div>
 
 
 
@@ -3484,10 +3469,7 @@ export const SidebarChat = () => {
 				<PastThreadsList />
 			</ErrorBoundary>
 			:
-			<ErrorBoundary>
-				<div className='pt-8 mb-2 text-void-fg-3 text-root select-none pointer-events-none'>Suggestions</div>
-				{initiallySuggestedPromptsHTML}
-			</ErrorBoundary>
+			null
 		}
 	</div>
 
