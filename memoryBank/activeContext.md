@@ -120,8 +120,8 @@ Active Context Update → Future Reference Complete
 
 **🔄 MODELS UPDATED:**
 - **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.1-Terminus`
-- **Added**: `moonshotai/Kimi-K2-Instruct-0905`
-- **UI Names**: `"deepseek-v3.1"` and `"kimi-k2-0905"` (short, user-friendly)
+- **Added**: `moonshotai/Kimi-K2-Thinking`
+- **UI Names**: `"deepseek-v3.1"` and `"kimi-k2-thinking"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
@@ -133,7 +133,7 @@ edlide: [
   'zai-org/GLM-4.6',
   'deepseek-ai/DeepSeek-V3.1-Terminus',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2',
-  'moonshotai/Kimi-K2-Instruct-0905',  // New model added
+  'moonshotai/Kimi-K2-Thinking',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
 ]
 
@@ -141,7 +141,7 @@ edlide: [
 const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   if (providerName === 'edlide') {
     if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1'
-    if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
+    if (modelName === 'moonshotai/Kimi-K2-Thinking') return 'kimi-k2-thinking'
   }
   return modelName
 }
@@ -162,7 +162,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 }
 
 // Kimi K2-Instruct-0905 Configuration
-'moonshotai/Kimi-K2-Instruct-0905': {
+'moonshotai/Kimi-K2-Thinking': {
   contextWindow: 262144, // Largest context window
   reservedOutputTokenSpace: 8192, // 96% context utilization
   cost: { input: 0, output: 0 },
@@ -220,7 +220,7 @@ for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models
 **📊 USER EXPERIENCE TRANSFORMED:**
 - **Model Management**: Users can now properly hide/unhide models in Settings
 - **UI Consistency**: Model names identical in Settings and Chat dropdowns
-- **Clean Interface**: Friendly short names (`deepseek-v3.1`, `kimi-k2-0905`) throughout UI
+- **Clean Interface**: Friendly short names (`deepseek-v3.1`, `kimi-k2-thinking`) throughout UI
 - **Backend Compatibility**: Full API names preserved for provider communication
 - **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
 
@@ -552,7 +552,7 @@ OUTPUT VALIDATION CHECKLIST:
   Available for messages: 155,648 tokens (+24,576!)
 }
 
-'moonshotai/Kimi-K2-Instruct-0905': {
+'moonshotai/Kimi-K2-Thinking': {
   contextWindow: 262144,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 253,952 tokens (+24,576!)

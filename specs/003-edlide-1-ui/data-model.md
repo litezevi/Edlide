@@ -26,7 +26,7 @@ const EDLIDE_MODELS = [
   'zai-org/GLM-4.6-turbo',           // Default model
   'deepseek-ai/DeepSeek-V3.1-Terminus',
   'deepseek-ai/DeepSeek-V3.1-Terminus',
-  'moonshotai/Kimi-K2-Instruct-0905'
+  'moonshotai/Kimi-K2-Thinking'
 ] as const;
 ```
 
@@ -128,7 +128,7 @@ Models:
   - zai-org/GLM-4.6-turbo (enabled, selected)
   - deepseek-ai/DeepSeek-V3.1-Terminus (enabled)
   - deepseek-ai/DeepSeek-V3.1-Terminus (enabled)
-  - moonshotai/Kimi-K2-Instruct-0905 (enabled)
+  - moonshotai/Kimi-K2-Thinking (enabled)
 ```
 
 ### User Actions

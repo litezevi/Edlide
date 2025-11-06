@@ -27,7 +27,7 @@
 - `zai-org/GLM-4.6-turbo`
 - `deepseek-ai/DeepSeek-V3.1-Terminus`
 - `deepseek-ai/DeepSeek-V3.1-Terminus`
-- `moonshotai/Kimi-K2-Instruct-0905`
+- `moonshotai/Kimi-K2-Thinking`
 
 ### 3. API Integration (`sendLLMMessage.impl.ts`)
 
