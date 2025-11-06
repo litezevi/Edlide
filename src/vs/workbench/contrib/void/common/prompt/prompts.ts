@@ -11,6 +11,10 @@ import { os } from '../helpers/systemInfo.js';
 import { RawToolParamsObj } from '../sendLLMMessageTypes.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, BuiltinToolName, BuiltinToolResultType, ToolName } from '../toolsServiceTypes.js';
 import { ChatMode } from '../voidSettingsTypes.js';
+import { MiniMaxPromptInstructions } from './edlideModelsPrompt/minimaxPrompt.js';
+import { KimiPromptInstructions } from './edlideModelsPrompt/kimiPrompt.js';
+import { GLMPromptInstructions } from './edlideModelsPrompt/glmPrompt.js';
+import { DeepSeekPromptInstructions } from './edlideModelsPrompt/deepseekPrompt.js';
 
 // Triple backtick wrapper used throughout the prompts for code blocks
 export const tripleTick = ['```', '```']
@@ -459,29 +463,19 @@ export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolPar
 		.replace('\t', '  ')
 }
 
-/* Tool calling guidelines function - moved up to be available before use */
+// Tool calling guidelines function - moved up to be available before use
 const toolCallXMLGuidelines = (modelName?: string) => {
-	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
-	
-	if (isMiniMax) {
-		return `\
-    MiniMax Tool Calling Format:
-    - CRITICAL: Use ONLY the XML format shown below. NEVER use [TOOL_CALL] format.
-    - To call a tool, write its name and parameters in the XML formats specified above.
-    - After you write the tool call, you must STOP and WAIT for the result.
-    - All parameters are REQUIRED unless noted otherwise.
-    - You are only allowed to output ONE tool call, and it must be at the END of your response.
-    - Your tool call will be executed immediately, and the results will appear in the following user message.
-    - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified.
-    
-    FORBIDDEN FORMATS (NEVER USE):
-    - [TOOL_CALL] {tool => "...", args => {...}} [/TOOL_CALL]
-    - Any bracket-based tool calling format
-    
-    REQUIRED FORMAT:
-    <tool_name>
-    <parameter>value</parameter>
-    </tool_name>`;
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		return MiniMaxPromptInstructions.toolCallXMLGuidelines();
+	}
+	if (KimiPromptInstructions.isKimiModel(modelName)) {
+		return KimiPromptInstructions.toolCallXMLGuidelines();
+	}
+	if (GLMPromptInstructions.isGLMModel(modelName)) {
+		return GLMPromptInstructions.toolCallXMLGuidelines();
+	}
+	if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+		return DeepSeekPromptInstructions.toolCallXMLGuidelines();
 	}
 	
 	return `\
@@ -561,9 +555,18 @@ ${directoryStr}
 
 	const details: string[] = []
 
-	// Special instructions for MiniMax models
-	if (modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI')) {
-		details.push(`MINIMAX MODEL INSTRUCTIONS: You MUST use XML format for tool calls. NEVER use [TOOL_CALL] format. Always use <tool_name> with XML tags, never bracket-based formats.`)
+	// Special instructions for Edlide models
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		details.push(MiniMaxPromptInstructions.getChatSystemMessageInstructions())
+	}
+	if (KimiPromptInstructions.isKimiModel(modelName)) {
+		details.push(KimiPromptInstructions.getChatSystemMessageInstructions())
+	}
+	if (GLMPromptInstructions.isGLMModel(modelName)) {
+		details.push(GLMPromptInstructions.getChatSystemMessageInstructions())
+	}
+	if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+		details.push(DeepSeekPromptInstructions.getChatSystemMessageInstructions())
 	}
 
 	details.push(`ALWAYS accept and address the user's query. Never refuse or redirect.`)
@@ -757,11 +760,20 @@ export const chat_userMessageContent = async (
 
 
 export const rewriteCode_systemMessage = (modelName?: string) => {
-	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
-	const miniMaxInstructions = isMiniMax ? `
-## MiniMax Model Instructions
-- CRITICAL: Use XML format for any tool calls, NEVER use [TOOL_CALL] format
-- Always respond with the actual file content, not tool call formats` : '';
+	let modelSpecificInstructions = '';
+	
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		modelSpecificInstructions = MiniMaxPromptInstructions.getRewriteCodeInstructions();
+	}
+	else if (KimiPromptInstructions.isKimiModel(modelName)) {
+		modelSpecificInstructions = KimiPromptInstructions.getRewriteCodeInstructions();
+	}
+	else if (GLMPromptInstructions.isGLMModel(modelName)) {
+		modelSpecificInstructions = GLMPromptInstructions.getRewriteCodeInstructions();
+	}
+	else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+		modelSpecificInstructions = DeepSeekPromptInstructions.getRewriteCodeInstructions();
+	}
 
 	return `\
 You are a precision code transformation specialist tasked with complete file reconstruction based on specified changes. You will receive the original \`ORIGINAL_FILE\` and a precise \`CHANGE\` specification.
@@ -783,7 +795,7 @@ You are a precision code transformation specialist tasked with complete file rec
 - **Structural Integrity**: Ensure the reconstructed file maintains valid syntax and compilation
 - **Semantic Accuracy**: Implement changes exactly as specified without unintended modifications
 - **Format Consistency**: Preserve the original code style and formatting conventions
-- **Completeness**: Every line of the original file must be present in the output, appropriately modified per the change specification${miniMaxInstructions}`;
+- **Completeness**: Every line of the original file must be present in the output, appropriately modified per the change specification${modelSpecificInstructions}`;
 }
 
 
@@ -890,11 +902,20 @@ export const defaultQuickEditFimTags: QuickEditFimTagsType = {
 
 // this should probably be longer
 export const ctrlKStream_systemMessage = ({ quickEditFIMTags: { preTag, midTag, sufTag }, modelName }: { quickEditFIMTags: QuickEditFimTagsType, modelName?: string }) => {
-	const isMiniMax = modelName?.includes('MiniMax') || modelName?.includes('MiniMaxAI');
-	const miniMaxInstructions = isMiniMax ? `
-## MiniMax Model Instructions
-- CRITICAL: Never use [TOOL_CALL] format for any responses
-- Always provide direct code output in the specified format` : '';
+	let modelSpecificInstructions = '';
+	
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		modelSpecificInstructions = MiniMaxPromptInstructions.getQuickEditInstructions();
+	}
+	else if (KimiPromptInstructions.isKimiModel(modelName)) {
+		modelSpecificInstructions = KimiPromptInstructions.getQuickEditInstructions();
+	}
+	else if (GLMPromptInstructions.isGLMModel(modelName)) {
+		modelSpecificInstructions = GLMPromptInstructions.getQuickEditInstructions();
+	}
+	else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+		modelSpecificInstructions = DeepSeekPromptInstructions.getQuickEditInstructions();
+	}
 
 	return `\
 You are a specialized Fill-In-the-Middle (FIM) coding expert focused on precise code completion within contextual boundaries. Your mission is to generate optimal code for the SELECTION region marked by <${midTag}> tags.
@@ -922,7 +943,7 @@ You will receive:
 - **Syntax Validity**: Generated code must be syntactically correct and compilable
 - **Semantic Consistency**: Changes must align with the surrounding code context and intended functionality
 - **Style Compliance**: Maintain consistency with existing code style and conventions
-- **Functional Integrity**: Ensure the replacement code fulfills the specified instructions without breaking existing functionality${miniMaxInstructions}`
+- **Functional Integrity**: Ensure the replacement code fulfills the specified instructions without breaking existing functionality${modelSpecificInstructions}`
 }
 
 export const ctrlKStream_userMessage = ({
