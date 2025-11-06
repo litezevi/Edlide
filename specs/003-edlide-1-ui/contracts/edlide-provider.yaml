@@ -63,7 +63,7 @@ components:
           type: string
           enum:
             - zai-org/GLM-4.6-turbo
-            - deepseek-ai/DeepSeek-V3.2-Exp
+            - deepseek-ai/DeepSeek-V3.1-Terminus
             - deepseek-ai/DeepSeek-V3.1-Terminus
             - moonshotai/Kimi-K2-Instruct-0905
           description: The Edlide model to use for completion
@@ -162,7 +162,7 @@ components:
           type: string
           enum:
             - zai-org/GLM-4.6-turbo
-            - deepseek-ai/DeepSeek-V3.2-Exp
+            - deepseek-ai/DeepSeek-V3.1-Terminus
             - deepseek-ai/DeepSeek-V3.1-Terminus
             - moonshotai/Kimi-K2-Instruct-0905
         object:
@@ -214,7 +214,7 @@ x-edlide-config:
     - id: "zai-org/GLM-4.6-turbo"
       enabled-by-default: true
       recommended: true
-    - id: "deepseek-ai/DeepSeek-V3.2-Exp"
+    - id: "deepseek-ai/DeepSeek-V3.1-Terminus"
       enabled-by-default: true
       recommended: false
     - id: "deepseek-ai/DeepSeek-V3.1-Terminus"

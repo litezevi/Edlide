@@ -21,7 +21,7 @@
 
         - `zai-org/GLM-4.6-turbo`
 
-        - `deepseek-ai/DeepSeek-V3.2-Exp`
+        - `deepseek-ai/DeepSeek-V3.1-Terminus`
 
         - `deepseek-ai/DeepSeek-V3.1-Terminus`
 
@@ -81,7 +81,7 @@
 ### Functional Requirements
 - **FR-001**: System MUST отображать провайдер Edlide в настройках моделей по умолчанию при первом запуске
 - **FR-002**: System MUST размещать Edlide выше Anthropic в списке провайдеров и делать его выбранным по умолчанию при первом запуске
-- **FR-003**: System MUST предоставлять 4 предустановленные модели Edlide: `zai-org/GLM-4.6-turbo`, `deepseek-ai/DeepSeek-V3.2-Exp`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Instruct-0905`
+- **FR-003**: System MUST предоставлять 4 предустановленные модели Edlide: `zai-org/GLM-4.6-turbo`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Instruct-0905`
 - **FR-004**: System MUST включать все модели Edlide по умолчанию без дополнительной настройки и выбирать `zai-org/GLM-4.6-turbo` как модель по умолчанию
 - **FR-005**: System MUST использовать встроенный API ключ "API_KEY" для всех запросов к Edlide
 - **FR-006**: System MUST использовать встроенный base URL `https://llm.chutes.ai/v1/` для всех запросов к Edlide

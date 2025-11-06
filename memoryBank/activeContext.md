@@ -119,9 +119,9 @@ Active Context Update → Future Reference Complete
 **✅ MODEL REPLACEMENT & ADDITION - DeepSeek V3.2 + Kimi K2:**
 
 **🔄 MODELS UPDATED:**
-- **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.2-Exp`
+- **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.1-Terminus`
 - **Added**: `moonshotai/Kimi-K2-Instruct-0905`
-- **UI Names**: `"deepseek-v3.2"` and `"kimi-k2-0905"` (short, user-friendly)
+- **UI Names**: `"deepseek-v3.1"` and `"kimi-k2-0905"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
@@ -131,7 +131,7 @@ Active Context Update → Future Reference Complete
 // modelCapabilities.ts - Backend model definitions
 edlide: [
   'zai-org/GLM-4.6',
-  'deepseek-ai/DeepSeek-V3.2-Exp',    // Replaced V3.1-Terminus
+  'deepseek-ai/DeepSeek-V3.1-Terminus',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2',
   'moonshotai/Kimi-K2-Instruct-0905',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
@@ -140,7 +140,7 @@ edlide: [
 // UI display name mapping in both ModelDropdown.tsx and Settings.tsx
 const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   if (providerName === 'edlide') {
-    if (modelName === 'deepseek-ai/DeepSeek-V3.2-Exp') return 'deepseek-v3.2'
+    if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1'
     if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
   }
   return modelName
@@ -150,7 +150,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 **Updated Model Capabilities:**
 ```typescript
 // DeepSeek V3.2-Exp Configuration
-'deepseek-ai/DeepSeek-V3.2-Exp': {
+'deepseek-ai/DeepSeek-V3.1-Terminus': {
   contextWindow: 163840,
   reservedOutputTokenSpace: 8192, // 95% context utilization
   cost: { input: 0, output: 0 },
@@ -161,14 +161,14 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   reasoningCapabilities: false,
 }
 
-// Kimi K2-Instruct-0905 Configuration  
+// Kimi K2-Instruct-0905 Configuration
 'moonshotai/Kimi-K2-Instruct-0905': {
   contextWindow: 262144, // Largest context window
   reservedOutputTokenSpace: 8192, // 96% context utilization
   cost: { input: 0, output: 0 },
   downloadable: false,
   supportsFIM: false,
-  supportsSystemMessage: 'system-role', 
+  supportsSystemMessage: 'system-role',
   specialToolFormat: 'openai-style',
   reasoningCapabilities: false,
 }
@@ -213,14 +213,14 @@ for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models
 **Files Modified:**
 - **modelCapabilities.ts**: Updated model configurations and capabilities
 - **ModelDropdown.tsx**: Updated UI display names for new models
-- **Settings.tsx**: Updated UI display names in Settings model list  
+- **Settings.tsx**: Updated UI display names in Settings model list
 - **voidSettingsService.ts**: Fixed hidden model filtering logic
 - **React Build**: Successfully compiled with zero errors
 
 **📊 USER EXPERIENCE TRANSFORMED:**
 - **Model Management**: Users can now properly hide/unhide models in Settings
 - **UI Consistency**: Model names identical in Settings and Chat dropdowns
-- **Clean Interface**: Friendly short names (`deepseek-v3.2`, `kimi-k2-0905`) throughout UI
+- **Clean Interface**: Friendly short names (`deepseek-v3.1`, `kimi-k2-0905`) throughout UI
 - **Backend Compatibility**: Full API names preserved for provider communication
 - **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
 
