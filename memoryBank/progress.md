@@ -52,7 +52,6 @@
 **🎯 EDLIDE MODEL CONFIGURATION OPTIMIZATION (2025-10-27):**
 - **Enhanced Context Windows**: Significantly increased default context windows for all Edlide models
   - **GLM-4.6-FP8**: 202,752 tokens (increased from 128,000)
-  - **Kimi-K2-Instruct-0905**: 262,144 tokens (increased from 128,000)
   - **DeepSeek-V3.1-Terminus**: 163,840 tokens (increased from 128,000)
 - **Standardized Output Space**: Unified reservedOutputTokenSpace to 32,768 tokens for all Edlide models
 - **Advanced Settings Cleanup**: Hidden "Advanced Settings" button for Edlide provider models to reduce UI complexity
@@ -272,7 +271,6 @@
 **🎯 SESSION 6 ACHIEVEMENTS - EDLIDE MODEL CONFIGURATION OPTIMIZATION:**
 - **Enhanced Context Windows**: Significantly increased default context windows optimized for each model's capabilities
   - **GLM-4.6-FP8**: 202,752 tokens with 32,768 output space for balanced performance
-  - **Kimi-K2-Instruct-0905**: 262,144 tokens with 32,768 output space for large document processing
   - **DeepSeek-V3.1-Terminus**: 163,840 tokens with 32,768 output space for efficient reasoning
 - **Advanced Settings Simplification**: Hidden advanced settings UI for Edlide models to reduce user confusion
 - **Pre-configured Optimal Defaults**: All Edlide models now work optimally out-of-the-box without user configuration
@@ -284,7 +282,7 @@
 **🎯 SESSION 5 ACHIEVEMENTS - FINAL CONTEXT PROGRESS BAR IMPLEMENTATION:**
 >>>>>>> REPLACE
 - **Visual Context Tracking**: Added circular progress bar showing context window usage percentage
-- **Model-Specific Limits**: Dynamic context limits for each Edlide model (Kimi-K2: 256k, GLM-4.6: 200k, DeepSeek-V3.1-Terminus: 162k)
+- **Model-Specific Limits**: Dynamic context limits for each Edlide model (GLM-4.6: 200k, DeepSeek-V3.1-Terminus: 162k)
 - **Strategic Positioning**: Context bar positioned left of submit/cancel buttons in bottom row
 - **Enhanced Tooltip System**: Quick hover token count + press-and-hold percentage display (300ms delay)
 - **Edlide Provider Detection**: Bar appears only for Edlide models, hidden for other providers  

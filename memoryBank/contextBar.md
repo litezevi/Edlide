@@ -124,7 +124,6 @@ Display: "8921 / 200752 tokens used (API verified)"
 
 **Model-Specific Limits:**
 - GLM-4.6: 200752 tokens max
-- Kimi-K2: 262144 tokens max
 - DeepSeek-V3.1: 162000 tokens max
 
 ### Console Logging
@@ -287,8 +286,7 @@ Context bar now provides perfect per-chat token tracking with:
 
 **📊 TRANSFORMATION:**
 - GLM-4.6: From 169,984 → 194,560 available tokens
-- DeepSeek-V3.1: From 131,072 → 155,648 available tokens  
-- Kimi-K2: From 229,376 → 253,952 available tokens
+- DeepSeek-V3.1: From 131,072 → 155,648 available tokens
 
 ## 🎯 PREVIOUS: PERSISTENT STORAGE IMPLEMENTATION (2025-10-28)
 

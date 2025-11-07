@@ -36,7 +36,6 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
-		if (modelName === 'moonshotai/Kimi-K2-Thinking') return 'kimi-k2-thinking'
 	}
 	return modelName
 }
