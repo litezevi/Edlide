@@ -187,7 +187,7 @@ ${searchReplaceBlockTemplate}
 
 **ERROR PREVENTION:**
 - NEVER return undefined
-- NEVER return null  
+- NEVER return null
 - NEVER return an object
 - ALWAYS return a string (even if empty)
 - ALWAYS validate your output format before sending
@@ -350,7 +350,7 @@ export const builtinTools: {
 
 	create_file_or_folder: {
 		name: 'create_file_or_folder',
-		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. CRITICAL: uri parameter MUST be a string with valid path, never undefined or null.`,
+		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. CRITICAL: uri parameter MUST be a string with valid path, never undefined or null. Always inspect the folder before creating folder or file`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -459,12 +459,12 @@ export const availableTools = (chatMode: ChatMode | null, mcpTools: InternalTool
 const toolCallDefinitionsXMLString = (tools: InternalToolInfo[], modelName?: string) => {
 	return `${tools.map((t, i) => {
 		const params = Object.keys(t.params).map(paramName => `<${paramName}>${t.params[paramName].description}</${paramName}>`).join('\n')
-		
+
 		// Model-specific format adaptations
 		let formatTemplate = `\
     <${t.name}>${!params ? '' : `\n${params}`}
     </${t.name}>`;
-		
+
 		if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 			// MiniMax uses <minimax:tool_call><invoke> wrapper
 			formatTemplate = `\
@@ -492,7 +492,7 @@ const toolCallDefinitionsXMLString = (tools: InternalToolInfo[], modelName?: str
     <${t.name}>${!params ? '' : `\n${params}`}
     </${t.name}>`;
 		}
-		
+
 		return `\
     ${i + 1}. ${t.name}
     Description: ${t.description}
@@ -503,7 +503,7 @@ const toolCallDefinitionsXMLString = (tools: InternalToolInfo[], modelName?: str
 
 export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolParamsObj, modelName?: string) => {
 	const params = Object.keys(toolParams).map(paramName => `<${paramName}>${toolParams[paramName]}</${paramName}>`).join('\n')
-	
+
 	// Model-specific format adaptations
 	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 		return `\
@@ -535,7 +535,7 @@ export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolPar
     </${toolName}>`
 			.replace('\t', '  ')
 	}
-	
+
 	// Default format
 	return `\
     <${toolName}>${!params ? '' : `\n${params}`}
@@ -557,7 +557,7 @@ const toolCallXMLGuidelines = (modelName?: string) => {
 	if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
 		return DeepSeekPromptInstructions.toolCallXMLGuidelines();
 	}
-	
+
 	return `\
     Tool calling details:
     - To call a tool, write its name and parameters in one of the XML formats specified above.
@@ -591,11 +591,11 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 
 
 export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions, modelName }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, modelName?: string }) => {
-const header = (`You are a precision-focused coding ${mode === 'agent' ? 'agent' : 'assistant'} with deep expertise in software engineering, architecture, and best practices. Your primary mission is \
+	const header = (`You are a precision-focused coding ${mode === 'agent' ? 'agent' : 'assistant'} with deep expertise in software engineering, architecture, and best practices. Your primary mission is \
 ${mode === 'agent' ? `to actively develop, execute, and implement robust solutions in the user's codebase with surgical precision.`
-	: mode === 'gather' ? `to systematically analyze, comprehend, and synthesize comprehensive information from the user's codebase.`
-		: mode === 'normal' ? `to provide expert guidance and solutions for the user's coding challenges with technical excellence.`
-			: ''}
+			: mode === 'gather' ? `to systematically analyze, comprehend, and synthesize comprehensive information from the user's codebase.`
+				: mode === 'normal' ? `to provide expert guidance and solutions for the user's coding challenges with technical excellence.`
+					: ''}
 You will receive specific instructions from the user and may be provided with carefully selected context through \`SELECTIONS\`. Deliver precise, actionable assistance that demonstrates deep technical understanding.
 
 **CRITICAL: RULES DISCUSSION PROTOCOL**
@@ -841,7 +841,7 @@ export const chat_userMessageContent = async (
 
 export const rewriteCode_systemMessage = (modelName?: string) => {
 	let modelSpecificInstructions = '';
-	
+
 	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 		modelSpecificInstructions = MiniMaxPromptInstructions.getRewriteCodeInstructions();
 	}
@@ -983,7 +983,7 @@ export const defaultQuickEditFimTags: QuickEditFimTagsType = {
 // this should probably be longer
 export const ctrlKStream_systemMessage = ({ quickEditFIMTags: { preTag, midTag, sufTag }, modelName }: { quickEditFIMTags: QuickEditFimTagsType, modelName?: string }) => {
 	let modelSpecificInstructions = '';
-	
+
 	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 		modelSpecificInstructions = MiniMaxPromptInstructions.getQuickEditInstructions();
 	}
