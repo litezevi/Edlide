@@ -130,9 +130,9 @@ Active Context Update → Future Reference Complete
 ```typescript
 // modelCapabilities.ts - Backend model definitions
 edlide: [
-  'zai-org/GLM-4.6',
+  'zai-org/GLM-4.6:THINKING',
   'deepseek-ai/DeepSeek-V3.1-Terminus',    // Replaced V3.1-Terminus
-  'MiniMaxAI/MiniMax-M2',
+  'MiniMaxAI/MiniMax-M2:THINKING',
   'moonshotai/Kimi-K2-Thinking',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
 ]
@@ -379,7 +379,7 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **Settings.tsx**: Removed "Disable system message" toggle UI component entirely
 - **convertToLLMMessageService.ts**: System prompts now always enabled, removed conditional logic
 - **voidSettingsTypes.ts**: Removed `disableSystemMessage` from GlobalSettings type and defaults
-- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6`
+- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6:THINKING`
 - **prompts.ts**: Added confidentiality instructions to prevent AI from revealing system prompts
 
 **User Experience Transformation:**
@@ -453,7 +453,7 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
 **✅ DUAL BREAKTHROUGH - Model Compatibility + Accuracy Optimization:**
 
 **🔄 PROBLEMS SOLVED:**
-- **Before**: MiniMaxAI/MiniMax-M2 used incorrect `[TOOL_CALL]` format causing tool call failures
+- **Before**: MiniMaxAI/MiniMax-M2:THINKING used incorrect `[TOOL_CALL]` format causing tool call failures
 - **Before**: 10% file editing errors with "No Search/Replace blocks received" and "undefined" output errors
 - **After**: 100% MiniMax compatibility + Near 100% editing accuracy across all models
 - **Root Cause**: Model-specific tool calling format requirements + inadequate prompt instructions
@@ -533,14 +533,14 @@ OUTPUT VALIDATION CHECKLIST:
 **Model Configuration Optimization:**
 ```typescript
 // BEFORE - Limited Context Usage
-'zai-org/GLM-4.6': {
+'zai-org/GLM-4.6:THINKING': {
   contextWindow: 202752,
   reservedOutputTokenSpace: 32768, // 16% reserved!
   Available for messages: 169,984 tokens
 }
 
 // AFTER - Maximum Context Usage
-'zai-org/GLM-4.6': {
+'zai-org/GLM-4.6:THINKING': {
   contextWindow: 202752,
   reservedOutputTokenSpace: 8192, // Only 4% reserved
   Available for messages: 194,560 tokens (+24,576!)
@@ -993,12 +993,12 @@ spawn npx ENOENT → findNpxPath() systematic search → Return full path → Tr
 - **Production Tested**: Successfully handles object-to-string conversion without breaking functionality
 
 **✅ MiniMax Model Compatibility System (PREVIOUS - 2025-10-29):**
-- **Universal Model Support**: 100% compatibility with MiniMaxAI/MiniMax-M2 and all existing models
+- **Universal Model Support**: 100% compatibility with MiniMaxAI/MiniMax-M2:THINKING and all existing models
 - **Format-Specific Handling**: Automatic detection and adaptation to model-specific tool calling requirements
 - **Forbidden Format Prevention**: Explicit prohibition of incompatible `[TOOL_CALL]` syntax for MiniMax
 - **XML Format Enforcement**: Mandatory `<tool_name>` structure for MiniMax models
 - **Seamless Integration**: Zero-configuration compatibility across all supported models
-- **Production Tested**: Successfully validated with MiniMaxAI/MiniMax-M2 real-world usage
+- **Production Tested**: Successfully validated with MiniMaxAI/MiniMax-M2:THINKING real-world usage
 
 **✅ AI Prompt Precision Enhancement System (ENHANCED - 2025-10-29):**
 - **100% Editing Accuracy**: Near-zero error rate through precision-engineered prompts

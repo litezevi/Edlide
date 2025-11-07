@@ -43,7 +43,7 @@ edlide: {
 Add to `defaultModelsOfProvider`:
 ```typescript
 edlide: [
-  'zai-org/GLM-4.6-turbo',
+  'zai-org/GLM-4.6:THINKING-turbo',
   'deepseek-ai/DeepSeek-V3.1-Terminus',
   'deepseek-ai/DeepSeek-V3.1-Terminus',
   'moonshotai/Kimi-K2-Thinking'
@@ -134,7 +134,7 @@ npm run watchd &
 **Test Case 2: Model Usage**
 ```bash
 # Test each model:
-- Select zai-org/GLM-4.6-turbo (default)
+- Select zai-org/GLM-4.6:THINKING-turbo (default)
 - Send chat message
 - Verify response received
 - Repeat for other 3 models
@@ -153,7 +153,7 @@ npm run watchd &
 ### On First Launch
 - Edlide provider appears at top of list (above Anthropic)
 - All 4 models are enabled by default
-- zai-org/GLM-4.6-turbo is selected as default
+- zai-org/GLM-4.6:THINKING-turbo is selected as default
 - No configuration required
 
 ### User Interaction

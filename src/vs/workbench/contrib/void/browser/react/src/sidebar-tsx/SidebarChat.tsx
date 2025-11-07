@@ -41,9 +41,9 @@ import { ProviderName } from '../../../../../../../workbench/contrib/void/common
 // Helper function to get display name for models (removes provider prefixes)
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
-		if (modelName === 'zai-org/GLM-4.6') return 'glm-4.6'
+		if (modelName === 'zai-org/GLM-4.6:THINKING') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
-		if (modelName === 'MiniMaxAI/MiniMax-M2')
+		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 	}
 	return modelName
@@ -138,7 +138,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
-		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2')) {
+		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
 			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
@@ -3236,7 +3236,7 @@ export const SidebarChat = () => {
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
-		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2')) {
+		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
 			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {

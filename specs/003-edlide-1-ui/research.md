@@ -24,7 +24,7 @@
 - Provider capabilities defined in `VoidStaticProviderInfo`
 
 **Required Models for Edlide:**
-- `zai-org/GLM-4.6-turbo`
+- `zai-org/GLM-4.6:THINKING-turbo`
 - `deepseek-ai/DeepSeek-V3.1-Terminus`
 - `deepseek-ai/DeepSeek-V3.1-Terminus`
 - `moonshotai/Kimi-K2-Thinking`

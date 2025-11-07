@@ -111,7 +111,7 @@ text = tokenizer.apply_chat_template(
 # Send request (using any inference service)
 import requests
 payload = {
-    "model": "MiniMaxAI/MiniMax-M2",
+    "model": "MiniMaxAI/MiniMax-M2:THINKING",
     "prompt": text,
     "max_tokens": 4096
 }
@@ -475,7 +475,7 @@ def execute_function_call(function_name: str, arguments: dict):
 
 ### Returning Tool Execution Results to the Model
 
-After successfully parsing tool calls, you should add the tool execution results to the conversation history so that the model can access and utilize this information in subsequent interactions. Refer to [chat_template.jinja](https://huggingface.co/MiniMaxAI/MiniMax-M2/blob/main/chat_template.jinja) for concatenation format.
+After successfully parsing tool calls, you should add the tool execution results to the conversation history so that the model can access and utilize this information in subsequent interactions. Refer to [chat_template.jinja](https://huggingface.co/MiniMaxAI/MiniMax-M2:THINKING/blob/main/chat_template.jinja) for concatenation format.
 
 ## References
 

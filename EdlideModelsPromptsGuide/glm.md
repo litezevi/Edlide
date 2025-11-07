@@ -13,7 +13,7 @@ To enable the inference engine to utilize **automatic reasoning and tool call pa
 
 ```bash
 python3 -m sglang.launch_server \
-  --model-path zai-org/GLM-4.6 \
+  --model-path zai-org/GLM-4.6:THINKING \
   --tp-size 8 \
   --tool-call-parser glm45  \
   --reasoning-parser glm45 \
@@ -326,7 +326,7 @@ tools = [
     },
 ]
 
-tokenizer = AutoTokenizer.from_pretrained("zai-org/GLM-4.6", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("zai-org/GLM-4.6:THINKING", trust_remote_code=True)
 
 messages = [
     {"role": "user", "content": "Calculate the 1000th term of the Fibonacci sequence."},

@@ -19,7 +19,7 @@
 
     - У провайдера Edlide должны быть сразу доступны 4 модели:
 
-        - `zai-org/GLM-4.6-turbo`
+        - `zai-org/GLM-4.6:THINKING-turbo`
 
         - `deepseek-ai/DeepSeek-V3.1-Terminus`
 
@@ -81,8 +81,8 @@
 ### Functional Requirements
 - **FR-001**: System MUST отображать провайдер Edlide в настройках моделей по умолчанию при первом запуске
 - **FR-002**: System MUST размещать Edlide выше Anthropic в списке провайдеров и делать его выбранным по умолчанию при первом запуске
-- **FR-003**: System MUST предоставлять 4 предустановленные модели Edlide: `zai-org/GLM-4.6-turbo`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Thinking`
-- **FR-004**: System MUST включать все модели Edlide по умолчанию без дополнительной настройки и выбирать `zai-org/GLM-4.6-turbo` как модель по умолчанию
+- **FR-003**: System MUST предоставлять 4 предустановленные модели Edlide: `zai-org/GLM-4.6:THINKING-turbo`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `deepseek-ai/DeepSeek-V3.1-Terminus`, `moonshotai/Kimi-K2-Thinking`
+- **FR-004**: System MUST включать все модели Edlide по умолчанию без дополнительной настройки и выбирать `zai-org/GLM-4.6:THINKING-turbo` как модель по умолчанию
 - **FR-005**: System MUST использовать встроенный API ключ "API_KEY" для всех запросов к Edlide
 - **FR-006**: System MUST использовать встроенный base URL `https://llm.chutes.ai/v1/` для всех запросов к Edlide
 - **FR-007**: System MUST полностью скрывать API ключ и base URL от пользователя в UI для провайдера Edlide, не отображать их нигде в интерфейсе
@@ -103,7 +103,7 @@
 - Q: Должна ли система выполнять валидацию моделей Edlide при запуске или перед использованием? → A: Не выполнять проверку, предполагать что все модели работают
 - Q: Должен ли Edlide быть провайдером по умолчанию или просто занимать верхнюю позицию? → A: Быть выбранным по умолчанию при первом запуске
 - Q: Должен ли API ключ отображаться в UI или быть полностью скрыт? → A: Полностью скрыт от пользователя в интерфейсе
-- Q: Какая модель Edlide должна быть выбрана по умолчанию? → A: zai-org/GLM-4.6-turbo (первая в списке)
+- Q: Какая модель Edlide должна быть выбрана по умолчанию? → A: zai-org/GLM-4.6:THINKING-turbo (первая в списке)
 
 ---
 
