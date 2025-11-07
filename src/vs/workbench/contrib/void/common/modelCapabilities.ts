@@ -1129,8 +1129,8 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
 	'zai-org/GLM-4.6': {
-		contextWindow: 202752,
-		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
+		contextWindow: 202_752,
+		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1139,8 +1139,8 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'deepseek-ai/DeepSeek-V3.1-Terminus': {
-		contextWindow: 163840,
-		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 95% of context
+		contextWindow: 163_840,
+		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1149,8 +1149,8 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'MiniMaxAI/MiniMax-M2': {
-		contextWindow: 196608,
-		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
+		contextWindow: 196_608,
+		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1159,8 +1159,8 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'moonshotai/Kimi-K2-Thinking': {
-		contextWindow: 262144,
-		reservedOutputTokenSpace: 8192, // Reduced from 32768 to use 96% of context
+		contextWindow: 262_144,
+		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1169,8 +1169,8 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'openai/gpt-oss-20b': {
-		contextWindow: 128000,
-		reservedOutputTokenSpace: 4096,
+		contextWindow: 128_000,
+		reservedOutputTokenSpace: 4_096,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1179,15 +1179,6 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 } as const satisfies { [s: string]: VoidStaticModelInfo }
-
-const edlideSettings: VoidStaticProviderInfo = {
-	modelOptions: edlideModelOptions,
-	modelOptionsFallback: (modelName) => { return null },
-	providerReasoningIOSettings: {
-		input: { includeInPayload: openAICompatIncludeInPayloadReasoning },
-	},
-}
-
 
 // ---------------- VLLM, OLLAMA, OPENAICOMPAT (self-hosted / local) ----------------
 const ollamaModelOptions = {
@@ -1317,6 +1308,15 @@ const liteLLMSettings: VoidStaticProviderInfo = { // https://docs.litellm.ai/doc
 	},
 }
 
+const edlideSettings: VoidStaticProviderInfo = {
+	modelOptionsFallback: (modelName) => extensiveModelOptionsFallback(modelName),
+	modelOptions: edlideModelOptions,
+	providerReasoningIOSettings: {
+		// reasoning: we have no idea what endpoint they used, so we can't consistently parse out reasoning
+		input: { includeInPayload: openAICompatIncludeInPayloadReasoning },
+		output: { nameOfFieldInDelta: 'reasoning_content' },
+	},
+}
 
 // ---------------- OPENROUTER ----------------
 const openRouterModelOptions_assumingOpenAICompat = {
