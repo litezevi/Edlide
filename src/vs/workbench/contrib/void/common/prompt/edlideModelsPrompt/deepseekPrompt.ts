@@ -8,35 +8,39 @@ export const DeepSeekPromptInstructions = {
 	toolCallXMLGuidelines: () => {
 		return `\
     DeepSeek Tool Calling Format:
-    - Use XML format for tool calls as specified in the definitions above
-    - To call a tool, write its name and parameters in the XML formats provided
+    - Use standard OpenAI-compatible function calling format
+    - DeepSeek supports strict mode with JSON Schema validation
+    - To call a tool, use standard function calling with proper JSON parameters
     - After writing the tool call, STOP and WAIT for the result
     - All parameters are REQUIRED unless noted otherwise
     - You are only allowed to output ONE tool call, and it must be at the END of your response
     - Your tool call will be executed immediately, and results will appear in the following user message
     - For MCP tools, consult the tool's documentation first and follow exact parameter format
     
-    REQUIRED FORMAT:
-    <tool_name>
-    <parameter>value</parameter>
-    </tool_name>`;
+    DEEPSEEK-SPECIFIC FORMAT:
+    Use standard OpenAI function calling format with JSON parameters
+    DeepSeek supports strict mode for enhanced parameter validation
+    
+    CRITICAL: Ensure all JSON parameters are valid and properly typed`;
 	},
 
 	// Special instructions for DeepSeek models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `DEEPSEEK MODEL INSTRUCTIONS: Use XML format for tool calls. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. Provide precise, analytical responses with strong reasoning capabilities. Focus on efficient problem-solving and optimal code solutions.`;
+		return `DEEPSEEK MODEL INSTRUCTIONS: Use standard OpenAI function calling format. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. DeepSeek supports strict mode - ensure JSON Schema compliance. Provide precise, analytical responses with strong reasoning capabilities. Focus on efficient problem-solving and optimal code solutions.`;
 	},
 
 	// Special instructions for DeepSeek models in rewrite code scenarios
 	getRewriteCodeInstructions: () => {
 		return `
 ## DeepSeek Model Instructions
-- Use XML format for any tool calls
+- Use standard OpenAI function calling format for any tool calls
+- DeepSeek supports strict mode - ensure JSON Schema compliance
 - ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
 - For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
 - For rewrite_file tool: new_content MUST be a string containing complete file content
 - Apply analytical approach to code transformations
-- Focus on optimization and efficiency in code changes`;
+- Focus on optimization and efficiency in code changes
+- Ensure all function parameters match JSON Schema requirements`;
 	},
 
 	// Special instructions for DeepSeek models in quick edit scenarios
@@ -45,7 +49,8 @@ export const DeepSeekPromptInstructions = {
 ## DeepSeek Model Instructions
 - Provide analytically sound code completions
 - Focus on efficient and optimal solutions
-- Apply strong reasoning to context understanding`;
+- Apply strong reasoning to context understanding
+- Use standard function calling format when making tool calls`;
 	},
 
 	// Helper function to detect if model is DeepSeek

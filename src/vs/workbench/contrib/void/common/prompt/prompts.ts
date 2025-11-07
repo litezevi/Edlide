@@ -456,20 +456,87 @@ export const availableTools = (chatMode: ChatMode | null, mcpTools: InternalTool
 	return tools
 }
 
-const toolCallDefinitionsXMLString = (tools: InternalToolInfo[]) => {
+const toolCallDefinitionsXMLString = (tools: InternalToolInfo[], modelName?: string) => {
 	return `${tools.map((t, i) => {
 		const params = Object.keys(t.params).map(paramName => `<${paramName}>${t.params[paramName].description}</${paramName}>`).join('\n')
+		
+		// Model-specific format adaptations
+		let formatTemplate = `\
+    <${t.name}>${!params ? '' : `\n${params}`}
+    </${t.name}>`;
+		
+		if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+			// MiniMax uses <minimax:tool_call><invoke> wrapper
+			formatTemplate = `\
+    <minimax:tool_call>
+    <invoke name="${t.name}">${!params ? '' : `\n${params}`}
+    </invoke>
+    </minimax:tool_call>`;
+		}
+		else if (KimiPromptInstructions.isKimiModel(modelName)) {
+			// Kimi uses special token format
+			formatTemplate = `\
+    <|tool_calls_section_begin|><|tool_call_begin|>
+    {"name": "${t.name}", "parameters": {${!params ? '' : `\n${Object.keys(t.params).map(paramName => `"${paramName}": "<${t.params[paramName].description}>"`).join(',\n')}`}}}
+    <|tool_call_end|><|tool_calls_section_end|>`;
+		}
+		else if (GLMPromptInstructions.isGLMModel(modelName)) {
+			// GLM uses <invoke name="tool_name"> format
+			formatTemplate = `\
+    <invoke name="${t.name}">${!params ? '' : `\n${params}`}
+    </invoke>`;
+		}
+		else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+			// DeepSeek uses standard OpenAI function calling - keep default format
+			formatTemplate = `\
+    <${t.name}>${!params ? '' : `\n${params}`}
+    </${t.name}>`;
+		}
+		
 		return `\
     ${i + 1}. ${t.name}
     Description: ${t.description}
     Format:
-    <${t.name}>${!params ? '' : `\n${params}`}
-    </${t.name}>`
+    ${formatTemplate}`
 	}).join('\n\n')}`
 }
 
-export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolParamsObj) => {
+export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolParamsObj, modelName?: string) => {
 	const params = Object.keys(toolParams).map(paramName => `<${paramName}>${toolParams[paramName]}</${paramName}>`).join('\n')
+	
+	// Model-specific format adaptations
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		return `\
+    <minimax:tool_call>
+    <invoke name="${toolName}">${!params ? '' : `\n${params}`}
+    </invoke>
+    </minimax:tool_call>`
+			.replace('\t', '  ')
+	}
+	else if (KimiPromptInstructions.isKimiModel(modelName)) {
+		// Kimi uses JSON format for actual tool calls
+		const jsonParams = Object.keys(toolParams).map(paramName => `"${paramName}": ${JSON.stringify(toolParams[paramName])}`).join(',\n    ')
+		return `\
+    <|tool_calls_section_begin|><|tool_call_begin|>
+    {"name": "${toolName}", "parameters": {${!jsonParams ? '' : `\n    ${jsonParams}`}}}
+    <|tool_call_end|><|tool_calls_section_end|>`
+			.replace('\t', '  ')
+	}
+	else if (GLMPromptInstructions.isGLMModel(modelName)) {
+		return `\
+    <invoke name="${toolName}">${!params ? '' : `\n${params}`}
+    </invoke>`
+			.replace('\t', '  ')
+	}
+	else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
+		// DeepSeek uses standard format
+		return `\
+    <${toolName}>${!params ? '' : `\n${params}`}
+    </${toolName}>`
+			.replace('\t', '  ')
+	}
+	
+	// Default format
 	return `\
     <${toolName}>${!params ? '' : `\n${params}`}
     </${toolName}>`
@@ -510,7 +577,7 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 	const toolXMLDefinitions = (`\
     Available tools:
 
-    ${toolCallDefinitionsXMLString(tools)}`)
+    ${toolCallDefinitionsXMLString(tools, modelName)}`)
 
 	const toolCallXMLGuidelines_text = toolCallXMLGuidelines(modelName)
 
