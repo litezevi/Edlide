@@ -41,7 +41,7 @@ The results obtained by the user after calling the tools should be added to mess
 
 import json
 from openai import OpenAI
-model_name='moonshotai/Kimi-K2-Instruct'
+model_name='moonshotai/Kimi-K2-Thinking'
 client = OpenAI(base_url=endpoint,
                         api_key='xxx')
 
@@ -222,3 +222,12 @@ def extract_tool_call_info(tool_call_rsp: str):
             }
         )
     return tool_calls
+FAQ
+Q1: I received special tokens like '<|tool_call_begin|>' in the 'content' field instead of a normal tool_call.
+This indicates a tool-call crash, which most often occurs in multi-turn tool-calling scenarios due to incorrect tool-call ID. K2 expects the ID to follow the format functions.func_name:idx, where functions is a fixed string; func_name is the actual function name, like get_weather, and idx is a global counter that starts at 0 and increments with each function invocation. Please check all tool-call IDs in the message list.
+
+Q2: My tool-call ID is incorrect—how can I fix it?
+First, make sure your code and chat template are up to date with the latest version from the Hugging Face repo. If you're using vLLM or SGLang and they are generating random tool-call IDs, upgrade them to the latest release. For other frameworks, you must either parse the tool-call ID from the model output and set it correctly in the server-side response, or rewrite every tool-call ID according to the rules above on the client side before sending the messages to Kimi K2.
+
+Q3: My tool call id is correct, but I still get crashed in multiturn tool call.
+Please describe your situation in the discussion
