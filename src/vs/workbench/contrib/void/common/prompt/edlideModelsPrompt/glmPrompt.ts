@@ -18,7 +18,14 @@ export const GLMPromptInstructions = {
 
 	// Special instructions for GLM models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `GLM MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content.`;
+		return `GLM MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content.
+
+**CRITICAL FILE EDITING PROTOCOL FOR GLM MODELS:**
+1. **BEFORE EDITING**: ALWAYS read the file first using read_file tool to ensure 100% accuracy
+2. **CONFIRM CONTENT**: Verify the ORIGINAL section matches EXACTLY what you just read
+3. **STRING VALIDATION**: Ensure all tool parameters are valid strings before sending
+4. **BLOCK VERIFICATION**: Double-check SEARCH/REPLACE blocks for proper format and accuracy
+5. **ONLY WHEN CERTAIN**: Proceed only when 100% confident in the current file content`;
 	},
 
 	// Special instructions for GLM models in rewrite code scenarios
@@ -28,7 +35,13 @@ export const GLMPromptInstructions = {
 - Use standard XML format: <tool_name>parameters</tool_name>
 - CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
 - For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
-- For rewrite_file tool: new_content MUST be a string containing complete file content`;
+- For rewrite_file tool: new_content MUST be a string containing complete file content
+
+**CRITICAL FILE EDITING PROTOCOL:**
+1. **ALWAYS READ FIRST**: Never edit a file without first reading it to confirm current content
+2. **100% ACCURACY REQUIRED**: Only proceed when you are 100% certain the ORIGINAL section matches
+3. **STRING TYPE CHECK**: Validate that all parameters are strings before tool call
+4. **NO GUESSING**: If any doubt exists, re-read the file before proceeding`;
 	},
 
 	// Special instructions for GLM models in quick edit scenarios

@@ -18,7 +18,14 @@ export const MiniMaxPromptInstructions = {
 
 	// Special instructions for MiniMax models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `MINIMAX MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content.`;
+		return `MINIMAX MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool: new_content MUST be a string with file content.
+
+**CRITICAL FILE EDITING PROTOCOL FOR MINIMAX MODELS:**
+1. **ALWAYS READ FIRST**: Use read_file tool to read the file before any editing attempt
+2. **CONFIRM MATCH**: Verify ORIGINAL section matches EXACTLY the content you just read
+3. **TYPE SAFETY**: Ensure all tool parameters are valid strings, not undefined/null/objects
+4. **BLOCK ACCURACY**: Double-check SEARCH/REPLACE blocks for correct format and content
+5. **ABSOLUTE CERTAINTY**: Only proceed when 100% confident in file content accuracy`;
 	},
 
 	// Special instructions for MiniMax models in rewrite code scenarios
@@ -28,7 +35,13 @@ export const MiniMaxPromptInstructions = {
 - Use standard XML format: <tool_name>parameters</tool_name>
 - CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
 - For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
-- For rewrite_file tool: new_content MUST be a string containing complete file content`;
+- For rewrite_file tool: new_content MUST be a string containing complete file content
+
+**CRITICAL FILE EDITING PROTOCOL:**
+1. **MANDATORY FILE READING**: Never edit without first confirming current file content via read_file
+2. **100% CONFIDENCE THRESHOLD**: Only proceed when absolutely certain ORIGINAL matches
+3. **PARAMETER VALIDATION**: Check that all tool parameters are valid strings before sending
+4. **ZERO GUESSWORK**: If uncertain, re-read the file - never guess or assume content`;
 	},
 
 	// Special instructions for MiniMax models in quick edit scenarios
