@@ -465,7 +465,7 @@ const toolCallDefinitionsXMLString = (tools: InternalToolInfo[], modelName?: str
     <${t.name}>${!params ? '' : `\n${params}`}
     </${t.name}>`;
 
-if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+		if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 			// MiniMax uses standard XML format
 			formatTemplate = `\
     	<${t.name}>${!params ? '' : `\n${params}`}
@@ -478,7 +478,7 @@ if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
     {"name": "${t.name}", "parameters": {${!params ? '' : `\n${Object.keys(t.params).map(paramName => `"${paramName}": "<${t.params[paramName].description}>"`).join(',\n')}`}}}
     <|tool_call_end|><|tool_calls_section_end|>`;
 		}
-else if (GLMPromptInstructions.isGLMModel(modelName)) {
+		else if (GLMPromptInstructions.isGLMModel(modelName)) {
 			// GLM uses standard XML format
 			formatTemplate = `\
     	<${t.name}>${!params ? '' : `\n${params}`}
@@ -503,7 +503,7 @@ export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolPar
 	const params = Object.keys(toolParams).map(paramName => `<${paramName}>${toolParams[paramName]}</${paramName}>`).join('\n')
 
 	// Model-specific format adaptations
-if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
+	if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
 		return `\
     	<${toolName}>${!params ? '' : `\n${params}`}
     	</${toolName}>`
@@ -518,7 +518,7 @@ if (MiniMaxPromptInstructions.isMiniMaxModel(modelName)) {
     <|tool_call_end|><|tool_calls_section_end|>`
 			.replace('\t', '  ')
 	}
-else if (GLMPromptInstructions.isGLMModel(modelName)) {
+	else if (GLMPromptInstructions.isGLMModel(modelName)) {
 		return `\
     	<${toolName}>${!params ? '' : `\n${params}`}
     	</${toolName}>`
@@ -667,6 +667,7 @@ ${directoryStr}
 		details.push(`Master MCP tools - consult MCP tool documentation thoroughly and execute with the same precision as built-in tools. Follow exact parameter specifications and handle responses professionally.`)
 		details.push(`CRITICAL FILE EDITING PROTOCOL - Before editing any file: 1) If you read this file before, re-read it now; 2) If you modified this file before, re-read the relevant section; 3) Only proceed when 95%+ certain of current content; 4) When in doubt, always re-read to prevent "No Search/Replace blocks received" errors; 5) ALWAYS validate your output is a string, never undefined - use empty string "" if no changes needed; 6) CRITICAL: For rewrite_file tool, new_content parameter MUST be a string containing file content, NEVER an object or undefined; 7) For edit_file tool, search_replace_blocks MUST be a string with SEARCH/REPLACE blocks, NEVER undefined, null, or object; 8) ALWAYS ensure all tool parameters are valid strings before sending response.`)
 		details.push(`TEXT FORMATTING DISCIPLINE - Use plain text boxes ONLY for code, configuration, or technical data. NEVER use plain text for explanations, descriptions, or conversational responses. Regular communication should use standard markdown formatting.`)
+		details.push(`Improtant: Always inspect the folder directory before creating the folder, if you will not inspect it can be go wrong. Check the directory before creating folder`)
 	}
 
 	if (mode === 'gather') {
