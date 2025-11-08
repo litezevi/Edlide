@@ -7,44 +7,38 @@ export const KimiPromptInstructions = {
 	// Tool calling format guidelines for Kimi models
 	toolCallXMLGuidelines: () => {
 		return `\
-    Kimi Tool Calling Format:
-    - Use XML format for tool calls as shown in the definitions above
-    - To call a tool, write its name and parameters in the XML formats specified
-    - After writing the tool call, STOP and WAIT for the result
-    - All parameters are REQUIRED unless noted otherwise
-    - You are only allowed to output ONE tool call, and it must be at the END of your response
-    - Your tool call will be executed immediately, and results will appear in the following user message
-    - For MCP tools, consult the tool's documentation first and follow exact parameter format
-    
-    REQUIRED FORMAT:
-    <tool_name>
-    <parameter>value</parameter>
-    </tool_name>`;
+    Tool calling details:
+    - To call a tool, write its name and parameters in the XML format: <tool_name>parameters</tool_name>
+    - After you write the tool call, you must STOP and WAIT for the result.
+    - All parameters are REQUIRED unless noted otherwise.
+    - You are only allowed to output ONE tool call, and it must be at the END of your response.
+    - Your tool call will be executed immediately, and the results will appear in the following user message.
+    - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified. Execute MCP tools with the same precision and care as built-in tools.`;
 	},
 
 	// Special instructions for Kimi models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `KIMI MODEL INSTRUCTIONS: Use XML format for tool calls. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content. Provide detailed, well-structured responses with comprehensive analysis. Leverage your large context window for thorough understanding of complex codebases.`;
+		return `KIMI MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool, new_content MUST be a string with file content.`;
 	},
 
 	// Special instructions for Kimi models in rewrite code scenarios
 	getRewriteCodeInstructions: () => {
 		return `
 ## Kimi Model Instructions
-- Use XML format for any tool calls
-- ALWAYS return valid strings for all parameters, NEVER undefined, null, or objects
+- Use standard XML format: <tool_name>parameters</tool_name>
+- CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
 - For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
-- For rewrite_file tool: new_content MUST be a string containing complete file content
-- Provide comprehensive code transformations with detailed explanations
-- Leverage your large context window for complete file understanding`;
+- For rewrite_file tool: new_content MUST be a string containing complete file content`;
 	},
 
 	// Special instructions for Kimi models in quick edit scenarios
 	getQuickEditInstructions: () => {
 		return `
 ## Kimi Model Instructions
-- Provide precise code completions with thorough context analysis
-- Use your large context capacity to understand surrounding code patterns`;
+- Use standard XML format: <tool_name>parameters</tool_name>
+- CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
+- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
+- For rewrite_file tool: new_content MUST be a string containing complete file content`;
 	},
 
 	// Helper function to detect if model is Kimi
