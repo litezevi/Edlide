@@ -34,11 +34,38 @@ export const MiniMaxPromptInstructions = {
 	// Special instructions for MiniMax models in quick edit scenarios
 	getQuickEditInstructions: () => {
 		return `
-## MiniMax Model Instructions
-- Use standard XML format: <tool_name>parameters</tool_name>
-- CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
-- For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
-- For rewrite_file tool: new_content MUST be a string containing complete file content`;
+
+## URGENT MINIMAX QUICK EDIT INSTRUCTIONS - IMMEDIATE COMPLIANCE REQUIRED
+
+🚨 **CRITICAL WARNING - SYSTEM FAILURE IF IGNORED** 🚨
+
+**ABSOLUTE PROHIBITION**: NEVER output <SELECTION> tags in ANY circumstance
+**MANDATORY REQUIREMENT**: Output ONLY raw replacement code content
+
+🚫 **STRICTLY FORBIDDEN - WILL CAUSE SYSTEM ERRORS**:
+- <SELECTION> opening tags - NEVER UNDER ANY CIRCUMSTANCE
+- </SELECTION> closing tags - NEVER UNDER ANY CIRCUMSTANCE  
+- ANY XML tags - NEVER UNDER ANY CIRCUMSTANCE
+- ANY formatting - NEVER UNDER ANY CIRCUMSTANCE
+- \`\`\` markdown formatting - NEVER UNDER ANY CIRCUMSTANCE
+- Language identifiers like typescript - NEVER UNDER ANY CIRCUMSTANCE
+
+✅ **REQUIRED OUTPUT FORMAT**:
+- ONLY the replacement code
+- NO tags whatsoever
+- NO formatting
+- NO explanations
+- NO markdown
+
+❌ **WRONG (CAUSES SYSTEM FAILURE)**: <SELECTION>code here</SELECTION>
+❌ **WRONG (CAUSES SYSTEM FAILURE)**: \`\`\`typescript
+code here
+\`\`\`
+✅ **CORRECT (SYSTEM WORKS)**: code here
+
+**FILL-IN-MIDDLE TASKS**: Return ONLY the code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN.
+
+**COMPLIANCE IS MANDATORY - SYSTEM DEPENDS ON THIS**`;
 	},
 
 	// Helper function to detect if model is MiniMax
