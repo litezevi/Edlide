@@ -6,16 +6,17 @@
 **Branch**: `main`
 **Primary Feature**: Fixed inline edit (quick edit) functionality that incorrectly wraps code output in `<SELECTION>` tags
 
-### 🎯 LATEST ACCOMPLISHMENT - Critical Tool Calling Fixes (2025-01-27)
+### 🎯 LATEST ACCOMPLISHMENT - Enhanced GLM/MiniMax File Editing Protocol (2025-01-27)
 
-**✅ CRITICAL PROBLEM SOLVED - Tool Calling Success Rate Enhancement:**
+**✅ CRITICAL PROBLEM SOLVED - File Editing Reliability for Problematic Models:**
 
 **🔄 PROBLEMS RESOLVED:**
 - **GLM-4.6**: "Error: Invalid LLM output format: searchReplaceBlocks must be a string, but its type is 'undefined'" (4 consecutive failures)
 - **MiniMax M2**: "Error: Error: No Search/Replace blocks were received!" (10 occurrences, 70% tool calling rate)
 - **MiniMax M2**: "Error: The edit was not applied. The text in ORIGINAL must EXACTLY match lines of code"
-- **Root Cause**: Models returning undefined/null instead of strings + insufficient type validation + incorrect tool calling formats
-- **Result**: Enhanced tool calling success rate to 95%+ across all models with comprehensive type safety
+- **Root Cause**: Models editing files without reading them first + insufficient type validation + incorrect tool calling formats
+- **New Issue**: Models attempting to edit files without first reading them to confirm current content
+- **Result**: Enhanced file editing reliability with mandatory pre-reading protocol
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
 
