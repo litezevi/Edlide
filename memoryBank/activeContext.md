@@ -122,7 +122,7 @@ Active Context Update → Future Reference Complete
 **🔄 MODELS UPDATED:**
 - **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.1-Terminus`
 - **Added**: `moonshotai/Kimi-K2-Thinking`
-- **UI Names**: `"deepseek-v3.1"` (short, user-friendly)
+- **UI Names**: `"deepseek-v3.1-terminus"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
@@ -141,7 +141,7 @@ edlide: [
 // UI display name mapping in both ModelDropdown.tsx and Settings.tsx
 const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   if (providerName === 'edlide') {
-    if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1'
+    if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
 
   }
   return modelName
@@ -221,7 +221,7 @@ for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models
 **📊 USER EXPERIENCE TRANSFORMED:**
 - **Model Management**: Users can now properly hide/unhide models in Settings
 - **UI Consistency**: Model names identical in Settings and Chat dropdowns
-- **Clean Interface**: Friendly short names (`deepseek-v3.1`) throughout UI
+- **Clean Interface**: Friendly short names (`deepseek-v3.1-terminus`) throughout UI
 - **Backend Compatibility**: Full API names preserved for provider communication
 - **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
 
