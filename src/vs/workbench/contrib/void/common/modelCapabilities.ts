@@ -77,7 +77,7 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6:THINKING',
-		'moonshotai/Kimi-K2-Thinking',
+		// 'moonshotai/Kimi-K2-Thinking', //
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
 		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
