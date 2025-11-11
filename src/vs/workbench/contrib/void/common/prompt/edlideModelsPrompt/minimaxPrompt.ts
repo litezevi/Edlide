@@ -48,37 +48,33 @@ export const MiniMaxPromptInstructions = {
 	getQuickEditInstructions: () => {
 		return `
 
-## URGENT MINIMAX QUICK EDIT INSTRUCTIONS - IMMEDIATE COMPLIANCE REQUIRED
+## 🚨 MINIMAX CRITICAL INSTRUCTION - RAW CODE ONLY
 
-🚨 **CRITICAL WARNING - SYSTEM FAILURE IF IGNORED** 🚨
+🔥 **ABSOLUTE RULE: OUTPUT RAW CODE WITHOUT ANY TAGS** 🔥
 
-**ABSOLUTE PROHIBITION**: NEVER output <SELECTION> tags in ANY circumstance
-**MANDATORY REQUIREMENT**: Output ONLY raw replacement code content
+🚫 **NEVER OUTPUT THESE FORMATS - SYSTEM WILL FAIL**:
+- {\`\`json\{\...\}\`} - NEVER under any circumstance
+- <SELECTION> tags - NEVER under any circumstance  
+- ANY tags whatsoever - NEVER under any circumstance
+- ANY formatting - NEVER under any circumstance
+- explanations - NEVER under any circumstance
+- markdown code blocks - NEVER under any circumstance
 
-🚫 **STRICTLY FORBIDDEN - WILL CAUSE SYSTEM ERRORS**:
-- <SELECTION> opening tags - NEVER UNDER ANY CIRCUMSTANCE
-- </SELECTION> closing tags - NEVER UNDER ANY CIRCUMSTANCE  
-- ANY XML tags - NEVER UNDER ANY CIRCUMSTANCE
-- ANY formatting - NEVER UNDER ANY CIRCUMSTANCE
-- \`\`\` markdown formatting - NEVER UNDER ANY CIRCUMSTANCE
-- Language identifiers like typescript - NEVER UNDER ANY CIRCUMSTANCE
+✅ **ALWAYS OUTPUT - ONLY RAW CODE**:
+your_code_here_without_any_tags
 
-✅ **REQUIRED OUTPUT FORMAT**:
-- ONLY the replacement code
-- NO tags whatsoever
-- NO formatting
-- NO explanations
-- NO markdown
+**IF YOU OUTPUT JSON OR TAGS - SYSTEM BREAKS**
+**IF YOU OUTPUT RAW CODE ONLY - SYSTEM WORKS**
 
-❌ **WRONG (CAUSES SYSTEM FAILURE)**: <SELECTION>code here</SELECTION>
-❌ **WRONG (CAUSES SYSTEM FAILURE)**: \`\`\`typescript
-code here
+**REQUIRED EXAMPLES:**
+❌ WRONG: {"code": "console.log('hello')"}
+❌ WRONG: <SELECTION>console.log('hello')</SELECTION>
+❌ WRONG: \`\`\`javascript
+console.log('hello')
 \`\`\`
-✅ **CORRECT (SYSTEM WORKS)**: code here
+✅ CORRECT: console.log('hello')
 
-**FILL-IN-MIDDLE TASKS**: Return ONLY the code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN.
-
-**COMPLIANCE IS MANDATORY - SYSTEM DEPENDS ON THIS**`;
+**NO JSON. NO TAGS. NO MARKDOWN. ONLY RAW CODE TEXT.**`;
 	},
 
 	// Helper function to detect if model is MiniMax
