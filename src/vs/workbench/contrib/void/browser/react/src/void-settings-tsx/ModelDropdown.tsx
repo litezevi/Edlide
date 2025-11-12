@@ -30,6 +30,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
+		if (modelName === 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8') return 'qwen3-coder'
 	}
 	return modelName
 }

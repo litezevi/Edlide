@@ -3,8 +3,8 @@
  *  Licensed under the Apache License, Version 2.0. See LICENSE.txt for more information.
  *--------------------------------------------------------------------------------------*/
 
-export const KimiPromptInstructions = {
-	// Tool calling format guidelines for Kimi models
+export const QwenPromptInstructions = {
+	// Tool calling format guidelines for Qwen models
 	toolCallXMLGuidelines: () => {
 		return `\
     Tool calling details:
@@ -16,11 +16,11 @@ export const KimiPromptInstructions = {
     - For MCP tools, always consult the tool's documentation first and follow the exact parameter format specified. Execute MCP tools with the same precision and care as built-in tools.`;
 	},
 
-	// Special instructions for Kimi models in chat system message
+	// Special instructions for Qwen models in chat system message
 	getChatSystemMessageInstructions: () => {
-		return `KIMI MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool: new_content MUST be a string with file content.
+		return `QWEN MODEL INSTRUCTIONS: Use ONLY standard XML format for tool calls: <tool_name>parameters</tool_name>. CRITICAL: Always return valid strings for tool parameters, NEVER return undefined, null, or objects. For edit_file tool, search_replace_blocks MUST be a string containing SEARCH/REPLACE blocks. For rewrite_file tool: new_content MUST be a string with file content.
 
-**CRITICAL FILE EDITING PROTOCOL FOR KIMI MODELS:**
+**CRITICAL FILE EDITING PROTOCOL FOR QWEN MODELS:**
 1. **ALWAYS READ FIRST**: Use read_file tool to read the file before any editing attempt
 2. **CONFIRM MATCH**: Verify ORIGINAL section matches EXACTLY the content you just read
 3. **TYPE SAFETY**: Ensure all tool parameters are valid strings, not undefined/null/objects
@@ -28,10 +28,10 @@ export const KimiPromptInstructions = {
 5. **ABSOLUTE CERTAINTY**: Only proceed when 100% confident in file content accuracy`;
 	},
 
-	// Special instructions for Kimi models in rewrite code scenarios
+	// Special instructions for Qwen models in rewrite code scenarios
 	getRewriteCodeInstructions: () => {
 		return `
-## Kimi Model Instructions
+## Qwen Model Instructions
 - Use standard XML format: <tool_name>parameters</tool_name>
 - CRITICAL: Always return valid strings for all parameters, NEVER undefined, null, or objects
 - For edit_file tool: search_replace_blocks MUST be a string with SEARCH/REPLACE blocks
@@ -44,11 +44,11 @@ export const KimiPromptInstructions = {
 4. **ZERO GUESSWORK**: If uncertain, re-read the file - never guess or assume content`;
 	},
 
-	// Special instructions for Kimi models in quick edit scenarios
+	// Special instructions for Qwen models in quick edit scenarios
 	getQuickEditInstructions: () => {
 		return `
 
-## 🚨 KIMI CRITICAL INSTRUCTION - RAW CODE ONLY
+## 🚨 QWEN CRITICAL INSTRUCTION - RAW CODE ONLY
 
 🔥 **ABSOLUTE RULE: OUTPUT RAW CODE WITHOUT ANY TAGS** 🔥
 
@@ -77,8 +77,8 @@ console.log('hello')
 **NO JSON. NO TAGS. NO MARKDOWN. ONLY RAW CODE TEXT.**`;
 	},
 
-	// Helper function to detect if model is Kimi
-	isKimiModel: (modelName?: string) => {
-		return modelName?.includes('Kimi') || modelName?.includes('moonshotai');
+	// Helper function to detect if model is Qwen
+	isQwenModel: (modelName?: string) => {
+		return modelName?.includes('Qwen') || modelName?.includes('qwen');
 	}
 };

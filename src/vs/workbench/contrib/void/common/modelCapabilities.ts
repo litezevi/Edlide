@@ -80,6 +80,7 @@ export const defaultModelsOfProvider = {
 		'moonshotai/Kimi-K2-Instruct-0905',
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
+		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
 		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
@@ -1162,6 +1163,16 @@ const edlideModelOptions = {
 	'openai/gpt-oss-20b': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 4_096,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8': {
+		contextWindow: 262_144,
+		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,

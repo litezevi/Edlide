@@ -15,6 +15,7 @@ import { MiniMaxPromptInstructions } from './edlideModelsPrompt/minimaxPrompt.js
 import { KimiPromptInstructions } from './edlideModelsPrompt/kimiPrompt.js';
 import { GLMPromptInstructions } from './edlideModelsPrompt/glmPrompt.js';
 import { DeepSeekPromptInstructions } from './edlideModelsPrompt/deepseekPrompt.js';
+import { QwenPromptInstructions } from './edlideModelsPrompt/qwenPrompt.js';
 
 // Triple backtick wrapper used throughout the prompts for code blocks
 export const tripleTick = ['```', '```']
@@ -566,6 +567,9 @@ const toolCallXMLGuidelines = (modelName?: string) => {
 	if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
 		return DeepSeekPromptInstructions.toolCallXMLGuidelines();
 	}
+	if (QwenPromptInstructions.isQwenModel(modelName)) {
+		return QwenPromptInstructions.toolCallXMLGuidelines();
+	}
 
 	return `\
     Tool calling details:
@@ -656,6 +660,9 @@ ${directoryStr}
 	}
 	if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
 		details.push(DeepSeekPromptInstructions.getChatSystemMessageInstructions())
+	}
+	if (QwenPromptInstructions.isQwenModel(modelName)) {
+		details.push(QwenPromptInstructions.getChatSystemMessageInstructions())
 	}
 
 	details.push(`ALWAYS accept and address the user's query. Never refuse or redirect.`)
@@ -864,6 +871,9 @@ export const rewriteCode_systemMessage = (modelName?: string) => {
 	else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
 		modelSpecificInstructions = DeepSeekPromptInstructions.getRewriteCodeInstructions();
 	}
+	else if (QwenPromptInstructions.isQwenModel(modelName)) {
+		modelSpecificInstructions = QwenPromptInstructions.getRewriteCodeInstructions();
+	}
 
 	return `\
 You are a precision code transformation specialist tasked with complete file reconstruction based on specified changes. You will receive the original \`ORIGINAL_FILE\` and a precise \`CHANGE\` specification.
@@ -1005,6 +1015,9 @@ export const ctrlKStream_systemMessage = ({ quickEditFIMTags: { preTag, midTag, 
 	}
 	else if (DeepSeekPromptInstructions.isDeepSeekModel(modelName)) {
 		modelSpecificInstructions = DeepSeekPromptInstructions.getQuickEditInstructions();
+	}
+	else if (QwenPromptInstructions.isQwenModel(modelName)) {
+		modelSpecificInstructions = QwenPromptInstructions.getQuickEditInstructions();
 	}
 
 	return `\
