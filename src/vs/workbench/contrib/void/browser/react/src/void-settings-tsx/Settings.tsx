@@ -665,15 +665,64 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	const allProviders = filteredProviders || providerNames;
 	const providersToShow = allProviders.filter(providerName => !providersToExcludeFromModels.includes(providerName));
 
+	// Create a map to track unique model display names and prevent duplicates
+	const uniqueModelNames = new Map<string, VoidStatefulModelInfo & { providerName: ProviderName, providerEnabled: boolean }>();
+	const duplicatesFound: string[] = [];
+
 	for (let providerName of providersToShow) {
 		const providerSettings = settingsState.settingsOfProvider[providerName]
 		// if (!providerSettings.enabled) continue
-		modelDump.push(...providerSettings.models.map(model => ({ ...model, providerName, providerEnabled: !!providerSettings._didFillInProviderSettings })))
+		
+		for (const model of providerSettings.models) {
+			const modelWithProvider = { ...model, providerName, providerEnabled: !!providerSettings._didFillInProviderSettings };
+			const displayName = getModelDisplayName(model.modelName, providerName);
+			
+			// Skip the hidden SCM model
+			if (model.modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') {
+				continue;
+			}
+			
+			// Check if we already have a model with this display name
+			if (uniqueModelNames.has(displayName)) {
+				duplicatesFound.push(displayName);
+				// Keep the first one (prefer edlide provider, then enabled providers)
+				const existing = uniqueModelNames.get(displayName)!;
+				const shouldReplace = (
+					// Prefer edlide provider over others
+					(providerName === 'edlide' && existing.providerName !== 'edlide') ||
+					// Or prefer enabled provider over disabled one
+					(modelWithProvider.providerEnabled && !existing.providerEnabled) ||
+					// Or if both have same enabled status, prefer the one that comes first in providersToShow
+					(modelWithProvider.providerEnabled === existing.providerEnabled && 
+					 providersToShow.indexOf(providerName) < providersToShow.indexOf(existing.providerName))
+				);
+				
+				if (shouldReplace) {
+					uniqueModelNames.set(displayName, modelWithProvider);
+				}
+			} else {
+				uniqueModelNames.set(displayName, modelWithProvider);
+			}
+		}
 	}
 
-	// sort by hidden
+	// Convert the unique models map back to an array
+	modelDump.push(...Array.from(uniqueModelNames.values()));
+
+	// sort by hidden and then by provider priority
 	modelDump.sort((a, b) => {
-		return Number(b.providerEnabled) - Number(a.providerEnabled)
+		// First sort by enabled status
+		const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
+		if (enabledDiff !== 0) return enabledDiff;
+		
+		// Then sort by provider priority (edlide first, then others)
+		if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
+		if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
+		
+		// Finally sort by display name
+		const aName = getModelDisplayName(a.modelName, a.providerName);
+		const bName = getModelDisplayName(b.modelName, b.providerName);
+		return aName.localeCompare(bName);
 	})
 
 	// Add model handler
@@ -705,7 +754,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	};
 
 	return <div className=''>
-		{modelDump.filter(m => !(m.modelName === 'openai/gpt-oss-20b' && m.providerName === 'edlide')).map((m, i) => {
+		{modelDump.map((m, i) => {
 			const { isHidden, type, modelName, providerName, providerEnabled } = m
 
 			const isNewProviderName = (i > 0 ? modelDump[i - 1] : undefined)?.providerName !== providerName
@@ -721,6 +770,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 						: 'Hide from Dropdown'
 			)
 
+			const displayName = getModelDisplayName(modelName, providerName)
 
 			const detailAboutModel = type === 'autodetected' ?
 				<Asterisk size={14} className="inline-block align-text-top brightness-115 stroke-[2] text-[#0e70c0]" data-tooltip-id='void-tooltip' data-tooltip-place='right' data-tooltip-content='Detected locally' />
@@ -737,7 +787,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 				{/* left part is width:full */}
 				<div className={`flex flex-grow items-center gap-4`}>
 					<span className='w-full max-w-32'>{isNewProviderName ? providerTitle : ''}</span>
-  <span className='w-fit max-w-[400px] truncate'>{getModelDisplayName(modelName, providerName)}</span>
+  <span className='w-fit max-w-[400px] truncate'>{displayName}</span>
 				</div>
 
 				{/* right part is anything that fits */}
