@@ -2,11 +2,83 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-01-27 (Quick Edit SELECTION Tag Fix - COMPLETED)
-**Branch**: `main`
-**Primary Feature**: Fixed inline edit (quick edit) functionality that incorrectly wraps code output in `<SELECTION>` tags
+**Session Date**: 2025-11-12 (Model Provider Duplication Fix)
+**Branch**: `re-design`
+**Primary Feature**: Fixed model provider duplication in Edlide's settings interface
 
-### 🎯 LATEST ACCOMPLISHMENT - Enhanced GLM/MiniMax File Editing Protocol (2025-01-27)
+### 🎯 LATEST ACCOMPLISHMENT - Model Provider Deduplication System (2025-11-12)
+
+**✅ CRITICAL UI PROBLEM SOLVED - Provider Name Duplication in Settings:**
+
+**🔄 PROBLEMS RESOLVED:**
+- **Before Edlide**: Models displayed correctly (single entry)
+- **Other Providers**: Anthropic, OpenAI, Gemini, Grok (xAI) appeared multiple times in settings
+- **User Confusion**: Duplicate provider names made settings look unprofessional and confusing
+- **Root Cause**: No deduplication system in ModelDump component - all models from all providers added to single list
+- **Impact**: Settings interface appeared broken with repeated provider sections
+- **Result**: Clean, professional settings interface with each provider shown exactly once
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**1. Deduplication System Architecture:**
+```typescript
+// Create map to track unique model display names and prevent duplicates
+const uniqueModelNames = new Map<string, VoidStatefulModelInfo & { providerName: ProviderName, providerEnabled: boolean }>();
+const duplicatesFound: string[] = [];
+
+// Process each model with deduplication logic
+for (const model of providerSettings.models) {
+  const displayName = getModelDisplayName(model.modelName, providerName);
+  
+  if (uniqueModelNames.has(displayName)) {
+    duplicatesFound.push(displayName);
+    // Smart replacement logic with provider priority
+  } else {
+    uniqueModelNames.set(displayName, modelWithProvider);
+  }
+}
+```
+
+**2. Provider Priority System:**
+```typescript
+const shouldReplace = (
+  // Prefer edlide provider over others
+  (providerName === 'edlide' && existing.providerName !== 'edlide') ||
+  // Prefer enabled provider over disabled one
+  (modelWithProvider.providerEnabled && !existing.providerEnabled) ||
+  // Prefer first provider in list if same status
+  (modelWithProvider.providerEnabled === existing.providerEnabled && 
+   providersToShow.indexOf(providerName) < providersToShow.indexOf(existing.providerName))
+);
+```
+
+**3. Enhanced Sorting Algorithm:**
+```typescript
+modelDump.sort((a, b) => {
+  // First sort by enabled status
+  const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
+  if (enabledDiff !== 0) return enabledDiff;
+  
+  // Then sort by provider priority (edlide first, then others)
+  if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
+  if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
+  
+  // Finally sort by display name
+  return aName.localeCompare(bName);
+});
+```
+
+**4. Hidden SCM Model Management:**
+```typescript
+// Skip the hidden SCM model in deduplication
+if (model.modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') {
+  continue;
+}
+
+// Remove redundant filter from display
+// Before: modelDump.filter(m => !(m.modelName === 'openai/gpt-oss-20b' && m.providerName === 'edlide'))
+// After: modelDump.map() - filtering handled in deduplication
+```
 
 **✅ CRITICAL PROBLEM SOLVED - File Editing Reliability for Problematic Models:**
 
