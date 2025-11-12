@@ -29,7 +29,7 @@ const duplicatesFound: string[] = [];
 // Process each model with deduplication logic
 for (const model of providerSettings.models) {
   const displayName = getModelDisplayName(model.modelName, providerName);
-  
+
   if (uniqueModelNames.has(displayName)) {
     duplicatesFound.push(displayName);
     // Smart replacement logic with provider priority
@@ -47,7 +47,7 @@ const shouldReplace = (
   // Prefer enabled provider over disabled one
   (modelWithProvider.providerEnabled && !existing.providerEnabled) ||
   // Prefer first provider in list if same status
-  (modelWithProvider.providerEnabled === existing.providerEnabled && 
+  (modelWithProvider.providerEnabled === existing.providerEnabled &&
    providersToShow.indexOf(providerName) < providersToShow.indexOf(existing.providerName))
 );
 ```
@@ -58,11 +58,11 @@ modelDump.sort((a, b) => {
   // First sort by enabled status
   const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
   if (enabledDiff !== 0) return enabledDiff;
-  
+
   // Then sort by provider priority (edlide first, then others)
   if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
   if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
-  
+
   // Finally sort by display name
   return aName.localeCompare(bName);
 });
@@ -193,7 +193,7 @@ Active Context Update → Future Reference Complete
 
 **🔄 MODELS UPDATED:**
 - **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.1-Terminus`
-- **Added**: `moonshotai/Kimi-K2-Thinking`
+- **Added**: `moonshotai/Kimi-K2-Instruct-0905`
 - **UI Names**: `"deepseek-v3.1-terminus"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
@@ -206,7 +206,7 @@ edlide: [
   'zai-org/GLM-4.6:THINKING',
   'deepseek-ai/DeepSeek-V3.1-Terminus',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
-  'moonshotai/Kimi-K2-Thinking',  // New model added
+  'moonshotai/Kimi-K2-Instruct-0905',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
 ]
 
@@ -235,7 +235,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 }
 
 // Kimi K2-Instruct-0905 Configuration
-'moonshotai/Kimi-K2-Thinking': {
+'moonshotai/Kimi-K2-Instruct-0905': {
   contextWindow: 262144, // Largest context window
   reservedOutputTokenSpace: 8192, // 96% context utilization
   cost: { input: 0, output: 0 },
@@ -625,7 +625,7 @@ OUTPUT VALIDATION CHECKLIST:
   Available for messages: 155,648 tokens (+24,576!)
 }
 
-'moonshotai/Kimi-K2-Thinking': {
+'moonshotai/Kimi-K2-Instruct-0905': {
   contextWindow: 262144,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 253,952 tokens (+24,576!)

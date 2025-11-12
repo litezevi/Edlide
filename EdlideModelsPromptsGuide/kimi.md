@@ -41,7 +41,7 @@ The results obtained by the user after calling the tools should be added to mess
 
 import json
 from openai import OpenAI
-model_name='moonshotai/Kimi-K2-Thinking'
+model_name='moonshotai/Kimi-K2-Instruct-0905'
 client = OpenAI(base_url=endpoint,
                         api_key='xxx')
 

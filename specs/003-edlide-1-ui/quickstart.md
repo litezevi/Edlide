@@ -46,7 +46,7 @@ edlide: [
   'zai-org/GLM-4.6:THINKING-turbo',
   'deepseek-ai/DeepSeek-V3.1-Terminus',
   'deepseek-ai/DeepSeek-V3.1-Terminus',
-  'moonshotai/Kimi-K2-Thinking'
+  'moonshotai/Kimi-K2-Instruct-0905'
 ],
 ```
 

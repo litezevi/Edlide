@@ -36,7 +36,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
-	    if (modelName === 'moonshotai/Kimi-K2-Thinking') return 'kimi-k2-thinking'
+	    if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-thinking'
 	}
 	return modelName
 }
@@ -672,16 +672,16 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	for (let providerName of providersToShow) {
 		const providerSettings = settingsState.settingsOfProvider[providerName]
 		// if (!providerSettings.enabled) continue
-		
+
 		for (const model of providerSettings.models) {
 			const modelWithProvider = { ...model, providerName, providerEnabled: !!providerSettings._didFillInProviderSettings };
 			const displayName = getModelDisplayName(model.modelName, providerName);
-			
+
 			// Skip the hidden SCM model
 			if (model.modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') {
 				continue;
 			}
-			
+
 			// Check if we already have a model with this display name
 			if (uniqueModelNames.has(displayName)) {
 				duplicatesFound.push(displayName);
@@ -693,10 +693,10 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 					// Or prefer enabled provider over disabled one
 					(modelWithProvider.providerEnabled && !existing.providerEnabled) ||
 					// Or if both have same enabled status, prefer the one that comes first in providersToShow
-					(modelWithProvider.providerEnabled === existing.providerEnabled && 
+					(modelWithProvider.providerEnabled === existing.providerEnabled &&
 					 providersToShow.indexOf(providerName) < providersToShow.indexOf(existing.providerName))
 				);
-				
+
 				if (shouldReplace) {
 					uniqueModelNames.set(displayName, modelWithProvider);
 				}
@@ -714,11 +714,11 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 		// First sort by enabled status
 		const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
 		if (enabledDiff !== 0) return enabledDiff;
-		
+
 		// Then sort by provider priority (edlide first, then others)
 		if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
 		if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
-		
+
 		// Finally sort by display name
 		const aName = getModelDisplayName(a.modelName, a.providerName);
 		const bName = getModelDisplayName(b.modelName, b.providerName);

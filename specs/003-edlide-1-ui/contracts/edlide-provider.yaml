@@ -65,7 +65,7 @@ components:
             - zai-org/GLM-4.6:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.1-Terminus
             - deepseek-ai/DeepSeek-V3.1-Terminus
-            - moonshotai/Kimi-K2-Thinking
+            - moonshotai/Kimi-K2-Instruct-0905
           description: The Edlide model to use for completion
         messages:
           type: array
@@ -164,7 +164,7 @@ components:
             - zai-org/GLM-4.6:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.1-Terminus
             - deepseek-ai/DeepSeek-V3.1-Terminus
-            - moonshotai/Kimi-K2-Thinking
+            - moonshotai/Kimi-K2-Instruct-0905
         object:
           type: string
           enum: [model]
@@ -220,6 +220,6 @@ x-edlide-config:
     - id: "deepseek-ai/DeepSeek-V3.1-Terminus"
       enabled-by-default: true
       recommended: false
-    - id: "moonshotai/Kimi-K2-Thinking"
+    - id: "moonshotai/Kimi-K2-Instruct-0905"
       enabled-by-default: true
       recommended: false
