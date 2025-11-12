@@ -362,7 +362,7 @@ class MovePanelToSidePanelAction extends MoveViewsBetweenPanelsAction {
 	constructor() {
 		super(ViewContainerLocation.Panel, ViewContainerLocation.AuxiliaryBar, {
 			id: MovePanelToSidePanelAction.ID,
-			title: localize2('movePanelToSecondarySideBar', "Move Panel Views To Void Side Bar"),
+			title: localize2('movePanelToSecondarySideBar', "Move Panel Views To Edlide Side Bar"),
 			category: Categories.View,
 			f1: false
 		});
@@ -374,7 +374,7 @@ export class MovePanelToSecondarySideBarAction extends MoveViewsBetweenPanelsAct
 	constructor() {
 		super(ViewContainerLocation.Panel, ViewContainerLocation.AuxiliaryBar, {
 			id: MovePanelToSecondarySideBarAction.ID,
-			title: localize2('movePanelToSecondarySideBar', "Move Panel Views To Void Side Bar"),
+			title: localize2('movePanelToSecondarySideBar', "Move Panel Views To Edlide Side Bar"),
 			category: Categories.View,
 			f1: true
 		});
@@ -392,7 +392,7 @@ class MoveSidePanelToPanelAction extends MoveViewsBetweenPanelsAction {
 	constructor() {
 		super(ViewContainerLocation.AuxiliaryBar, ViewContainerLocation.Panel, {
 			id: MoveSidePanelToPanelAction.ID,
-			title: localize2('moveSidePanelToPanel', "Move Void Side Bar Views To Panel"),
+			title: localize2('moveSidePanelToPanel', "Move Edlide Side Bar Views To Panel"),
 			category: Categories.View,
 			f1: false
 		});
@@ -405,7 +405,7 @@ export class MoveSecondarySideBarToPanelAction extends MoveViewsBetweenPanelsAct
 	constructor() {
 		super(ViewContainerLocation.AuxiliaryBar, ViewContainerLocation.Panel, {
 			id: MoveSecondarySideBarToPanelAction.ID,
-			title: localize2('moveSidePanelToPanel', "Move Void Side Bar Views To Panel"),
+			title: localize2('moveSidePanelToPanel', "Move Edlide Side Bar Views To Panel"),
 			category: Categories.View,
 			f1: true
 		});
