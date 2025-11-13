@@ -33,19 +33,7 @@ const isFalsy = (u: unknown) => {
 
 const validateStr = (argName: string, value: unknown) => {
 	if (value === null) throw new Error(`Invalid LLM output: ${argName} was null.`)
-	if (typeof value !== 'string') {
-		// Try to convert object to string if it's not already a string
-		if (typeof value === 'object') {
-			try {
-				const converted = JSON.stringify(value)
-				console.warn(`LLM output format warning: ${argName} was an object, converted to string. Original: ${JSON.stringify(value)}`)
-				return converted
-			} catch (e) {
-				throw new Error(`Invalid LLM output format: ${argName} must be a string, but its type is "${typeof value}" and could not be converted. Full value: ${JSON.stringify(value)}.`)
-			}
-		}
-		throw new Error(`Invalid LLM output format: ${argName} must be a string, but its type is "${typeof value}". Full value: ${JSON.stringify(value)}.`)
-	}
+	if (typeof value !== 'string') throw new Error(`Invalid LLM output format: ${argName} must be a string, but its type is "${typeof value}". Full value: ${JSON.stringify(value)}.`)
 	return value
 }
 
@@ -427,27 +415,8 @@ export class ToolsService implements IToolsService {
 				if (this.commandBarService.getStreamState(uri) === 'streaming') {
 					throw new Error(`Another LLM is currently making changes to this file. Please stop streaming for now and ask the user to resume later.`)
 				}
-				
-				// Handle case where newContent might be a JSON string representation of an object
-				let processedContent = newContent
-				if (typeof newContent === 'string' && newContent.trim().startsWith('{')) {
-					try {
-						const parsed = JSON.parse(newContent)
-						if (typeof parsed === 'object' && parsed !== null) {
-							console.warn('rewrite_file received JSON string instead of content, attempting to extract content')
-							// Try to find actual content in common object structures
-							if (parsed.content) processedContent = parsed.content
-							else if (parsed.new_content) processedContent = parsed.new_content
-							else if (parsed.text) processedContent = parsed.text
-							else processedContent = JSON.stringify(parsed, null, 2)
-						}
-					} catch (e) {
-						// If parsing fails, use original content
-					}
-				}
-				
 				await editCodeService.callBeforeApplyOrEdit(uri)
-				editCodeService.instantlyRewriteFile({ uri, newContent: processedContent })
+				editCodeService.instantlyRewriteFile({ uri, newContent })
 				// at end, get lint errors
 				const lintErrorsPromise = Promise.resolve().then(async () => {
 					await timeout(2000)

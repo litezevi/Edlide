@@ -18,7 +18,6 @@ import { URI } from '../../../../base/common/uri.js';
 import { EndOfLinePreference } from '../../../../editor/common/model.js';
 import { ToolName } from '../common/toolsServiceTypes.js';
 import { IMCPService } from '../common/mcpService.js';
-import { IFileService } from '../../../../platform/files/common/files.js';
 
 export const EMPTY_MESSAGE = '(empty message)'
 
@@ -272,9 +271,9 @@ const prepareOpenAIOrAnthropicMessages = ({
 	// A COMPLETE HACK: last message is system message for context purposes
 
 	const sysMsgParts: string[] = []
+	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the user's .voidrules file):\n${aiInstructions}`)
 	if (systemMessage) sysMsgParts.push(systemMessage)
-	if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Prompt settings and .edliderules files) ===\n${aiInstructions}\n=== END USER-DEFINED RULES ===`)
-	const combinedSystemMessage = sysMsgParts.join('')
+	const combinedSystemMessage = sysMsgParts.join('\n\n')
 
 	messages.unshift({ role: 'system', content: combinedSystemMessage })
 
@@ -285,97 +284,82 @@ const prepareOpenAIOrAnthropicMessages = ({
 
 	// ================ fit into context ================
 
-	let totalLen = 0
-	for (const m of messages) { totalLen += m.content.length }
-	const maxAllowedChars = (contextWindow - reservedOutputTokenSpace) * CHARS_PER_TOKEN
-	
-	// Check if we're approaching the real context limit (95% of context window)
-	const contextUsagePercentage = totalLen / (contextWindow * CHARS_PER_TOKEN)
-	if (contextUsagePercentage > 0.95) {
-		// We're at the real limit - throw error to start new chat
-		throw new Error('Context window limit reached. Please start a new chat to continue.')
+	// the higher the weight, the higher the desire to truncate - TRIM HIGHEST WEIGHT MESSAGES
+	const alreadyTrimmedIdxes = new Set<number>()
+	const weight = (message: MesType, messages: MesType[], idx: number) => {
+		const base = message.content.length
+
+		let multiplier: number
+		multiplier = 1 + (messages.length - 1 - idx) / messages.length // slow rampdown from 2 to 1 as index increases
+		if (message.role === 'user') {
+			multiplier *= 1
+		}
+		else if (message.role === 'system') {
+			multiplier *= .01 // very low weight
+		}
+		else {
+			multiplier *= 10 // llm tokens are far less valuable than user tokens
+		}
+
+		// any already modified message should not be trimmed again
+		if (alreadyTrimmedIdxes.has(idx)) {
+			multiplier = 0
+		}
+		// 1st and last messages should be very low weight
+		if (idx <= 1 || idx >= messages.length - 1 - 3) {
+			multiplier *= .05
+		}
+		return base * multiplier
 	}
 
-	// Only trim if we exceed the allowed space (90% of context window)
+	const _findLargestByWeight = (messages_: MesType[]) => {
+		let largestIndex = -1
+		let largestWeight = -Infinity
+		for (let i = 0; i < messages.length; i += 1) {
+			const m = messages[i]
+			const w = weight(m, messages_, i)
+			if (w > largestWeight) {
+				largestWeight = w
+				largestIndex = i
+			}
+		}
+		return largestIndex
+	}
+
+	let totalLen = 0
+	for (const m of messages) { totalLen += m.content.length }
 	const charsNeedToTrim = totalLen - Math.max(
-		maxAllowedChars, // can be 0, in which case charsNeedToTrim=everything, bad
+		(contextWindow - reservedOutputTokenSpace) * CHARS_PER_TOKEN, // can be 0, in which case charsNeedToTrim=everything, bad
 		5_000 // ensure we don't trim at least 5k chars (just a random small value)
 	)
 
-	// If we don't need to trim, return messages as-is
-	if (charsNeedToTrim <= 0) {
-		// No trimming needed
-	} else {
-		// the higher the weight, the higher the desire to truncate - TRIM HIGHEST WEIGHT MESSAGES
-		const alreadyTrimmedIdxes = new Set<number>()
-		const weight = (message: MesType, messages: MesType[], idx: number) => {
-			const base = message.content.length
 
-			let multiplier: number
-			multiplier = 1 + (messages.length - 1 - idx) / messages.length // slow rampdown from 2 to 1 as index increases
-			if (message.role === 'user') {
-				multiplier *= 1
-			}
-			else if (message.role === 'system') {
-				multiplier *= .01 // very low weight
-			}
-			else {
-				multiplier *= 10 // llm tokens are far less valuable than user tokens
-			}
+	// <----------------------------------------->
+	// 0                      |    |             |
+	//                        |    contextWindow |
+	//                     contextWindow - maxOut|putTokens
+	//                                          totalLen
+	let remainingCharsToTrim = charsNeedToTrim
+	let i = 0
 
-			// any already modified message should not be trimmed again
-			if (alreadyTrimmedIdxes.has(idx)) {
-				multiplier = 0
-			}
-			// 1st and last messages should be very low weight
-			if (idx <= 1 || idx >= messages.length - 1 - 3) {
-				multiplier *= .05
-			}
-			return base * multiplier
+	while (remainingCharsToTrim > 0) {
+		i += 1
+		if (i > 100) break
+
+		const trimIdx = _findLargestByWeight(messages)
+		const m = messages[trimIdx]
+
+		// if can finish here, do
+		const numCharsWillTrim = m.content.length - TRIM_TO_LEN
+		if (numCharsWillTrim > remainingCharsToTrim) {
+			// trim remainingCharsToTrim + '...'.length chars
+			m.content = m.content.slice(0, m.content.length - remainingCharsToTrim - '...'.length).trim() + '...'
+			break
 		}
 
-		const _findLargestByWeight = (messages_: MesType[]) => {
-			let largestIndex = -1
-			let largestWeight = -Infinity
-			for (let i = 0; i < messages.length; i += 1) {
-				const m = messages[i]
-				const w = weight(m, messages_, i)
-				if (w > largestWeight) {
-					largestWeight = w
-					largestIndex = i
-				}
-			}
-			return largestIndex
-		}
-
-
-		// <----------------------------------------->
-		// 0                      |    |             |
-		//                        |    contextWindow |
-		//                     contextWindow - maxOut|putTokens
-		//                                          totalLen
-		let remainingCharsToTrim = charsNeedToTrim
-		let i = 0
-
-		while (remainingCharsToTrim > 0) {
-			i += 1
-			if (i > 100) break
-
-			const trimIdx = _findLargestByWeight(messages)
-			const m = messages[trimIdx]
-
-			// if can finish here, do
-			const numCharsWillTrim = m.content.length - TRIM_TO_LEN
-			if (numCharsWillTrim > remainingCharsToTrim) {
-				// trim remainingCharsToTrim + '...'.length chars
-				m.content = m.content.slice(0, m.content.length - remainingCharsToTrim - '...'.length).trim() + '...'
-				break
-			}
-
-			remainingCharsToTrim -= numCharsWillTrim
-			m.content = m.content.substring(0, TRIM_TO_LEN - '...'.length) + '...'
-			alreadyTrimmedIdxes.add(trimIdx)
-		}
+		remainingCharsToTrim -= numCharsWillTrim
+		m.content = m.content.substring(0, TRIM_TO_LEN - '...'.length) + '...'
+		alreadyTrimmedIdxes.add(trimIdx)
 	}
 
 	// ================ system message hack ================
@@ -422,17 +406,16 @@ const prepareOpenAIOrAnthropicMessages = ({
 	}
 
 
-	// ================ handle empty content ================
+	// ================ no empty message ================
 	for (let i = 0; i < llmMessages.length; i += 1) {
 		const currMsg: AnthropicOrOpenAILLMMessage = llmMessages[i]
 		const nextMsg: AnthropicOrOpenAILLMMessage | undefined = llmMessages[i + 1]
 
 		if (currMsg.role === 'tool') continue
 
-		// if content is a string, keep it as is (allow empty strings)
+		// if content is a string, replace string with empty msg
 		if (typeof currMsg.content === 'string') {
-			// Don't replace empty content with EMPTY_MESSAGE - keep it empty
-			// currMsg.content = currMsg.content || EMPTY_MESSAGE // REMOVED
+			currMsg.content = currMsg.content || EMPTY_MESSAGE
 		}
 		else {
 			// allowed to be empty if has a tool in it or following it
@@ -442,14 +425,11 @@ const prepareOpenAIOrAnthropicMessages = ({
 			}
 			if (nextMsg?.role === 'tool') continue
 
-			// filter out empty text entries, but don't replace with EMPTY_MESSAGE
-			const filteredContent = currMsg.content.filter(c => !(c.type === 'text' && !c.text))
-			currMsg.content = filteredContent as any
-			
-			// only add empty text if content is completely empty and it's not a tool-related message
-			if (currMsg.content.length === 0) {
-				currMsg.content = [{ type: 'text', text: '' }] as any // Empty string instead of EMPTY_MESSAGE
+			// replace any empty text entries with empty msg, and make sure there's at least 1 entry
+			for (const c of currMsg.content) {
+				if (c.type === 'text') c.text = c.text || EMPTY_MESSAGE
 			}
+			if (currMsg.content.length === 0) currMsg.content = [{ type: 'text', text: EMPTY_MESSAGE }]
 		}
 	}
 
@@ -541,9 +521,9 @@ const prepareMessages = (params: {
 
 export interface IConvertToLLMMessageService {
 	readonly _serviceBrand: undefined;
-	prepareLLMSimpleMessages: (opts: { simpleMessages: SimpleLLMMessage[], systemMessage: string, modelSelection: ModelSelection | null, featureName: FeatureName }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
+	prepareLLMSimpleMessages: (opts: { simpleMessages: SimpleLLMMessage[], systemMessage: string, modelSelection: ModelSelection | null, featureName: FeatureName }) => { messages: LLMChatMessage[], separateSystemMessage: string | undefined }
 	prepareLLMChatMessages: (opts: { chatMessages: ChatMessage[], chatMode: ChatMode, modelSelection: ModelSelection | null }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
-	prepareFIMMessage(opts: { messages: LLMFIMMessage, }): Promise<{ prefix: string, suffix: string, stopTokens: string[] }>
+	prepareFIMMessage(opts: { messages: LLMFIMMessage, }): { prefix: string, suffix: string, stopTokens: string[] }
 }
 
 export const IConvertToLLMMessageService = createDecorator<IConvertToLLMMessageService>('ConvertToLLMMessageService');
@@ -561,78 +541,42 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
 		@IVoidModelService private readonly voidModelService: IVoidModelService,
 		@IMCPService private readonly mcpService: IMCPService,
-		@IFileService private readonly fileService: IFileService,
 	) {
 		super()
 	}
 
-	// Read .edliderules files from workspace folders
-	private async _getVoidRulesFileContents(): Promise<string> {
+	// Read .voidrules files from workspace folders
+	private _getVoidRulesFileContents(): string {
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
-			let edlideRules = '';
-
+			let voidRules = '';
 			for (const folder of workspaceFolders) {
-				// Сначала проверяем папку .edliderules
-				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
-
-				try {
-					// Проверяем существует ли папка .edliderules
-					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
-					if (folderStat.isDirectory) {
-						// Получаем отсортированный список файлов .edliderules
-						const edlideRulesFiles = (folderStat.children || [])
-							.filter(child => child.name.endsWith('.edliderules') && child.isFile)
-							.sort((a, b) => a.name.localeCompare(b.name)); // Алфавитный порядок
-
-						// Читаем все .edliderules файлы из папки
-						for (const fileStat of edlideRulesFiles) {
-							const { model } = this.voidModelService.getModel(fileStat.resource);
-							if (model) {
-								const content = model.getValue(EndOfLinePreference.LF).trim();
-								if (content) {
-									edlideRules += `# ${fileStat.name}\n${content}\n\n`;
-								}
-							}
-						}
-						continue; // Переходим к следующей папке workspace
-					}
-				} catch (e) {
-					// Папка .edliderules не существует, проверяем файл в корне
-				}
-
-				// Обратная совместимость - ищем .edliderules файл в корне
-				const rootFileUri = URI.joinPath(folder.uri, '.edliderules');
-				const { model } = this.voidModelService.getModel(rootFileUri);
-				if (model) {
-					const content = model.getValue(EndOfLinePreference.LF).trim();
-					if (content) {
-						edlideRules += content + '\n\n';
-					}
-				}
+				const uri = URI.joinPath(folder.uri, '.voidrules')
+				const { model } = this.voidModelService.getModel(uri)
+				if (!model) continue
+				voidRules += model.getValue(EndOfLinePreference.LF) + '\n\n';
 			}
-
-			return edlideRules.trim();
+			return voidRules.trim();
 		}
 		catch (e) {
 			return ''
 		}
 	}
 
-	// Get combined AI instructions from settings and .edliderules files
-	private async _getCombinedAIInstructions(): Promise<string> {
+	// Get combined AI instructions from settings and .voidrules files
+	private _getCombinedAIInstructions(): string {
 		const globalAIInstructions = this.voidSettingsService.state.globalSettings.aiInstructions;
-		const edlideRulesFileContent = await this._getVoidRulesFileContents();
+		const voidRulesFileContent = this._getVoidRulesFileContents();
 
 		const ans: string[] = []
 		if (globalAIInstructions) ans.push(globalAIInstructions)
-		if (edlideRulesFileContent) ans.push(edlideRulesFileContent)
+		if (voidRulesFileContent) ans.push(voidRulesFileContent)
 		return ans.join('\n\n')
 	}
 
 
 	// system message
-	private _generateChatMessagesSystemMessage = async (chatMode: ChatMode, specialToolFormat: 'openai-style' | 'anthropic-style' | 'gemini-style' | undefined, modelName?: string) => {
+	private _generateChatMessagesSystemMessage = async (chatMode: ChatMode, specialToolFormat: 'openai-style' | 'anthropic-style' | 'gemini-style' | undefined) => {
 		const workspaceFolders = this.workspaceContextService.getWorkspace().folders.map(f => f.uri.fsPath)
 
 		const openedURIs = this.modelService.getModels().filter(m => m.isAttachedToEditor()).map(m => m.uri.fsPath) || [];
@@ -649,7 +593,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const mcpTools = this.mcpService.getMCPTools()
 
 		const persistentTerminalIDs = this.terminalToolService.listPersistentTerminalIds()
-		const systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions, modelName })
+		const systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
 		return systemMessage
 	}
 
@@ -690,7 +634,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		return simpleLLMMessages
 	}
 
-	prepareLLMSimpleMessages: IConvertToLLMMessageService['prepareLLMSimpleMessages'] = async ({ simpleMessages, systemMessage, modelSelection, featureName }) => {
+	prepareLLMSimpleMessages: IConvertToLLMMessageService['prepareLLMSimpleMessages'] = ({ simpleMessages, systemMessage, modelSelection, featureName }) => {
 		if (modelSelection === null) return { messages: [], separateSystemMessage: undefined }
 
 		const { overridesOfModel } = this.voidSettingsService.state
@@ -705,7 +649,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection[featureName][modelSelection.providerName]?.[modelSelection.modelName]
 
 		// Get combined AI instructions
-		const aiInstructions = await this._getCombinedAIInstructions();
+		const aiInstructions = this._getCombinedAIInstructions();
 
 		const isReasoningEnabled = getIsReasoningEnabledState(featureName, providerName, modelName, modelSelectionOptions, overridesOfModel)
 		const reservedOutputTokenSpace = getReservedOutputTokenSpace(providerName, modelName, { isReasoningEnabled, overridesOfModel })
@@ -735,13 +679,14 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 			supportsSystemMessage,
 		} = getModelCapabilities(providerName, modelName, overridesOfModel)
 
-		const fullSystemMessage = await this._generateChatMessagesSystemMessage(chatMode, specialToolFormat, modelName)
-		const systemMessage = fullSystemMessage; // System prompts are always enabled
+		const { disableSystemMessage } = this.voidSettingsService.state.globalSettings;
+		const fullSystemMessage = await this._generateChatMessagesSystemMessage(chatMode, specialToolFormat)
+		const systemMessage = disableSystemMessage ? '' : fullSystemMessage;
 
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection['Chat'][modelSelection.providerName]?.[modelSelection.modelName]
 
 		// Get combined AI instructions
-		const aiInstructions = await this._getCombinedAIInstructions();
+		const aiInstructions = this._getCombinedAIInstructions();
 		const isReasoningEnabled = getIsReasoningEnabledState('Chat', providerName, modelName, modelSelectionOptions, overridesOfModel)
 		const reservedOutputTokenSpace = getReservedOutputTokenSpace(providerName, modelName, { isReasoningEnabled, overridesOfModel })
 		const llmMessages = this._chatMessagesToSimpleMessages(chatMessages)
@@ -763,9 +708,9 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 
 	// --- FIM ---
 
-	prepareFIMMessage: IConvertToLLMMessageService['prepareFIMMessage'] = async ({ messages }) => {
+	prepareFIMMessage: IConvertToLLMMessageService['prepareFIMMessage'] = ({ messages }) => {
 		// Get combined AI instructions with the provided aiInstructions as the base
-		const combinedInstructions = await this._getCombinedAIInstructions();
+		const combinedInstructions = this._getCombinedAIInstructions();
 
 		let prefix = `\
 ${!combinedInstructions ? '' : `\
