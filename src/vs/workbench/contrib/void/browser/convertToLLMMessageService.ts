@@ -20,7 +20,7 @@ import { ToolName } from '../common/toolsServiceTypes.js';
 import { IMCPService } from '../common/mcpService.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 
-export const EMPTY_MESSAGE = '(empty message)'
+
 
 
 
@@ -406,34 +406,6 @@ const prepareOpenAIOrAnthropicMessages = ({
 		llmMessages.unshift(newFirstMessage) // add new first message
 	}
 
-
-	// ================ no empty message ================
-	for (let i = 0; i < llmMessages.length; i += 1) {
-		const currMsg: AnthropicOrOpenAILLMMessage = llmMessages[i]
-		const nextMsg: AnthropicOrOpenAILLMMessage | undefined = llmMessages[i + 1]
-
-		if (currMsg.role === 'tool') continue
-
-		// if content is a string, replace string with empty msg
-		if (typeof currMsg.content === 'string') {
-			currMsg.content = currMsg.content || EMPTY_MESSAGE
-		}
-		else {
-			// allowed to be empty if has a tool in it or following it
-			if (currMsg.content.find(c => c.type === 'tool_result' || c.type === 'tool_use')) {
-				currMsg.content = currMsg.content.filter(c => !(c.type === 'text' && !c.text)) as any
-				continue
-			}
-			if (nextMsg?.role === 'tool') continue
-
-			// replace any empty text entries with empty msg, and make sure there's at least 1 entry
-			for (const c of currMsg.content) {
-				if (c.type === 'text') c.text = c.text || EMPTY_MESSAGE
-			}
-			if (currMsg.content.length === 0) currMsg.content = [{ type: 'text', text: EMPTY_MESSAGE }]
-		}
-	}
-
 	return {
 		messages: llmMessages,
 		separateSystemMessage: separateSystemMessageStr,
@@ -570,10 +542,10 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
 			let edlideRules = '';
-			
+
 			for (const folder of workspaceFolders) {
 				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
-				
+
 				// Check if .edliderules folder exists and is directory
 				const folderExists = await this.fileService.exists(edlideRulesFolderUri);
 				if (folderExists) {
@@ -583,7 +555,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 						const edliderulesFiles = (folderStat.children || [])
 							.filter((child: any) => child.name.endsWith('.edliderules') && child.isFile)
 							.sort((a: any, b: any) => a.name.localeCompare(b.name));
-						
+
 						// Read content from each file using voidModelService
 						for (const file of edliderulesFiles) {
 							const { model } = this.voidModelService.getModel(file.resource);
