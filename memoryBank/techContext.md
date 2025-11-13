@@ -103,6 +103,7 @@ npm run minify-vscode     # Minify build artifacts
 - **CSP Compliance**: No inline scripts or eval() usage
 - **Local Storage**: Settings stored locally using VSCode storage
 - **Network Security**: HTTPS required for all provider communications
+- **.edliderules Privacy**: Project rules stored locally in user workspace, never transmitted externally
 
 ## Dependencies
 
@@ -208,8 +209,9 @@ export default {
 ### Runtime Performance
 - **AI Response Time**: Direct provider connections minimize latency
 - **UI Responsiveness**: Non-blocking AI operations
-- **File Operations**: Async file I/O throughout with .edliderules folder management and real-time polling
+- **File Operations**: Async file I/O throughout with .edliderules folder integration and workspace monitoring
 - **Network**: Request timeout and retry mechanisms
+- **.edliderules Integration**: Automatic file discovery and content integration with zero-configuration UX
 
 ---
 

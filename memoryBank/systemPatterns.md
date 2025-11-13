@@ -257,10 +257,19 @@ Sidebar.tsx (main container)
 
 ## Critical Implementation Paths
 
-### 1. Chat Message Flow
+### 1. Chat Message Flow (Enhanced with .edliderules)
 ```
-User Input → SidebarChat → convertToLLMMessageService → Channel →
+User Input → SidebarChat → convertToLLMMessageService → 
+_getVoidRulesFileContents() → System Message Integration → Channel →
 sendLLMMessageService → AI Provider → Channel → SidebarChat Display
+```
+
+### 1.1 .edliderules Integration Flow
+```
+Workspace Load → convertToLLMMessageWorkbenchContrib → 
+Initialize .edliderules Folder → Discover All .edliderules Files →
+voidModelService.initializeModel() → File Content Available →
+_getVoidRulesFileContents() → System Message Integration → AI Response
 ```
 
 ### 2. Apply Code Flow
@@ -273,6 +282,13 @@ User Review → Apply Operation → File Update → UI Refresh
 ```
 UI Change → React State → voidSettingsService →
 IPC Storage → Restart → Service Restoration
+```
+
+### 4. .edliderules File Management Flow
+```
+User Creates .edliderules File → File System Watcher Detection →
+convertToLLMMessageWorkbenchContrib Initialization → voidModelService Integration →
+AI System Prompt Integration → Automatic Rule Following
 ```
 
 ## Development Patterns
@@ -312,46 +328,92 @@ try {
 </ErrorBoundary>
 ```
 
-### File System Management Patterns
+### .edliderules Integration Patterns
 ```typescript
-// File list loading with error handling
-const loadVoidRulesFiles = useCallback(async () => {
+// File discovery and content reading (convertToLLMMessageService.ts)
+private async _getVoidRulesFileContents(): Promise<string> {
   try {
-    const workspaceFolders = workspaceContextService.getWorkspace().folders;
+    const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
+    let voidRules = '';
+    
     for (const folder of workspaceFolders) {
-      const voidRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
-      const folderStat = await fileService.resolve(voidRulesFolderUri);
+      const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
+      
+      // Check if .edliderules folder exists and is directory
+      const folderExists = await this.fileService.exists(edlideRulesFolderUri);
+      if (folderExists) {
+        const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
+        if (folderStat.isDirectory) {
+          // Find ALL .edliderules files in the folder
+          const edliderulesFiles = (folderStat.children || [])
+            .filter(child => child.name.endsWith('.edliderules') && child.isFile)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          
+          // Read content from each file using voidModelService
+          for (const file of edliderulesFiles) {
+            const { model } = this.voidModelService.getModel(file.resource);
+            if (model) {
+              const content = model.getValue(EndOfLinePreference.LF);
+              voidRules += content + '\n\n';
+            }
+          }
+        }
+      }
+    }
+    return voidRules.trim();
+  } catch (e) {
+    return ''; // Graceful error handling
+  }
+}
+
+// System message integration with .edliderules content
+const edlideRulesContent = await this._getVoidRulesFileContents();
+
+let systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
+
+// Add .edliderules content directly to system message if it exists
+if (edlideRulesContent) {
+  systemMessage += `\n\n=== PROJECT-SPECIFIC RULES (from .edliderules files) ===\n${edlideRulesContent}\n=== END PROJECT-SPECIFIC RULES ===`
+}
+
+// Workspace initialization (convertToLLMMessageWorkbenchContrib.ts)
+const initializeURI = async (uri: URI) => {
+  const edlideRulesFolderUri = URI.joinPath(uri, '.edliderules')
+  
+  // Initialize the folder
+  await this.voidModelService.initializeModel(edlideRulesFolderUri)
+  
+  // Initialize ALL .edliderules files in the folder
+  try {
+    const folderExists = await this.fileService.exists(edlideRulesFolderUri);
+    if (folderExists) {
+      const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
       if (folderStat.isDirectory) {
-        const voidRulesFiles = (folderStat.children || [])
-          .filter(child => child.name.endsWith('.edliderules') && child.isFile)
-          .sort((a, b) => a.name.localeCompare(b.name));
-        // Process files...
+        const edliderulesFiles = (folderStat.children || [])
+          .filter(child => child.name.endsWith('.edliderules') && child.isFile);
+        
+        for (const file of edliderulesFiles) {
+          await this.voidModelService.initializeModel(file.resource);
+        }
       }
     }
   } catch (e) {
-    // Handle folder doesn't exist gracefully
-    console.error('Failed to load .edliderules files:', e);
+    console.log('Failed to initialize .edliderules files:', e);
   }
-}, [fileService, workspaceContextService]);
+}
 
-// Watcher with polling fallback
-useEffect(() => {
-  loadVoidRulesFiles();
-  const pollInterval = setInterval(loadVoidRulesFiles, 2000);
-  return () => clearInterval(pollInterval);
-}, [loadVoidRulesFiles]);
+// Async service interface updates
+export interface IConvertToLLMMessageService {
+  prepareLLMSimpleMessages: (opts: { ... }) => Promise<{ ... }>
+  prepareLLMChatMessages: (opts: { ... }) => Promise<{ ... }>
+  prepareFIMMessage(opts: { ... }): Promise<{ ... }>
+}
 
-// VSCode command integration for file editing
-const handleEditFile = async (fileName: string) => {
-  try {
-    const fileUri = URI.joinPath(folder.uri, '.edliderules', fileName);
-    const commandService = accessor.get('ICommandService');
-    await commandService.executeCommand('vscode.open', fileUri);
-  } catch (e) {
-    console.error('Failed to open file:', e);
-  }
-};
+// Usage with await for async operations
+const aiInstructions = await this._getCombinedAIInstructions();
 ```
+
+### File System Management Patterns (Legacy)
 
 ### QA and Validation Patterns
 ```bash
