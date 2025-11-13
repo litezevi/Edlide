@@ -862,35 +862,49 @@ Instructions:
 3. Make sure all brackets in the new selection are balanced the same as in the original selection.
 4. Be careful not to duplicate or remove variables, comments, or other syntax by mistake.
 
-## URGENT GLM QUICK EDIT INSTRUCTIONS - IMMEDIATE COMPLIANCE REQUIRED
+## URGENT QUICK EDIT INSTRUCTIONS - IMMEDIATE COMPLIANCE REQUIRED
 
 🚨 **CRITICAL WARNING - SYSTEM FAILURE IF IGNORED** 🚨
 
-**ABSOLUTE PROHIBITION**: NEVER output <SELECTION> tags in ANY circumstance
-**MANDATORY REQUIREMENT**: Output ONLY raw replacement code content
+**ABSOLUTE PROHIBITION**: NEVER output ANY tags or formatting - EVER
+**MANDATORY REQUIREMENT**: Output ONLY raw plain text code - NOTHING ELSE
 
 🚫 **STRICTLY FORBIDDEN - WILL CAUSE SYSTEM ERRORS**:
+- \`\`\` markdown formatting - NEVER UNDER ANY CIRCUMSTANCE
+- Language identifiers like typescript, javascript, etc. - NEVER UNDER ANY CIRCUMSTANCE
 - <SELECTION> opening tags - NEVER UNDER ANY CIRCUMSTANCE
 - </SELECTION> closing tags - NEVER UNDER ANY CIRCUMSTANCE
+- <${midTag}> opening tags - NEVER UNDER ANY CIRCUMSTANCE
+- </${midTag}> closing tags - NEVER UNDER ANY CIRCUMSTANCE
+- <${preTag}> tags - NEVER UNDER ANY CIRCUMSTANCE
+- </${preTag}> tags - NEVER UNDER ANY CIRCUMSTANCE
+- <${sufTag}> tags - NEVER UNDER ANY CIRCUMSTANCE
+- </${sufTag}> tags - NEVER UNDER ANY CIRCUMSTANCE
 - ANY XML tags - NEVER UNDER ANY CIRCUMSTANCE
 - ANY formatting - NEVER UNDER ANY CIRCUMSTANCE
-- \`\`\` markdown formatting - NEVER UNDER ANY CIRCUMSTANCE
-- Language identifiers like typescript - NEVER UNDER ANY CIRCUMSTANCE
+- ANY brackets - NEVER UNDER ANY CIRCUMSTANCE
+- ANY symbols other than the code itself - NEVER UNDER ANY CIRCUMSTANCE
 
 ✅ **REQUIRED OUTPUT FORMAT**:
 - ONLY the replacement code
-- NO tags whatsoever
+- NO tags
+- NO brackets
 - NO formatting
+- NO backticks
+- NO language identifiers
 - NO explanations
-- NO markdown
+- NO extra symbols
+- PURE CLEAN CODE ONLY
 
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: <SELECTION>code here</SELECTION>
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: \`\`\`typescript
 code here
 \`\`\`
+❌ **WRONG (CAUSES SYSTEM FAILURE)**: <${midTag}>code here</${midTag}>
+❌ **WRONG (CAUSES SYSTEM FAILURE)**: code with any [symbols] around it
 ✅ **CORRECT (SYSTEM WORKS)**: code here
 
-**FILL-IN-MIDDLE TASKS**: Return ONLY the code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN.
+**FILL-IN-MIDDLE TASKS**: Return ONLY the clean code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN, NO BRACKETS, NO SYMBOLS, NO FORMATTING. JUST RAW CODE.
 
 **COMPLIANCE IS MANDATORY - SYSTEM DEPENDS ON THIS**
 
