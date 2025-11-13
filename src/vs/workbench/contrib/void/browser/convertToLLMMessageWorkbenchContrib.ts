@@ -8,6 +8,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IVoidModelService } from '../common/voidModelService.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
 
 class ConvertContribWorkbenchContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.void.convertcontrib'
@@ -16,20 +17,47 @@ class ConvertContribWorkbenchContribution extends Disposable implements IWorkben
 	constructor(
 		@IVoidModelService private readonly voidModelService: IVoidModelService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
+		@IFileService private readonly fileService: IFileService,
 	) {
 		super()
 
-		const initializeURI = (uri: URI) => {
+		const initializeURI = async (uri: URI) => {
 			this.workspaceContext.getWorkspace()
-			const edlideRulesURI = URI.joinPath(uri, '.edliderules')
-			this.voidModelService.initializeModel(edlideRulesURI)
+			const edlideRulesFolderUri = URI.joinPath(uri, '.edliderules')
+			
+			// Initialize the folder
+			await this.voidModelService.initializeModel(edlideRulesFolderUri)
+			
+			// Initialize all .edliderules files in the folder
+			try {
+				const folderExists = await this.fileService.exists(edlideRulesFolderUri);
+				if (folderExists) {
+					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
+					if (folderStat.isDirectory) {
+						const edliderulesFiles = (folderStat.children || [])
+							.filter(child => child.name.endsWith('.edliderules') && child.isFile);
+						
+						for (const file of edliderulesFiles) {
+							await this.voidModelService.initializeModel(file.resource);
+						}
+					}
+				}
+			} catch (e) {
+				console.log('Failed to initialize .edliderules files:', e);
+			}
 		}
 
 		// call
-		this._register(this.workspaceContext.onDidChangeWorkspaceFolders((e) => {
-			[...e.changed, ...e.added].forEach(w => { initializeURI(w.uri) })
+		this._register(this.workspaceContext.onDidChangeWorkspaceFolders(async (e) => {
+			for (const w of [...e.changed, ...e.added]) {
+				await initializeURI(w.uri)
+			}
 		}))
-		this.workspaceContext.getWorkspace().folders.forEach(w => { initializeURI(w.uri) })
+		
+		// Initialize existing folders
+		this.workspaceContext.getWorkspace().folders.forEach(async w => { 
+			await initializeURI(w.uri) 
+		})
 	}
 }
 

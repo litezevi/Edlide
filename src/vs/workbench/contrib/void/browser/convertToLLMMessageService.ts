@@ -18,6 +18,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { EndOfLinePreference } from '../../../../editor/common/model.js';
 import { ToolName } from '../common/toolsServiceTypes.js';
 import { IMCPService } from '../common/mcpService.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
 
 export const EMPTY_MESSAGE = '(empty message)'
 
@@ -521,9 +522,9 @@ const prepareMessages = (params: {
 
 export interface IConvertToLLMMessageService {
 	readonly _serviceBrand: undefined;
-	prepareLLMSimpleMessages: (opts: { simpleMessages: SimpleLLMMessage[], systemMessage: string, modelSelection: ModelSelection | null, featureName: FeatureName }) => { messages: LLMChatMessage[], separateSystemMessage: string | undefined }
+	prepareLLMSimpleMessages: (opts: { simpleMessages: SimpleLLMMessage[], systemMessage: string, modelSelection: ModelSelection | null, featureName: FeatureName }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
 	prepareLLMChatMessages: (opts: { chatMessages: ChatMessage[], chatMode: ChatMode, modelSelection: ModelSelection | null }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
-	prepareFIMMessage(opts: { messages: LLMFIMMessage, }): { prefix: string, suffix: string, stopTokens: string[] }
+	prepareFIMMessage(opts: { messages: LLMFIMMessage, }): Promise<{ prefix: string, suffix: string, stopTokens: string[] }>
 }
 
 export const IConvertToLLMMessageService = createDecorator<IConvertToLLMMessageService>('ConvertToLLMMessageService');
@@ -541,20 +542,37 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
 		@IVoidModelService private readonly voidModelService: IVoidModelService,
 		@IMCPService private readonly mcpService: IMCPService,
+		@IFileService private readonly fileService: IFileService,
 	) {
 		super()
 	}
 
-	// Read .voidrules files from workspace folders
-	private _getVoidRulesFileContents(): string {
+	// Read .edliderules files from .edliderules folder in workspace folders
+	private async _getVoidRulesFileContents(): Promise<string> {
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
 			let voidRules = '';
 			for (const folder of workspaceFolders) {
-				const uri = URI.joinPath(folder.uri, '.voidrules')
-				const { model } = this.voidModelService.getModel(uri)
-				if (!model) continue
-				voidRules += model.getValue(EndOfLinePreference.LF) + '\n\n';
+				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
+				
+				// Check if .edliderules folder exists and is directory
+				const folderExists = await this.fileService.exists(edlideRulesFolderUri);
+				if (folderExists) {
+					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
+					if (folderStat.isDirectory) {
+						const edliderulesFiles = (folderStat.children || [])
+							.filter(child => child.name.endsWith('.edliderules') && child.isFile)
+							.sort((a, b) => a.name.localeCompare(b.name));
+						
+						for (const file of edliderulesFiles) {
+							const { model } = this.voidModelService.getModel(file.resource);
+							if (model) {
+								const content = model.getValue(EndOfLinePreference.LF);
+								voidRules += content + '\n\n';
+							}
+						}
+					}
+				}
 			}
 			return voidRules.trim();
 		}
@@ -563,10 +581,10 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		}
 	}
 
-	// Get combined AI instructions from settings and .voidrules files
-	private _getCombinedAIInstructions(): string {
+	// Get combined AI instructions from settings and .edliderules files
+	private async _getCombinedAIInstructions(): Promise<string> {
 		const globalAIInstructions = this.voidSettingsService.state.globalSettings.aiInstructions;
-		const voidRulesFileContent = this._getVoidRulesFileContents();
+		const voidRulesFileContent = await this._getVoidRulesFileContents();
 
 		const ans: string[] = []
 		if (globalAIInstructions) ans.push(globalAIInstructions)
@@ -593,7 +611,17 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const mcpTools = this.mcpService.getMCPTools()
 
 		const persistentTerminalIDs = this.terminalToolService.listPersistentTerminalIds()
-		const systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
+		
+		// Get .edliderules content and add it to system message
+		const edlideRulesContent = await this._getVoidRulesFileContents();
+		
+		let systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
+		
+		// Add .edliderules content directly to system message if it exists
+		if (edlideRulesContent) {
+			systemMessage += `\n\n=== PROJECT-SPECIFIC RULES (from .edliderules files) ===\n${edlideRulesContent}\n=== END PROJECT-SPECIFIC RULES ===`
+		}
+		
 		return systemMessage
 	}
 
@@ -634,7 +662,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		return simpleLLMMessages
 	}
 
-	prepareLLMSimpleMessages: IConvertToLLMMessageService['prepareLLMSimpleMessages'] = ({ simpleMessages, systemMessage, modelSelection, featureName }) => {
+	prepareLLMSimpleMessages: IConvertToLLMMessageService['prepareLLMSimpleMessages'] = async ({ simpleMessages, systemMessage, modelSelection, featureName }) => {
 		if (modelSelection === null) return { messages: [], separateSystemMessage: undefined }
 
 		const { overridesOfModel } = this.voidSettingsService.state
@@ -649,7 +677,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection[featureName][modelSelection.providerName]?.[modelSelection.modelName]
 
 		// Get combined AI instructions
-		const aiInstructions = this._getCombinedAIInstructions();
+		const aiInstructions = await this._getCombinedAIInstructions();
 
 		const isReasoningEnabled = getIsReasoningEnabledState(featureName, providerName, modelName, modelSelectionOptions, overridesOfModel)
 		const reservedOutputTokenSpace = getReservedOutputTokenSpace(providerName, modelName, { isReasoningEnabled, overridesOfModel })
@@ -686,7 +714,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection['Chat'][modelSelection.providerName]?.[modelSelection.modelName]
 
 		// Get combined AI instructions
-		const aiInstructions = this._getCombinedAIInstructions();
+		const aiInstructions = await this._getCombinedAIInstructions();
 		const isReasoningEnabled = getIsReasoningEnabledState('Chat', providerName, modelName, modelSelectionOptions, overridesOfModel)
 		const reservedOutputTokenSpace = getReservedOutputTokenSpace(providerName, modelName, { isReasoningEnabled, overridesOfModel })
 		const llmMessages = this._chatMessagesToSimpleMessages(chatMessages)
@@ -708,9 +736,9 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 
 	// --- FIM ---
 
-	prepareFIMMessage: IConvertToLLMMessageService['prepareFIMMessage'] = ({ messages }) => {
+	prepareFIMMessage: IConvertToLLMMessageService['prepareFIMMessage'] = async ({ messages }) => {
 		// Get combined AI instructions with the provided aiInstructions as the base
-		const combinedInstructions = this._getCombinedAIInstructions();
+		const combinedInstructions = await this._getCombinedAIInstructions();
 
 		let prefix = `\
 ${!combinedInstructions ? '' : `\
