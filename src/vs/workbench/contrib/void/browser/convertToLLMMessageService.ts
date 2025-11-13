@@ -7,7 +7,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ChatMessage } from '../common/chatThreadServiceTypes.js';
 import { getIsReasoningEnabledState, getReservedOutputTokenSpace, getModelCapabilities } from '../common/modelCapabilities.js';
-import { reParsedToolXMLString, chat_systemMessage } from '../common/prompt/prompts.js';
+import { reParsedToolXMLString, chat_systemMessage, agentSystemMessage } from '../common/prompt/prompts.js';
 import { AnthropicLLMChatMessage, AnthropicReasoning, GeminiLLMChatMessage, LLMChatMessage, LLMFIMMessage, OpenAILLMChatMessage, RawToolParamsObj } from '../common/sendLLMMessageTypes.js';
 import { IVoidSettingsService } from '../common/voidSettingsService.js';
 import { ChatMode, FeatureName, ModelSelection, ProviderName } from '../common/voidSettingsTypes.js';
@@ -263,7 +263,7 @@ const prepareOpenAIOrAnthropicMessages = ({
 }): { messages: AnthropicOrOpenAILLMMessage[], separateSystemMessage: string | undefined } => {
 
 	reservedOutputTokenSpace = Math.max(
-		contextWindow * 1 / 10, // reserve at least 10% of the token window length for output
+		contextWindow * 1 / 2, // reserve at least 1/4 of the token window length
 		reservedOutputTokenSpace ?? 4_096 // defaults to 4096
 	)
 	let messages: (SimpleLLMMessage | { role: 'system', content: string })[] = deepClone(messages_)
@@ -547,32 +547,16 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		super()
 	}
 
-	// Read .edliderules files from .edliderules folder in workspace folders
-	private async _getVoidRulesFileContents(): Promise<string> {
+	// Read .voidrules files from workspace folders
+	private _getVoidRulesFileContents(): string {
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
 			let voidRules = '';
 			for (const folder of workspaceFolders) {
-				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
-				
-				// Check if .edliderules folder exists and is directory
-				const folderExists = await this.fileService.exists(edlideRulesFolderUri);
-				if (folderExists) {
-					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
-					if (folderStat.isDirectory) {
-						const edliderulesFiles = (folderStat.children || [])
-							.filter(child => child.name.endsWith('.edliderules') && child.isFile)
-							.sort((a, b) => a.name.localeCompare(b.name));
-						
-						for (const file of edliderulesFiles) {
-							const { model } = this.voidModelService.getModel(file.resource);
-							if (model) {
-								const content = model.getValue(EndOfLinePreference.LF);
-								voidRules += content + '\n\n';
-							}
-						}
-					}
-				}
+				const uri = URI.joinPath(folder.uri, '.voidrules')
+				const { model } = this.voidModelService.getModel(uri)
+				if (!model) continue
+				voidRules += model.getValue(EndOfLinePreference.LF) + '\n\n';
 			}
 			return voidRules.trim();
 		}
@@ -581,14 +565,52 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		}
 	}
 
-	// Get combined AI instructions from settings and .edliderules files
+	// Read .edliderules files from workspace folders
+	private async _getEdlideRulesFileContents(): Promise<string> {
+		try {
+			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
+			let edlideRules = '';
+			
+			for (const folder of workspaceFolders) {
+				const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
+				
+				// Check if .edliderules folder exists and is directory
+				const folderExists = await this.fileService.exists(edlideRulesFolderUri);
+				if (folderExists) {
+					const folderStat = await this.fileService.resolve(edlideRulesFolderUri);
+					if (folderStat.isDirectory) {
+						// Find ALL .edliderules files in the folder
+						const edliderulesFiles = (folderStat.children || [])
+							.filter((child: any) => child.name.endsWith('.edliderules') && child.isFile)
+							.sort((a: any, b: any) => a.name.localeCompare(b.name));
+						
+						// Read content from each file using voidModelService
+						for (const file of edliderulesFiles) {
+							const { model } = this.voidModelService.getModel(file.resource);
+							if (model) {
+								const content = model.getValue(EndOfLinePreference.LF);
+								edlideRules += content + '\n\n';
+							}
+						}
+					}
+				}
+			}
+			return edlideRules.trim();
+		} catch (e) {
+			return ''; // Graceful error handling
+		}
+	}
+
+	// Get combined AI instructions from settings, .voidrules files, and .edliderules files
 	private async _getCombinedAIInstructions(): Promise<string> {
 		const globalAIInstructions = this.voidSettingsService.state.globalSettings.aiInstructions;
-		const voidRulesFileContent = await this._getVoidRulesFileContents();
+		const voidRulesFileContent = this._getVoidRulesFileContents();
+		const edlideRulesFileContent = await this._getEdlideRulesFileContents();
 
 		const ans: string[] = []
 		if (globalAIInstructions) ans.push(globalAIInstructions)
 		if (voidRulesFileContent) ans.push(voidRulesFileContent)
+		if (edlideRulesFileContent) ans.push(edlideRulesFileContent)
 		return ans.join('\n\n')
 	}
 
@@ -611,17 +633,9 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		const mcpTools = this.mcpService.getMCPTools()
 
 		const persistentTerminalIDs = this.terminalToolService.listPersistentTerminalIds()
-		
-		// Get .edliderules content and add it to system message
-		const edlideRulesContent = await this._getVoidRulesFileContents();
-		
-		let systemMessage = chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
-		
-		// Add .edliderules content directly to system message if it exists
-		if (edlideRulesContent) {
-			systemMessage += `\n\n=== PROJECT-SPECIFIC RULES (from .edliderules files) ===\n${edlideRulesContent}\n=== END PROJECT-SPECIFIC RULES ===`
-		}
-		
+		const systemMessage = chatMode === 'agent'
+			? agentSystemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, mcpTools, includeXMLToolDefinitions })
+			: chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
 		return systemMessage
 	}
 
@@ -744,7 +758,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 ${!combinedInstructions ? '' : `\
 // Instructions:
 // Do not output an explanation. Try to avoid outputting comments. Only output the middle code.
-${combinedInstructions.split('\n').map(line => `//${line}`).join('\n')}`}
+${combinedInstructions.split('\n').map((line: any) => `//${line}`).join('\n')}`}
 
 ${messages.prefix}`
 
@@ -791,6 +805,5 @@ gemini response:
 	}
 }
 */
-
 
 
