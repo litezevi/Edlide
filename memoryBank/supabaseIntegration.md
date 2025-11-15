@@ -21,7 +21,7 @@ Edlide IDE uses Supabase Edge Functions as a secure proxy layer for the Edlide A
 ### Security Flow
 
 1. **Authentication**: Edlide client authenticates with Supabase anon key
-2. **Verification**: Edge Function validates JWT token and client identity  
+2. **Verification**: Edge Function validates JWT token and client identity
 3. **Proxying**: Requests are forwarded to Chutes AI with real API keys
 4. **Response**: Streaming and non-streaming responses are proxied back
 
@@ -38,9 +38,8 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 #### Supabase Secrets
 ```bash
 # Chutes AI API configuration
-ai_base_url=https://llm.chutes.ai/v1
-ai_api_key=cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU
-
+ai_base_url=base_url
+ai_api_key=api_key
 # Supabase service role for JWT verification
 SUPABASE_SERVICE_ROLE_KEY=service_role_key_for_jwt_validation
 ```
@@ -51,11 +50,11 @@ SUPABASE_SERVICE_ROLE_KEY=service_role_key_for_jwt_validation
 // sendLLMMessage.impl.ts - Edlide provider setup
 else if (providerName === 'edlide') {
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  
+
   if (!supabaseAnonKey) {
     throw new Error('Edlide: SUPABASE_ANON_KEY environment variable not set. Please check your .env file.');
   }
-  
+
   return new OpenAI({
     baseURL: 'https://tbbzvijkkrrjqgcftnsm.supabase.co/functions/v1/ai-proxy',
     apiKey: supabaseAnonKey,
@@ -74,7 +73,7 @@ else if (providerName === 'edlide') {
 ### ai-proxy Function
 
 **Location**: `tbbzvijkkrrjqgcftnsm` project (preview branch)
-**Function Name**: `ai-proxy`  
+**Function Name**: `ai-proxy`
 **Version**: 6 (active)
 **Authentication**: `verify_jwt: true`
 
@@ -115,7 +114,7 @@ Deno.serve(async (req: Request) => {
     // Verify Supabase anon key
     const authHeader = req.headers.get('authorization');
     const expectedAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-    
+
     if (!authHeader || !authHeader.includes(expectedAnonKey)) {
       return new Response(
         JSON.stringify({ error: 'Invalid authorization token' }),
@@ -228,7 +227,7 @@ SUPABASE_ANON_KEY=your_supabase_anon_key_here
    // Verify authentication
    const authHeader = req.headers.get('authorization');
    if (!authHeader.includes(expectedAnonKey)) return 401;
-   
+
    // Proxy to Chutes AI
    const response = await fetch(`${aiBaseUrl}/chat/completions`, {
      method: 'POST',
@@ -253,7 +252,7 @@ SUPABASE_ANON_KEY=your_supabase_anon_key_here
        }
      }
    });
-   
+
    return new Response(readableStream, {
      headers: { 'Content-Type': 'text/event-stream' }
    });
@@ -300,7 +299,7 @@ return new Response(
   { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
 );
 
-// Upstream API errors  
+// Upstream API errors
 return new Response(
   JSON.stringify({ error: `Chutes AI API error: ${response.status}` }),
   { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
@@ -387,7 +386,7 @@ test('proxies authenticated requests to Chutes AI', async () => {
 ### Manual Testing
 
 1. **Environment Setup**: Verify .env file loading
-2. **Authentication**: Test invalid/missing tokens  
+2. **Authentication**: Test invalid/missing tokens
 3. **Proxy Functionality**: Test chat completions and models list
 4. **Error Scenarios**: Test network failures and API errors
 5. **Streaming**: Validate real-time response streaming
@@ -430,7 +429,7 @@ curl -X POST https://tbbzvijkkrrjqgcftnsm.supabase.co/functions/v1/ai-proxy \
   -H "Content-Type: application/json" \
   -d '{"model":"test","messages":[{"role":"user","content":"test"}]}'
 
-# List Supabase secrets  
+# List Supabase secrets
 supabase secrets list --project-ref tbbzvijkkrrjqgcftnsm
 
 # Check Edge Function logs
@@ -443,7 +442,7 @@ The Supabase integration provides a secure, scalable, and maintainable proxy lay
 
 **Key Benefits**:
 - ✅ Enhanced security with environment variable management
-- ✅ Centralized configuration through Supabase secrets  
+- ✅ Centralized configuration through Supabase secrets
 - ✅ Request isolation and logging for better debugging
 - ✅ Streaming support maintained for real-time AI responses
 - ✅ Zero impact on existing functionality for other providers
