@@ -168,16 +168,8 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 		return new OpenAI({ baseURL: 'https://api.mistral.ai/v1', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
 	}
 	else if (providerName === 'edlide') {
-		// Hardcoded Edlide provider like openAICompatible
-		return new OpenAI({
-			baseURL: 'https://llm.chutes.ai/v1/',
-			apiKey: 'cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5',
-			defaultHeaders: {
-				'Authorization': `Bearer cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`,
-				'Content-Type': 'application/json'
-			},
-			...commonPayloadOpts
-		})
+		const thisConfig = settingsOfProvider[providerName]
+		return new OpenAI({ baseURL: 'https://llm.chutes.ai/v1/', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
 	}
 
 	else throw new Error(`Edlide providerName was invalid: ${providerName}.`)
