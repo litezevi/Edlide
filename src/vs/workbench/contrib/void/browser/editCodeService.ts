@@ -1639,6 +1639,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 	private _instantlyApplySRBlocks(uri: URI, blocksStr: string) {
 		console.log('🔧 [EDLIDE APPLY] Starting apply search/replace blocks')
+		console.log('🔧 [EDLIDE APPLY] Raw blocksStr:', blocksStr.substring(0, 500) + '...')
 		const blocks = extractSearchReplaceBlocks(blocksStr)
 		console.log(`🔧 [EDLIDE APPLY] Extracted ${blocks.length} blocks`)
 		if (blocks.length === 0) throw new Error(`No Search/Replace blocks were received!`)
