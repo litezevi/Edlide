@@ -3,6 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// Load environment variables from .env file for Edlide Supabase integration
+import { config } from 'dotenv';
+
+// Force load from Edlide .env file specifically
+const envPath = '/Users/litezevin/Desktop/Projects/Edlide/.env';
+const result = config({ path: envPath });
+
+if (result.parsed) {
+  console.log(`✅ Loaded .env from: ${envPath}`);
+  console.log(`✅ Environment variables loaded:`, Object.keys(result.parsed));
+} else {
+  console.error(`❌ Failed to load .env from: ${envPath}`);
+}
+
 import '../../platform/update/common/update.config.contribution.js';
 
 import { app, dialog } from 'electron';

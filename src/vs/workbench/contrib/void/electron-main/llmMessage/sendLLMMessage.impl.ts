@@ -168,18 +168,24 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 		return new OpenAI({ baseURL: 'https://api.mistral.ai/v1', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
 	}
 	else if (providerName === 'edlide') {
-		// Hardcoded Edlide provider like openAICompatible
+		// Edlide provider using Supabase Edge Function proxy - secure backend storage
+		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+		
+		if (!supabaseAnonKey) {
+			throw new Error('Edlide: SUPABASE_ANON_KEY environment variable not set. Please check your .env file.');
+		}
+		
 		return new OpenAI({
-			baseURL: 'https://llm.chutes.ai/v1/',
-			apiKey: 'cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU',
+			baseURL: 'https://tbbzvijkkrrjqgcftnsm.supabase.co/functions/v1/ai-proxy',
+			apiKey: supabaseAnonKey, // Stored securely in environment variables, not exposed to UI
 			defaultHeaders: {
-				'Authorization': `Bearer cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU`,
-				'Content-Type': 'application/json'
+				'Authorization': `Bearer ${supabaseAnonKey}`,
+				'Content-Type': 'application/json',
+				'X-Edlide-Client': 'electron'
 			},
 			...commonPayloadOpts
 		})
 	}
-
 	else throw new Error(`Edlide providerName was invalid: ${providerName}.`)
 }
 

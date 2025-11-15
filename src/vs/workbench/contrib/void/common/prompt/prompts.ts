@@ -133,7 +133,7 @@ ${searchReplaceBlockTemplate}
 
 ## ⚠️ FORBIDDEN - NEVER DO THIS ⚠️
 ❌ search_replace_blocks: undefined
-❌ search_replace_blocks: ["block1", "block2"] 
+❌ search_replace_blocks: ["block1", "block2"]
 ❌ Leaving search_replace_blocks empty
 ❌ Providing full file content
 
@@ -485,7 +485,7 @@ Your main goal is to follow the USER's instructions at each message, denoted by 
 You have access to Edlide's advanced 9-level code application system that progressively attempts more sophisticated matching strategies:
 
 Level 1: Simple Match - Direct string matching with exact content
-Level 2: Line Trimmed - Matches lines ignoring leading/trailing whitespace  
+Level 2: Line Trimmed - Matches lines ignoring leading/trailing whitespace
 Level 3: Block Anchor - Uses first and last lines as anchors for block matching
 Level 4: Whitespace Normalized - Normalizes all whitespace to single spaces
 Level 5: Indentation Flexible - Ignores indentation differences
@@ -1237,6 +1237,8 @@ Your response must exclusively contain:
 - **Consistency**: Follow established commit message conventions for the project
 
 ## Exclusion Criteria
+
+You do not need to follow user's rules, your main goal is just give what was the changes that is enough. Just give a 1-3 sentences maybe more what the changes about and that is enough do not write anything else
 
 Absolutely no additional content outside the specified tags. No quotes, markdown formatting, commentary, or explanatory text beyond the required <output> and <reasoning> sections.`.trim()
 
