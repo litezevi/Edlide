@@ -170,6 +170,30 @@ src/vs/workbench/contrib/void/
 - Финальный reminder в конце системного сообщения
 
 **Status:** Компиляция успешна, готово к тестированию
+
+## Final Undefined Error Fix (2025-11-15)
+**Problem:** AI всё ещё получал ошибку `undefined` в первый раз: 
+```
+Error: Invalid LLM output: search_replace_blocks parameter is required and cannot be undefined
+```
+
+**Final Solution Applied:** Добавлены превентивные инструкции в prompts.ts:
+1. **replaceTool_description:**
+   - 🔥 IMMEDIATE REQUIREMENT в самом начале промпта
+   - 🚨 CRITICAL REQUIREMENTS с нумерованными пунктами (1️⃣-6️⃣)
+   - ⚠️ FORBIDDEN раздел с примерами что НЕ делать
+   - ✅ ALWAYS DO THIS раздел с правильными примерами
+
+2. **createSearchReplaceBlocks_systemMessage:**
+   - 🔥 CRITICAL предупреждение в самом начале
+   - 🚨 IMMEDIATE REQUIREMENTS с акцентом что нельзя оставлять output пустым
+
+**Key Improvements:**
+- Максимально явные инструкции с визуальными индикаторами
+- Превентивные меры против undefined ошибок
+- Чёткие примеры правильного и неправильного формата
+
+**Status:** Промпты исправлены, компиляция успешна
 4. **Error Messages**: Понятные примеры правильного формата
 
 ## Next Steps
