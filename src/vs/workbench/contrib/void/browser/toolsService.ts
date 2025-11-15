@@ -427,12 +427,15 @@ export class ToolsService implements IToolsService {
 			},
 
 			edit_file: async ({ uri, searchReplaceBlocks }) => {
+				console.log('🔧 [EDLIDE TOOLS] edit_file called with URI:', uri)
+				console.log('🔧 [EDLIDE TOOLS] searchReplaceBlocks length:', searchReplaceBlocks?.length || 0)
 				await voidModelService.initializeModel(uri)
 				if (this.commandBarService.getStreamState(uri) === 'streaming') {
 					throw new Error(`Another LLM is currently making changes to this file. Please stop streaming for now and ask the user to resume later.`)
 				}
 				await editCodeService.callBeforeApplyOrEdit(uri)
 				editCodeService.instantlyApplySearchReplaceBlocks({ uri, searchReplaceBlocks })
+				console.log('🔧 [EDLIDE TOOLS] edit_file completed successfully')
 
 				// at end, get lint errors
 				const lintErrorsPromise = Promise.resolve().then(async () => {

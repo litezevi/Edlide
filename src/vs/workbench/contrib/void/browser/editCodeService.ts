@@ -46,6 +46,7 @@ import { deepClone } from '../../../../base/common/objects.js';
 import { acceptBg, acceptBorder, buttonFontSize, buttonTextColor, rejectBg, rejectBorder } from '../common/helpers/colors.js';
 import { DiffArea, Diff, CtrlKZone, VoidFileSnapshot, DiffAreaSnapshotEntry, diffAreaSnapshotKeys, DiffZone, TrackingZone, ComputedDiff } from '../common/editCodeServiceTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
+import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel } from '../common/edlideCodeApplySystem.js';
 // import { isMacintosh } from '../../../../base/common/platform.js';
 // import { VOID_OPEN_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
 
@@ -107,7 +108,7 @@ const removeWhitespaceExceptNewlines = (str: string): string => {
 
 
 
-// finds block.orig in fileContents and return its range in file
+// finds block.orig in fileContents and return its range in file using Edlide's 9-level apply system
 // startingAtLine is 1-indexed and inclusive
 // returns 1-indexed lines
 const findTextInCode = (text: string, fileContents: string, canFallbackToRemoveWhitespace: boolean, opts: { startingAtLine?: number, returnType: 'lines' }) => {
@@ -124,27 +125,50 @@ const findTextInCode = (text: string, fileContents: string, canFallbackToRemoveW
 		fileContents.split('\n').slice(0, opts.startingAtLine).join('\n').length // num characters in all lines before startingAtLine
 		: 0
 
-	// idx = starting index in fileContents
+	// First try exact match (Level 1)
 	let idx = fileContents.indexOf(text, startingAtLineIdx(fileContents))
-
-	// if idx was found
 	if (idx !== -1) {
 		return returnAns(fileContents, idx)
+	}
+
+	// If exact match fails, try Edlide's 9-level system
+	try {
+		// Check which level would succeed
+		const applyLevel = getApplyLevel(fileContents, text);
+		if (applyLevel) {
+			// Use the 9-level system to find the match
+			for (const level of EDLIDE_APPLY_LEVELS) {
+				for (const match of level.replacer(fileContents, text)) {
+					const matchIndex = fileContents.indexOf(match, startingAtLineIdx(fileContents));
+					if (matchIndex !== -1) {
+						// Check if this is the only occurrence
+						const lastIndex = fileContents.lastIndexOf(match);
+						if (matchIndex === lastIndex) {
+							return returnAns(fileContents, matchIndex);
+						}
+					}
+				}
+				// Stop at the level that succeeded
+				if (level.level === applyLevel.level) break;
+			}
+		}
+	} catch (e) {
+		// If 9-level system fails, fall back to original method
 	}
 
 	if (!canFallbackToRemoveWhitespace)
 		return 'Not found' as const
 
-	// try to find it ignoring all whitespace this time
-	text = removeWhitespaceExceptNewlines(text)
-	fileContents = removeWhitespaceExceptNewlines(fileContents)
-	idx = fileContents.indexOf(text, startingAtLineIdx(fileContents));
+	// Fallback: try to find it ignoring all whitespace (original method)
+	const normalizedText = removeWhitespaceExceptNewlines(text)
+	const normalizedFileContents = removeWhitespaceExceptNewlines(fileContents)
+	idx = normalizedFileContents.indexOf(normalizedText, startingAtLineIdx(normalizedFileContents));
 
 	if (idx === -1) return 'Not found' as const
-	const lastIdx = fileContents.lastIndexOf(text)
+	const lastIdx = normalizedFileContents.lastIndexOf(normalizedText)
 	if (lastIdx !== idx) return 'Not unique' as const
 
-	return returnAns(fileContents, idx)
+	return returnAns(normalizedFileContents, idx)
 }
 
 
@@ -1614,7 +1638,9 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 
 	private _instantlyApplySRBlocks(uri: URI, blocksStr: string) {
+		console.log('🔧 [EDLIDE APPLY] Starting apply search/replace blocks')
 		const blocks = extractSearchReplaceBlocks(blocksStr)
+		console.log(`🔧 [EDLIDE APPLY] Extracted ${blocks.length} blocks`)
 		if (blocks.length === 0) throw new Error(`No Search/Replace blocks were received!`)
 
 		const { model } = this._voidModelService.getModel(uri)
@@ -1626,14 +1652,22 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 
 
-		const replacements: { origStart: number; origEnd: number; block: ExtractedSearchReplaceBlock }[] = []
-		for (const b of blocks) {
+		const replacements: { origStart: number; origEnd: number; block: ExtractedSearchReplaceBlock; applyLevel?: ApplyLevel }[] = []
+		for (let i = 0; i < blocks.length; i++) {
+			const b = blocks[i]
+			console.log(`🔧 [EDLIDE APPLY] Processing block ${i + 1}/${blocks.length}`)
+			console.log(`🔧 [EDLIDE APPLY] Block ${i + 1} original:`, b.orig.substring(0, 100) + '...')
+			
 			const res = findTextInCode(b.orig, modelStr, true, { returnType: 'lines' })
 			if (typeof res === 'string')
 				throw new Error(this._errContentOfInvalidStr(res, b.orig))
 			let [startLine, endLine] = res
 			startLine -= 1 // 0-index
 			endLine -= 1
+
+			// Check which apply level was used for successful matching
+			const applyLevel = getApplyLevel(modelStr, b.orig);
+			console.log(`🔧 [EDLIDE APPLY] Block ${i + 1} - Apply Level: ${applyLevel ? `${applyLevel.level} (${applyLevel.name})` : 'NOT FOUND'}`)
 
 			// including newline before start
 			const origStart = (startLine !== 0 ?
@@ -1643,7 +1677,7 @@ class EditCodeService extends Disposable implements IEditCodeService {
 			// including endline at end
 			const origEnd = modelStrLines.slice(0, endLine + 1).join('\n').length - 1
 
-			replacements.push({ origStart, origEnd, block: b });
+			replacements.push({ origStart, origEnd, block: b, applyLevel: applyLevel || undefined });
 		}
 		// sort in increasing order
 		replacements.sort((a, b) => a.origStart - b.origStart)
@@ -1656,11 +1690,16 @@ class EditCodeService extends Disposable implements IEditCodeService {
 		}
 
 		// apply each replacement from right to left (so indexes don't shift)
+		console.log(`🔧 [EDLIDE APPLY] Applying ${replacements.length} replacements from right to left`)
 		let newCode: string = modelStr
+		let successCount = 0
 		for (let i = replacements.length - 1; i >= 0; i--) {
-			const { origStart, origEnd, block } = replacements[i]
+			const { origStart, origEnd, block, applyLevel } = replacements[i]
+			console.log(`🔧 [EDLIDE APPLY] Block ${replacements.length - i} - Apply Level: ${applyLevel ? `${applyLevel.level} (${applyLevel.name})` : 'UNKNOWN'}`)
 			newCode = newCode.slice(0, origStart) + block.final + newCode.slice(origEnd + 1, Infinity)
+			successCount++
 		}
+		console.log(`🔧 [EDLIDE APPLY] SUMMARY: ${successCount}/${replacements.length} blocks applied successfully`)
 
 		this._writeURIText(uri, newCode,
 			'wholeFileRange',
