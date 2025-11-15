@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const corsHeaders = {
-	'Access-Control-Allow-Origin': 'app://localhost',
+	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-edlide-client',
 	'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
 };
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 		}
 		// Verify Supabase anon key (simpler approach)
 		const authHeader = req.headers.get('authorization');
-		const expectedAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYnp2aWpra3JyanFnY2Z0bnNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTM0MzksImV4cCI6MjA3ODc2OTQzOX0.t-FOS0UQfO9Zsq75sEolVpOoYJS-UyDojMVa83OHBms';
+		const expectedAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do';
 		if (!authHeader || !authHeader.includes(expectedAnonKey)) {
 			console.error('Invalid or missing authorization header');
 			return new Response(JSON.stringify({

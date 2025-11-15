@@ -169,7 +169,19 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 	}
 	else if (providerName === 'edlide') {
 		const thisConfig = settingsOfProvider[providerName]
-		return new OpenAI({ baseURL: 'https://llm.chutes.ai/v1/', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
+		
+		// Force use the correct Supabase anon key
+		const correctApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do'
+		
+		return new OpenAI({ 
+			baseURL: 'https://fkjonloqhzrexbizhiyb.supabase.co/functions/v1/ai-proxy', 
+			apiKey: correctApiKey, 
+			defaultHeaders: {
+				'Authorization': `Bearer ${correctApiKey}`,
+				'x-edlide-client': 'electron'
+			},
+			...commonPayloadOpts 
+		})
 	}
 
 	else throw new Error(`Edlide providerName was invalid: ${providerName}.`)

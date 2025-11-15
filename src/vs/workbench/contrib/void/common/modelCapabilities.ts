@@ -11,7 +11,7 @@ import { FeatureName, ModelSelectionOptions, OverridesOfModel, ProviderName } fr
 
 export const defaultProviderSettings = {
 	edlide: {
-		apiKey: 'cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU',
+		apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do',
 	},
 	anthropic: {
 		apiKey: '',
