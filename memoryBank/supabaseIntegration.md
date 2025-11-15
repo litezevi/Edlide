@@ -32,7 +32,7 @@ Edlide IDE uses Supabase Edge Functions as a secure proxy layer for the Edlide A
 #### Client Side (`.env`)
 ```bash
 # Supabase Anon Key for AI provider authentication
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYnp2aWpra3JyanFnY2Z0bnNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTM0MzksImV4cCI6MjA3ODc2OTQzOX0.t-FOS0UQfO9Zsq75sEolVpOoYJS-UyDojMVa83OHBms
+SUPABASE_ANON_KEY=anon_key
 ```
 
 #### Supabase Secrets
