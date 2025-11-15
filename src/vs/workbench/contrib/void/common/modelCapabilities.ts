@@ -77,7 +77,7 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6:THINKING',
-		'moonshotai/Kimi-K2-Instruct-0905',
+		//'moonshotai/Kimi-K2-Instruct-0905',
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.1-Terminus',
 		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
