@@ -259,6 +259,21 @@ export class ToolsService implements IToolsService {
 			edit_file: (params: RawToolParamsObj) => {
 				const { uri: uriStr, search_replace_blocks: searchReplaceBlocksUnknown } = params
 				const uri = validateURI(uriStr)
+				
+				// Prevent undefined errors with clear guidance
+				if (searchReplaceBlocksUnknown === undefined || searchReplaceBlocksUnknown === null) {
+					throw new Error(`Invalid LLM output: search_replace_blocks parameter is required and cannot be undefined. 
+
+MUST use SEARCH/REPLACE format:
+<<<<<<< ORIGINAL
+[exact code from file]
+=======
+[new code]
+>>>>>>> UPDATED
+
+DO NOT provide full file content - only use search/replace blocks!`)
+				}
+				
 				const searchReplaceBlocks = validateStr('searchReplaceBlocks', searchReplaceBlocksUnknown)
 				return { uri, searchReplaceBlocks }
 			},

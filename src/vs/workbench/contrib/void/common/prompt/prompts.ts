@@ -58,6 +58,8 @@ ${FINAL}`
 
 
 const createSearchReplaceBlocks_systemMessage = `\
+🔥 CRITICAL: You MUST ALWAYS output SEARCH/REPLACE blocks immediately - NEVER leave output empty or undefined! 🔥
+
 You are a coding assistant that takes in a diff, and outputs SEARCH/REPLACE code blocks to implement the change(s) in the diff.
 The diff will be labeled \`DIFF\` and the original file will be labeled \`ORIGINAL_FILE\`.
 
@@ -66,9 +68,12 @@ ${tripleTick[0]}
 ${searchReplaceBlockTemplate}
 ${tripleTick[1]}
 
+🚨 IMMEDIATE REQUIREMENTS - READ FIRST! 🚨
 1. Your SEARCH/REPLACE block(s) must implement the diff EXACTLY. Do NOT leave anything out.
+2. ALWAYS provide output immediately - NEVER leave it empty or undefined!
+3. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change - concatenate them as one string.
 
-2. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change.
+2. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change - concatenate them as one string.
 
 3. Assume any comments in the diff are PART OF THE CHANGE. Include them in the output.
 
@@ -79,6 +84,8 @@ ${tripleTick[1]}
 6. Each ORIGINAL text must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
 
 7. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
+
+8. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings. If you have multiple blocks, CONCATENATE them into ONE string!
 
 ## EXAMPLE 1
 DIFF
@@ -103,25 +110,63 @@ let x = 6
 ${DIVIDER}
 let x = 6.5
 ${FINAL}
-${tripleTick[1]}`
+${tripleTick[1]}
+
+🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS!`
 
 
 const replaceTool_description = `\
+🔥 IMMEDIATE REQUIREMENT: ALWAYS provide search_replace_blocks as a SINGLE STRING - NEVER leave it undefined! 🔥
+
 A string of SEARCH/REPLACE block(s) which will be applied to the given file.
 Your SEARCH/REPLACE blocks string must be formatted as follows:
 ${searchReplaceBlockTemplate}
 
-## Guidelines:
+## 🚨 CRITICAL REQUIREMENTS - READ FIRST! 🚨
 
-1. You may output multiple search replace blocks if needed.
+1️⃣ IMMEDIATELY provide search_replace_blocks parameter - NEVER leave it undefined!
+2️⃣ MUST BE A SINGLE STRING - NEVER AN ARRAY - NEVER undefined!
+3️⃣ You may output multiple search replace blocks if needed - CONCATENATE them as ONE SINGLE string.
+4️⃣ The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file.
+5️⃣ Each ORIGINAL text must be large enough to uniquely identify the change. However, bias towards writing as little as possible.
+6️⃣ Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
 
-2. The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file. Do not add or remove any whitespace or comments from the original code.
+## ⚠️ FORBIDDEN - NEVER DO THIS ⚠️
+❌ search_replace_blocks: undefined
+❌ search_replace_blocks: ["block1", "block2"] 
+❌ Leaving search_replace_blocks empty
+❌ Providing full file content
 
-3. Each ORIGINAL text must be large enough to uniquely identify the change. However, bias towards writing as little as possible.
+## ✅ ALWAYS DO THIS ✅
+✅ search_replace_blocks: "<<<<<<< ORIGINAL\\nold code\\n=======\\nnew code\\n>>>>>>> UPDATED"
+✅ Concatenate multiple blocks into ONE string
 
-4. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
+## EXAMPLE:
+${ORIGINAL}
+console.log("hello");
+${DIVIDER}
+console.log("world");
+${FINAL}
 
-5. This field is a STRING (not an array).`
+## MULTIPLE BLOCKS (as ONE string - NO ARRAY):
+${ORIGINAL}
+console.log("hello");
+${DIVIDER}
+console.log("world");
+${FINAL}
+${ORIGINAL}
+let x = 1;
+${DIVIDER}
+let x = 2;
+${FINAL}
+
+## FORBIDDEN - DO NOT DO THIS:
+❌ ["<<<<<<< ORIGINAL\\n console.log("hello");\\n=======\\n console.log("world");\\n>>>>>>> UPDATED"]
+
+## CORRECT - DO THIS:
+✅ "<<<<<<< ORIGINAL\\nconsole.log("hello");\\n=======\\nconsole.log("world");\\n>>>>>>> UPDATED"
+
+🔥 CRITICAL: search_replace_blocks must be a single string, never an array! If you have multiple blocks, concatenate them into one string!`
 
 
 // ======================================================== tools ========================================================

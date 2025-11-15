@@ -1642,7 +1642,28 @@ class EditCodeService extends Disposable implements IEditCodeService {
 		console.log('🔧 [EDLIDE APPLY] Raw blocksStr:', blocksStr.substring(0, 500) + '...')
 		const blocks = extractSearchReplaceBlocks(blocksStr)
 		console.log(`🔧 [EDLIDE APPLY] Extracted ${blocks.length} blocks`)
-		if (blocks.length === 0) throw new Error(`No Search/Replace blocks were received!`)
+		if (blocks.length === 0) {
+			// Check if AI provided full file content instead of search/replace blocks
+			const hasOriginalMarker = blocksStr.includes('<<<<<<< ORIGINAL')
+			const hasDividerMarker = blocksStr.includes('=======')
+			const hasFinalMarker = blocksStr.includes('>>>>>>> UPDATED')
+			
+			if (!hasOriginalMarker || !hasDividerMarker || !hasFinalMarker) {
+				console.error('🔧 [EDLIDE APPLY] ERROR: AI provided full file content instead of search/replace blocks!')
+				throw new Error(`AI must use SEARCH/REPLACE blocks, not full file content!
+
+Required format:
+<<<<<<< ORIGINAL
+[exact code from file]
+=======
+[new code]  
+>>>>>>> UPDATED
+
+DO NOT provide the complete file - only use search/replace blocks for fast apply!`)
+			}
+			
+			throw new Error(`No Search/Replace blocks could be extracted! Check format and markers.`)
+		}
 
 		const { model } = this._voidModelService.getModel(uri)
 		if (!model) throw new Error(`Error applying Search/Replace blocks: File does not exist.`)
