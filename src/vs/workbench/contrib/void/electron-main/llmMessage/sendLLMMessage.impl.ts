@@ -171,9 +171,9 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 		// Hardcoded Edlide provider like openAICompatible
 		return new OpenAI({
 			baseURL: 'https://llm.chutes.ai/v1/',
-			apiKey: 'cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5',
+			apiKey: 'cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU',
 			defaultHeaders: {
-				'Authorization': `Bearer cpk_a89a196a381749ff8d5c37e45a5ea57a.134935937a1950e2ad68732d2f091282.31qZZ1kbiCg0GWxuV3IBXlC12drjtbJ5`,
+				'Authorization': `Bearer cpk_715d843b9afd4ffdb10edafba5263b6a.134935937a1950e2ad68732d2f091282.oxaLbEZaylFvBYOpNIfJ128njHmST1KU`,
 				'Content-Type': 'application/json'
 			},
 			...commonPayloadOpts
