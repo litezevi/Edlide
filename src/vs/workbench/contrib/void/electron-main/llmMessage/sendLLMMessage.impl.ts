@@ -168,8 +168,6 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 		return new OpenAI({ baseURL: 'https://api.mistral.ai/v1', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
 	}
 	else if (providerName === 'edlide') {
-		const thisConfig = settingsOfProvider[providerName]
-		
 		// Force use the correct Supabase anon key
 		const correctApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do'
 		
