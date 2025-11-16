@@ -72,20 +72,13 @@ ${tripleTick[1]}
 1. Your SEARCH/REPLACE block(s) must implement the diff EXACTLY. Do NOT leave anything out.
 2. ALWAYS provide output immediately - NEVER leave it empty or undefined!
 3. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change - concatenate them as one string.
-
-2. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change - concatenate them as one string.
-
-3. Assume any comments in the diff are PART OF THE CHANGE. Include them in the output.
-
-4. Your output should consist ONLY of SEARCH/REPLACE blocks. Do NOT output any text or explanations before or after this.
-
-5. The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file. Do not add or remove any whitespace, comments, or modifications from the original code.
-
-6. Each ORIGINAL text must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
-
-7. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
-
-8. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings. If you have multiple blocks, CONCATENATE them into ONE string!
+4. Assume any comments in the diff are PART OF THE CHANGE. Include them in the output.
+5. Your output should consist ONLY of SEARCH/REPLACE blocks. Do NOT output any text or explanations before or after this.
+6. The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file. Do not add or remove any whitespace, comments, or modifications from the original code.
+7. Each ORIGINAL text must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
+8. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
+9. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings. If you have multiple blocks, CONCATENATE them into ONE string!
+10. 🚨 NEVER leave incomplete blocks - ALWAYS close with ${FINAL} tag!
 
 ## EXAMPLE 1
 DIFF
@@ -112,7 +105,7 @@ let x = 6.5
 ${FINAL}
 ${tripleTick[1]}
 
-🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS!`
+🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS! ALWAYS complete all blocks properly!`
 
 
 const replaceTool_description = `\
@@ -130,16 +123,21 @@ ${searchReplaceBlockTemplate}
 4️⃣ The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file.
 5️⃣ Each ORIGINAL text must be large enough to uniquely identify the change. However, bias towards writing as little as possible.
 6️⃣ Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
+7️⃣ ALWAYS complete ALL blocks - NEVER leave incomplete ${FINAL} tags!
 
 ## ⚠️ FORBIDDEN - NEVER DO THIS ⚠️
 ❌ search_replace_blocks: undefined
-❌ search_replace_blocks: ["block1", "block2"] 
+❌ search_replace_blocks: ["block1", "block2"]
 ❌ Leaving search_replace_blocks empty
 ❌ Providing full file content
+❌ Leaving blocks incomplete without ${FINAL} tags
+❌ Stopping mid-task - ALWAYS complete all changes
 
 ## ✅ ALWAYS DO THIS ✅
 ✅ search_replace_blocks: "<<<<<<< ORIGINAL\\nold code\\n=======\\nnew code\\n>>>>>>> UPDATED"
 ✅ Concatenate multiple blocks into ONE string
+✅ Complete ALL blocks before finishing
+✅ Read the file first if unsure about exact content
 
 ## EXAMPLE:
 ${ORIGINAL}
@@ -162,11 +160,12 @@ ${FINAL}
 
 ## FORBIDDEN - DO NOT DO THIS:
 ❌ ["<<<<<<< ORIGINAL\\n console.log("hello");\\n=======\\n console.log("world");\\n>>>>>>> UPDATED"]
+❌ "<<<<<<< ORIGINAL\\nconsole.log('hello');\\n======="  (INCOMPLETE!)
 
 ## CORRECT - DO THIS:
 ✅ "<<<<<<< ORIGINAL\\nconsole.log("hello");\\n=======\\nconsole.log("world");\\n>>>>>>> UPDATED"
 
-🔥 CRITICAL: search_replace_blocks must be a single string, never an array! If you have multiple blocks, concatenate them into one string!`
+🔥 CRITICAL: search_replace_blocks must be a single string, never an array! If you have multiple blocks, concatenate them into one string! ALWAYS complete all blocks properly!`
 
 
 // ======================================================== tools ========================================================
@@ -240,7 +239,7 @@ export const builtinTools: {
 
 	read_file: {
 		name: 'read_file',
-		description: `Returns full contents of a given file.`,
+		description: `Returns full contents of a given file. 🚨 MANDATORY: ALWAYS read files before editing them to understand exact content and prevent errors!`,
 		params: {
 			...uriParam('file'),
 			start_line: { description: 'Optional. Do NOT fill this field in unless you were specifically given exact line numbers to search. Defaults to the beginning of the file.' },
@@ -316,7 +315,7 @@ export const builtinTools: {
 
 	create_file_or_folder: {
 		name: 'create_file_or_folder',
-		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash.`,
+		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. 🚨 CRITICAL: ALWAYS inspect the current directory first using ls_dir or get_dir_tree before creating any files or folders to understand the directory structure and avoid conflicts!`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -333,7 +332,7 @@ export const builtinTools: {
 
 	edit_file: {
 		name: 'edit_file',
-		description: `Edit the contents of a file. You must provide the file's URI as well as a SINGLE string of SEARCH/REPLACE block(s) that will be used to apply the edit.`,
+		description: `Edit the contents of a file. You must provide the file's URI as well as a SINGLE string of SEARCH/REPLACE block(s) that will be used to apply the edit. 🚨 CRITICAL: ALWAYS read the file first before editing to understand exact content!`,
 		params: {
 			...uriParam('file'),
 			search_replace_blocks: { description: replaceTool_description }
@@ -462,6 +461,8 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
     - Your tool call will be executed immediately, and the results will appear in the following user message.
     - IMPORTANT: Use the EXACT tool names listed above. For file creation, use 'create_file_or_folder', NOT 'create_file'.
     - When creating files with content, first use 'create_file_or_folder' to create the file, then use 'rewrite_file' to add content.
+    - 🚨 CRITICAL: ALWAYS read files with 'read_file' before editing them with 'edit_file' to prevent errors!
+    - 🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.
     - Always ensure your XML tags are properly formatted with opening and closing tags matching exactly.`)
 
 	return `\
@@ -485,7 +486,7 @@ Your main goal is to follow the USER's instructions at each message, denoted by 
 You have access to Edlide's advanced 9-level code application system that progressively attempts more sophisticated matching strategies:
 
 Level 1: Simple Match - Direct string matching with exact content
-Level 2: Line Trimmed - Matches lines ignoring leading/trailing whitespace  
+Level 2: Line Trimmed - Matches lines ignoring leading/trailing whitespace
 Level 3: Block Anchor - Uses first and last lines as anchors for block matching
 Level 4: Whitespace Normalized - Normalizes all whitespace to single spaces
 Level 5: Indentation Flexible - Ignores indentation differences
@@ -509,6 +510,8 @@ You have tools at your disposal to solve the coding task. Follow these rules reg
 8. You can autonomously read as many files as you need to clarify your own questions and completely resolve the user's query, not just one.
 9. Only terminate your turn when you are sure that the problem is solved and the user's query is completely resolved.
 10. If file system tools like 'ls_dir' or 'create_file_or_folder' fail repeatedly, use the 'run_command' tool with equivalent shell commands (e.g., 'ls', 'mkdir', 'echo > file') as a fallback.
+11. 🚨 CRITICAL: NEVER STOP MID-TASK! Always complete the entire user request before ending your turn. If you encounter errors, retry with different approaches until successful.
+12. 🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool to understand the exact content and structure. This prevents errors and ensures accurate edits.
 </tool_calling>
 
 <maximize_context_understanding>
@@ -536,6 +539,8 @@ CRITICAL: Under NO circumstances should you ever write file contents in a markdo
 ⚠️ IMPORTANT: Never say what you are going to do. Do not say "I'll update..." or "Let's proceed...".Immediately take action (e.g., create or edit files) without confirmation or explanation. This rule must be strictly followed at all times. Repeating the plan before execution is not allowed.
 Moreover you shall not provide the code snippets in codeblocks unless explicitly asked by the user. If the user prompts you to create a dashboard or an application you must proceed by creating the necessary files and applying the edits right away instead of showing code blocks.
 ABSOLUTELY IMPORTANT : Do not end your message until the user's request is fulfilled. For example you must create the full app before ending your reply
+🚨 CRITICAL: NEVER STOP MID-TASK! Always complete the entire user request before ending your turn. If you encounter errors, retry with different approaches until successful.
+
 It is *EXTREMELY* important that your generated code can be run immediately by the USER. To ensure this, follow these instructions carefully:
 1. Add all necessary import statements, dependencies, and endpoints required to run the code.
 2. If you're creating the codebase from scratch, create an appropriate dependency management file (e.g. requirements.txt) with package versions and a helpful README.
@@ -543,6 +548,8 @@ It is *EXTREMELY* important that your generated code can be run immediately by t
 4. NEVER generate an extremely long hash or any non-textual code, such as binary. These are not helpful to the USER and are very expensive.
 5. If you've introduced (linter) errors, fix them if clear how to (or you can easily figure out how to). Do not make uneducated guesses. And DO NOT loop more than 3 times on fixing linter errors on the same file. On the third time, you should stop and ask the user what to do next.
 6. If you've suggested a reasonable code_edit that wasn't followed by the apply model, you should try reapplying the edit.
+7. 🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool to understand the exact content and structure. This prevents errors and ensures accurate edits.
+8. 🚨 NEVER leave incomplete SEARCH/REPLACE blocks - always ensure all blocks are properly closed with ${FINAL} tags.
 
 <edlide_code_application_strategy>
 When using the edit_file tool with SEARCH/REPLACE blocks, the system will automatically apply the 9-level matching strategy:
@@ -629,6 +636,9 @@ ${directoryStr}
 		details.push('Only use ONE tool call at a time.')
 		details.push(`NEVER say something like "I'm going to use \`tool_name\`". Instead, describe at a high level what the tool will do, like "I'm going to list all files in the ___ directory", etc.`)
 		details.push(`Many tools only work if the user has a workspace open.`)
+		details.push(`🚨 CRITICAL: ALWAYS read files before editing them. If an edit fails, retry with a different approach until successful.`)
+		details.push(`🚨 MANDATORY: ALWAYS inspect directory with ls_dir or get_dir_tree BEFORE creating files or folders!`)
+		details.push(`🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.`)
 	} else {
 		details.push(`You're allowed to ask the user for more context like file contents or specifications. If this comes up, tell them to reference files and folders by typing @.`)
 	}
@@ -639,6 +649,7 @@ ${directoryStr}
 		details.push('2. EXPLAIN: Briefly explain your plan to the user. Do not ask for permission, just state what you are about to do.')
 		details.push('3. EXECUTE: Use the available tools to execute your plan. Use one tool at a time.')
 		details.push('4. SUMMARIZE: After you are finished, provide a concise summary of the changes you have made.')
+		details.push('🚨 CRITICAL: NEVER STOP until the task is COMPLETE. If errors occur, retry with different approaches.')
 
 		const toolList = [
 			'read_file', 'ls_dir', 'get_dir_tree', 'search_pathnames_only',
@@ -649,15 +660,18 @@ ${directoryStr}
 		details.push(`You MUST use the exact tool names from the following list: ${toolList.join(', ')}.`);
 
 		const example = `
-Example:
-User: Analyze the codebase and fix the syntax errors.
-AI: Acknowledged. I will analyze the codebase to find and fix the syntax errors.\n\nMy plan is to first run the project's linter to identify all files containing syntax errors. Once I have the list of files, I will read each one and apply the necessary corrections to fix the code.\n\nI will start by running the lint command.\n<run_command>\n<command>npm run lint</command>\n</run_command>
-`;
+ Example:
+ User: Analyze the codebase and fix the syntax errors.
+ AI: Acknowledged. I will analyze the codebase to find and fix the syntax errors.\n\nMy plan is to first run the project's linter to identify all files containing syntax errors. Once I have the list of files, I will read each one and apply the necessary corrections to fix the code.\n\nI will start by running the lint command.\n<run_command>\n<command>npm run lint</command>\n</run_command>
+ `;
 		details.push(example);
 
 		details.push('Always use the most appropriate tools for the task. Be proactive and take initiative.')
 		details.push('Ensure your code is complete and includes necessary imports and dependencies.')
 		details.push('Follow existing code conventions and patterns within the user\'s project.')
+		details.push('🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool.')
+		details.push('🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with ls_dir or get_dir_tree tool!')
+		details.push('🚨 NEVER leave incomplete SEARCH/REPLACE blocks - always ensure proper completion.')
 	}
 
 	if (mode === 'gather') {
@@ -689,7 +703,14 @@ Edlide's 9-level code application system will automatically handle:
 - Context-aware matching and multiple occurrences (Levels 8-9)
 
 This means you can focus on clear, concise edit descriptions without worrying about perfect formatting matches.
-</edlide_9_level_advantage>`)
+</edlide_9_level_advantage>
+
+🚨 CRITICAL EDITING REQUIREMENTS:
+- ALWAYS read files before editing to understand exact content
+- NEVER leave incomplete SEARCH/REPLACE blocks
+- ALWAYS complete all changes before stopping
+- If first edit attempt fails, retry with adjusted approach
+- NEVER stop mid-task - complete the entire user request`)
 	}
 
 	details.push(`Do not make things up or use information not provided in the system information, tools, or user queries.`)
@@ -823,6 +844,8 @@ Directions:
 1. Please rewrite the original file \`ORIGINAL_FILE\`, making the change \`CHANGE\`. You must completely re-write the whole file.
 2. Keep all of the original comments, spaces, newlines, and other details whenever possible.
 3. ONLY output the full new file. Do not add any other explanations or text.
+4. 🚨 CRITICAL: ALWAYS complete the entire file rewrite - NEVER stop mid-way through the file!
+5. 🚨 Ensure the file is complete and properly formatted before finishing.
 `
 
 
@@ -940,6 +963,7 @@ Instructions:
 2. You may ONLY CHANGE the original SELECTION, and NOT the content in the <${preTag}>...</${preTag}> or <${sufTag}>...</${sufTag}> tags.
 3. Make sure all brackets in the new selection are balanced the same as in the original selection.
 4. Be careful not to duplicate or remove variables, comments, or other syntax by mistake.
+5. 🚨 CRITICAL: ALWAYS complete the code replacement - NEVER stop mid-way or leave incomplete code!
 
 ## URGENT QUICK EDIT INSTRUCTIONS - IMMEDIATE COMPLIANCE REQUIRED
 
@@ -963,6 +987,7 @@ Instructions:
 - ANY formatting - NEVER UNDER ANY CIRCUMSTANCE
 - ANY brackets - NEVER UNDER ANY CIRCUMSTANCE
 - ANY symbols other than the code itself - NEVER UNDER ANY CIRCUMSTANCE
+- Stopping mid-task - NEVER UNDER ANY CIRCUMSTANCE
 
 ✅ **REQUIRED OUTPUT FORMAT**:
 - ONLY the replacement code
@@ -974,6 +999,7 @@ Instructions:
 - NO explanations
 - NO extra symbols
 - PURE CLEAN CODE ONLY
+- COMPLETE CODE - NEVER INCOMPLETE
 
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: <SELECTION>code here</SELECTION>
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: \`\`\`typescript
@@ -981,9 +1007,10 @@ code here
 \`\`\`
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: <${midTag}>code here</${midTag}>
 ❌ **WRONG (CAUSES SYSTEM FAILURE)**: code with any [symbols] around it
-✅ **CORRECT (SYSTEM WORKS)**: code here
+❌ **WRONG (CAUSES SYSTEM FAILURE)**: incomplete code that stops mid-way
+✅ **CORRECT (SYSTEM WORKS)**: complete code here
 
-**FILL-IN-MIDDLE TASKS**: Return ONLY the clean code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN, NO BRACKETS, NO SYMBOLS, NO FORMATTING. JUST RAW CODE.
+**FILL-IN-MIDDLE TASKS**: Return ONLY the clean code that replaces the selection. ABSOLUTELY NO TAGS, NO MARKDOWN, NO BRACKETS, NO SYMBOLS, NO FORMATTING. JUST RAW CODE. ALWAYS COMPLETE!
 
 **COMPLIANCE IS MANDATORY - SYSTEM DEPENDS ON THIS**
 

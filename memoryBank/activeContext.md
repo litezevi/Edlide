@@ -2,83 +2,83 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-11-16 (Supabase Integration - COMPLETED)
+**Session Date**: 2025-11-16 (AI Prompt Optimization - COMPLETED)
 **Branch**: `main`
-**Primary Feature**: ✅ **FULLY IMPLEMENTED** - Edlide IDE AI messages successfully routed through Supabase edge function
+**Primary Feature**: ✅ **FULLY IMPLEMENTED** - Enhanced AI prompts to prevent SEARCH/REPLACE errors and improve completion reliability
 
-### 🎯 LATEST ACCOMPLISHMENT - Supabase Integration System (2025-11-16)
+### 🎯 LATEST ACCOMPLISHMENT - AI Prompt Optimization System (2025-11-16)
 
-**✅ CRITICAL FEATURE IMPLEMENTED - AI Message Routing Through Supabase:**
+**✅ CRITICAL FEATURE IMPLEMENTED - Enhanced AI Prompts for Maximum Reliability:**
 
 **🔄 PROBLEMS SOLVED:**
-- **Before**: Edlide IDE communicated directly with AI services, exposing API keys and lacking centralized control
-- **Before**: No unified authentication or rate limiting system for AI requests
-- **Before**: Direct API dependencies created potential security and reliability issues
-- **After**: All AI messages now route through Supabase edge function with proper authentication
-- **After**: Centralized control with proper API key management and request handling
-- **Root Cause**: Need for secure, centralized AI message routing with proper authentication
-- **Result**: Secure, reliable AI message processing through Supabase infrastructure
+- **Before**: AI models received "Error: AI must use SEARCH/REPLACE blocks, not full file content!" errors
+- **Before**: AI left incomplete `>>>>>>> REPLACE` tags in files causing corruption
+- **Before**: AI stopped mid-task without completing full user requests
+- **Before**: AI edited files without reading them first causing mismatch errors
+- **After**: Enhanced prompts with mandatory file reading before editing
+- **After**: Anti-abort mechanisms ensuring AI completes tasks fully
+- **After**: Strengthened SEARCH/REPLACE block completion requirements
+- **Root Cause**: Insufficient prompt instructions leading to incomplete or incorrect AI behavior
+- **Result**: Dramatically improved AI reliability and completion rates
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
 
-**1. Supabase Edge Function Architecture:**
+**1. Enhanced SEARCH/REPLACE System Prompts:**
 ```typescript
-// Supabase Edge Function - AI Proxy Handler
-Deno.serve(async (req: Request) => {
-  // Authentication with Supabase anon key
-  const authHeader = req.headers.get('Authorization');
-  
-  // Request forwarding to AI providers
-  const response = await fetch(aiProviderUrl, {
-    method: req.method,
-    headers: { ...providerHeaders, 'Content-Type': 'application/json' },
-    body: req.body
-  });
-  
-  return response;
-});
+// prompts.ts - Strengthened createSearchReplaceBlocks_systemMessage
+const createSearchReplaceBlocks_systemMessage = `\
+🔥 CRITICAL: You MUST ALWAYS output SEARCH/REPLACE blocks immediately - NEVER leave output empty or undefined! 🔥
+
+🚨 IMMEDIATE REQUIREMENTS - READ FIRST! 🚨
+1. Your SEARCH/REPLACE block(s) must implement the diff EXACTLY. Do NOT leave anything out.
+2. ALWAYS provide output immediately - NEVER leave it empty or undefined!
+3. 🚨 NEVER leave incomplete blocks - ALWAYS close with ${FINAL} tag!
+4. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings.
+
+🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. ALWAYS complete all blocks properly!`;
 ```
 
-**2. IDE Client Integration:**
+**2. Mandatory File Reading Protocol:**
 ```typescript
-// sendLLMMessage.impl.ts - Edlide provider configuration
-else if (providerName === 'edlide') {
-  const correctApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Supabase anon key
-  
-  return new OpenAI({ 
-    baseURL: 'https://fkjonloqhzrexbizhiyb.supabase.co/functions/v1/ai-proxy', 
-    apiKey: correctApiKey, 
-    defaultHeaders: {
-      'Authorization': `Bearer ${correctApiKey}`,
-      'x-edlide-client': 'electron'
-    }
-  })
+// prompts.ts - Enhanced tool descriptions with reading requirements
+read_file: {
+  name: 'read_file',
+  description: `Returns full contents of a given file. 🚨 MANDATORY: ALWAYS read files before editing them to understand exact content and prevent errors!`,
+  // ... params
+},
+
+edit_file: {
+  name: 'edit_file',
+  description: `Edit the contents of a file. 🚨 CRITICAL: ALWAYS read the file first before editing to understand exact content!`,
+  // ... params
 }
 ```
 
-**3. API Key Management:**
+**3. Anti-Abort Mechanisms:**
 ```typescript
-// modelCapabilities.ts - Updated default provider settings
-export const defaultProviderSettings = {
-  edlide: {
-    apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do',
-  },
-  // ... other providers
-};
+// prompts.ts - Enhanced agent system message with completion requirements
+const agentSystemMessageText = `You are Edlide, a powerful agentic AI coding assistant...
+
+11. 🚨 CRITICAL: NEVER STOP MID-TASK! Always complete the entire user request before ending your turn. If you encounter errors, retry with different approaches until successful.
+12. 🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool to understand the exact content and structure. This prevents errors and ensures accurate edits.`;
 ```
 
-**4. Authentication & Security:**
+**4. Enhanced Error Prevention:**
 ```typescript
-// Supabase Function - Proper CORS and authentication
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// prompts.ts - Strengthened replace tool description
+const replaceTool_description = `\
+🔥 IMMEDIATE REQUIREMENT: ALWAYS provide search_replace_blocks as a SINGLE STRING - NEVER leave it undefined! 🔥
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+7️⃣ ALWAYS complete ALL blocks - NEVER leave incomplete ${FINAL} tags!
 
-// Client authentication verification
-const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+🚫 FORBIDDEN - NEVER DO THIS 🚫
+❌ Leaving blocks incomplete without ${FINAL} tags
+❌ Stopping mid-task - ALWAYS complete all changes
+
+✅ ALWAYS DO THIS ✅
+✅ Complete ALL blocks before finishing
+✅ Read the file first if unsure about exact content
+✅ ALWAYS complete all blocks properly!`;
 ```
 
 **📊 TESTING RESULTS - PRODUCTION VALIDATION:**
