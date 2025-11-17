@@ -2,7 +2,31 @@
 
 ## Current Work Focus
 
-**Session Date**: 2025-11-16 (AI Prompt Optimization - COMPLETED)
+✅ РЕАЛИЗОВАНО - Уточнения Account Menu UI (2025-11-16)
+🔄 Внесенные изменения по твоим правкам:
+1. Переименование разделов:
+
+Account Connection → Account Settings (основной раздел аккаунта)
+Account Settings → Privacy Settings (раздел конфиденциальности)
+Usage Analytics → Privacy Mode с правильным описанием
+2. Обновление Subscription Status:
+
+❌ Удален длинный список функций (Basic AI features, Local model support, и т.д.)
+✅ Оставлен только "Free Plan" с кнопкой "Upgrade to Pro" справа
+✅ Минималистичный и чистый дизайн
+3. Изменения в Account Connection:
+
+❌ Удален текст: "Connect your Edlide account to access premium features and sync settings across devices"
+✅ Изменен текст: "Connect to access Pro features" → "Connect to your Account"
+❌ Удалена синяя круглая кнопка Connect/Disconnect из правой части
+4. Обновление Privacy Mode:
+
+✅ Всегда включен (value={true}, disabled={true})
+✅ Текст: "Always enabled. We don't collect any data. The only data collected is minimal usage details without specifics."
+✅ Статус: "Always enabled" вместо "Enabled/Disabled"
+❌ Удален текст: "Share anonymous usage data to improve Edlide"
+5. Финальная структура меню:
+
 **Branch**: `main`
 **Primary Feature**: ✅ **FULLY IMPLEMENTED** - Enhanced AI prompts to prevent SEARCH/REPLACE errors and improve completion reliability
 
@@ -194,10 +218,10 @@ Proper API key management → Request logging and monitoring → Enhanced securi
 private async _getVoidRulesFileContents(): Promise<string> {
   const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
   let voidRules = '';
-  
+
   for (const folder of workspaceFolders) {
     const edlideRulesFolderUri = URI.joinPath(folder.uri, '.edliderules');
-    
+
     // Check if .edliderules folder exists and is directory
     const folderExists = await this.fileService.exists(edlideRulesFolderUri);
     if (folderExists) {
@@ -207,7 +231,7 @@ private async _getVoidRulesFileContents(): Promise<string> {
         const edliderulesFiles = (folderStat.children || [])
           .filter(child => child.name.endsWith('.edliderules') && child.isFile)
           .sort((a, b) => a.name.localeCompare(b.name));
-        
+
         // Read content from each file
         for (const file of edliderulesFiles) {
           const { model } = this.voidModelService.getModel(file.resource);
@@ -241,10 +265,10 @@ if (edlideRulesContent) {
 // convertToLLMMessageWorkbenchContrib.ts - Automatic initialization
 const initializeURI = async (uri: URI) => {
   const edlideRulesFolderUri = URI.joinPath(uri, '.edliderules')
-  
+
   // Initialize the folder
   await this.voidModelService.initializeModel(edlideRulesFolderUri)
-  
+
   // Initialize ALL .edliderules files in the folder
   try {
     const folderExists = await this.fileService.exists(edlideRulesFolderUri);
@@ -253,7 +277,7 @@ const initializeURI = async (uri: URI) => {
       if (folderStat.isDirectory) {
         const edliderulesFiles = (folderStat.children || [])
           .filter(child => child.name.endsWith('.edliderules') && child.isFile);
-        
+
         for (const file of edliderulesFiles) {
           await this.voidModelService.initializeModel(file.resource);
         }
@@ -282,7 +306,7 @@ const aiInstructions = await this._getCombinedAIInstructions();
 
 **🔄 ARCHITECTURAL CHANGE:**
 - **Before**: prompts.ts contained accumulated modifications from multiple sessions
-- **After**: prompts.ts reset to original clean state 
+- **After**: prompts.ts reset to original clean state
 - **Preserved**: Only FIM (Fill-In-Middle) and git generator prompts remained from old version
 - **Result**: Clean, maintainable prompts.ts with only essential specialized prompts
 
@@ -290,7 +314,7 @@ const aiInstructions = await this._getCombinedAIInstructions();
 ```typescript
 // prompts.ts - Reset to clean state
 // REMOVED: All accumulated session-specific modifications
-// PRESERVED: 
+// PRESERVED:
 // - FIM (Fill-In-Middle) prompts for code completion
 // - Git generator prompts for commit messages
 // - Core system message structure
@@ -317,7 +341,7 @@ User wants project-specific behavior → Automatic integration → Excellent UX
 **📁 FILES MODIFIED:**
 
 **Core Implementation:**
-1. **convertToLLMMessageService.ts**: 
+1. **convertToLLMMessageService.ts**:
    - Added `_getVoidRulesFileContents()` method for reading .edliderules files
    - Enhanced `_generateChatMessagesSystemMessage()` to integrate rules
    - Made all methods async for file operations
@@ -336,7 +360,7 @@ User wants project-specific behavior → Automatic integration → Excellent UX
    - Made internal methods async where needed
 
 **Reset Files:**
-5. **prompts.ts**: 
+5. **prompts.ts**:
    - Complete reset to original clean state
    - Preserved only FIM and git generator prompts
    - Removed all accumulated session modifications
@@ -391,7 +415,7 @@ Continuous rule availability across workspace changes
 
 **System Status: FULLY FUNCTIONAL** ✅
 - **File Discovery**: 100% reliable detection of .edliderules files
-- **Content Integration**: Seamless integration into AI system prompts  
+- **Content Integration**: Seamless integration into AI system prompts
 - **User Experience**: Zero-configuration automatic rule loading
 - **Workspace Support**: Multi-workspace compatibility
 - **Error Handling**: Graceful fallback when files don't exist
