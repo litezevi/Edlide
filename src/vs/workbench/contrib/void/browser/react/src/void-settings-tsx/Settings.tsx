@@ -43,6 +43,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 }
 
 type Tab =
+	| 'account'
 	| 'general'
 	| 'actions'
 	| 'models'
@@ -1365,6 +1366,7 @@ export const Settings = () => {
 		useState<Tab>('general');
 
 	const navItems: { tab: Tab; label: string }[] = [
+		{ tab: 'account', label: 'Account' },
 		{ tab: 'general', label: 'General' },
 		{ tab: 'actions', label: 'Actions' },
 		{ tab: 'models', label: 'Models' },
@@ -1496,6 +1498,120 @@ export const Settings = () => {
 
 						{/* All sections in flex container with gap-12 */}
 						<div key='sections-container' className='flex flex-col gap-12'>
+							{/* Account section */}
+							<div className={`${shouldShowTab('account') ? `` : 'hidden'} flex flex-col gap-y-8 my-4`}>
+								<ErrorBoundary>
+									{/* Account Settings */}
+									<div className='w-full'>
+										<h4 className={`text-base`}>Account Settings</h4>
+
+										<div className='my-2'>
+											{/* Not Connected State */}
+											<div className='flex items-center justify-between p-4 bg-void-bg-2 rounded-lg border border-void-border-1'>
+												<div className='flex items-center gap-3'>
+													<div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
+													<div>
+														<span className='text-void-fg-1 font-medium block'>Not Connected</span>
+														<span className='text-void-fg-2 text-sm'>Connect to your Account</span>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										{/* Connected State (Premium) */}
+										<div className='my-2 hidden'>
+											<div className='flex items-center justify-between p-4 bg-gradient-to-r from-void-bg-2 to-[#0e70c0]/10 rounded-lg border border-[#0e70c0]/30'>
+												<div className='flex items-center gap-3'>
+													<div className='w-3 h-3 bg-green-500 rounded-full'></div>
+													<div>
+														<div className='flex items-center gap-2'>
+															<span className='text-void-fg-1 font-medium block'>user@example.com</span>
+															<span className="px-2 py-0.5 bg-[#0e70c0] text-white text-xs rounded-full font-medium">PRO</span>
+														</div>
+														<span className='text-void-fg-2 text-sm'>Premium account active</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									{/* Subscription Status */}
+									<div className='w-full'>
+										<h4 className={`text-base`}>Subscription Status</h4>
+										<div className='text-sm text-void-fg-3 mt-1'>Manage your Edlide Pro subscription and billing information.</div>
+
+										<div className='my-2'>
+											{/* Free Tier */}
+											<div className='flex items-center justify-between p-4 bg-void-bg-2 rounded-lg border border-void-border-1'>
+												<span className='text-void-fg-1 font-medium'>Free Plan</span>
+												<VoidButtonBgDarken 
+													className="bg-[#0e70c0] hover:bg-[#1177cb] text-white px-4 py-2"
+													onClick={() => {
+														// TODO: Implement upgrade logic
+														console.log('Upgrade to Pro clicked');
+													}}
+												>
+													Upgrade to Pro
+												</VoidButtonBgDarken>
+											</div>
+
+											{/* Pro Tier (Hidden) */}
+											<div className='p-4 bg-gradient-to-r from-void-bg-2 to-[#0e70c0]/10 rounded-lg border border-[#0e70c0]/30 hidden'>
+												<div className='flex items-start justify-between mb-3'>
+													<div>
+														<div className='flex items-center gap-2 mb-2'>
+															<span className='text-void-fg-1 font-medium'>Pro Plan</span>
+															<span className="px-2 py-0.5 bg-[#0e70c0] text-white text-xs rounded-full font-medium">ACTIVE</span>
+														</div>
+														<div className='text-sm text-void-fg-2 space-y-1'>
+															<p>✓ Unlimited API calls</p>
+															<p>✓ Priority support</p>
+															<p>✓ Advanced AI models</p>
+															<p>✓ Team collaboration</p>
+														</div>
+													</div>
+												</div>
+												<div className='flex items-center gap-3'>
+													<span className='text-sm text-void-fg-2'>Next billing: Dec 1, 2025</span>
+													<VoidButtonBgDarken 
+														className="border border-void-border-1 text-void-fg-1 hover:bg-void-bg-3 px-3 py-1"
+														onClick={() => {
+															// TODO: Manage billing logic
+															console.log('Manage billing clicked');
+														}}
+													>
+														Manage Billing
+													</VoidButtonBgDarken>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									{/* Privacy Settings */}
+									<div className='w-full'>
+										<h4 className={`text-base`}>Privacy Settings</h4>
+
+										<div className='my-2'>
+											<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
+												<div>
+													<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
+													<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. The only data collected is minimal usage details without specifics.</span>
+												</div>
+												<div className='flex items-center gap-x-2'>
+													<VoidSwitch
+														size='xs'
+														value={true}
+														disabled={true}
+														onChange={() => {}}
+													/>
+													<span className='text-void-fg-3 text-xs pointer-events-none'>Always enabled</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</ErrorBoundary>
+							</div>
+							
 							{/* General section */}
 							<div className={`${shouldShowTab('general') ? `` : 'hidden'} flex flex-col gap-12`}>
 								{/* One-Click Switch section */}
