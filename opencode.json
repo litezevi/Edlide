@@ -29,6 +29,11 @@
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true
+    },
+     "opencode Docs": {
+      "type": "remote",
+      "url": "https://gitmcp.io/sst/opencode",
+      "enabled": true,
     }
   }
 }
