@@ -262,10 +262,9 @@ const prepareOpenAIOrAnthropicMessages = ({
 	reservedOutputTokenSpace: number | null | undefined,
 }): { messages: AnthropicOrOpenAILLMMessage[], separateSystemMessage: string | undefined } => {
 
-	reservedOutputTokenSpace = Math.max(
-		contextWindow * 1 / 2, // reserve at least 1/4 of the token window length
-		reservedOutputTokenSpace ?? 4_096 // defaults to 4096
-	)
+	// FIXED: Use model-specific reserved space instead of hardcoded 50%
+	// This allows proper utilization of the full context window
+	reservedOutputTokenSpace = reservedOutputTokenSpace ?? 4_096; // Use model-specific value
 	let messages: (SimpleLLMMessage | { role: 'system', content: string })[] = deepClone(messages_)
 
 	// ================ system message ================
@@ -298,8 +297,12 @@ const prepareOpenAIOrAnthropicMessages = ({
 		else if (message.role === 'system') {
 			multiplier *= .01 // very low weight
 		}
+		else if (message.role === 'assistant') {
+			// ENHANCED: Reduce assistant message trimming to preserve important context
+			multiplier *= 3 // Reduced from 10 to preserve more assistant context
+		}
 		else {
-			multiplier *= 10 // llm tokens are far less valuable than user tokens
+			multiplier *= 5 // tool messages, reduced from 10
 		}
 
 		// any already modified message should not be trimmed again
