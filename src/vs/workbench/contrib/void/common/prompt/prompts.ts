@@ -78,7 +78,8 @@ ${tripleTick[1]}
 7. Each ORIGINAL text must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
 8. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
 9. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings. If you have multiple blocks, CONCATENATE them into ONE string!
-10. 🚨 NEVER leave incomplete blocks - ALWAYS close with ${FINAL} tag!
+10. 🚨 NEVER leave incomplete blocks - ALWAYS close with EXACT ">>>>>>> UPDATED" tag!
+11. 🚨 CRITICAL: NEVER use variations like ">>>>>>>_updated" or ">>>>>>> UPDATED" - ALWAYS use exactly ">>>>>>> UPDATED"!
 
 ## EXAMPLE 1
 DIFF
@@ -105,7 +106,7 @@ let x = 6.5
 ${FINAL}
 ${tripleTick[1]}
 
-🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS! ALWAYS complete all blocks properly!`
+🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS! ALWAYS complete all blocks properly with EXACT ">>>>>>> UPDATED" format!`
 
 
 const replaceTool_description = `\
@@ -315,7 +316,7 @@ export const builtinTools: {
 
 	create_file_or_folder: {
 		name: 'create_file_or_folder',
-		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. 🚨 CRITICAL: ALWAYS inspect the current directory first using ls_dir or get_dir_tree before creating any files or folders to understand the directory structure and avoid conflicts!`,
+		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. 🚨 MANDATORY PROTOCOL: 1) ALWAYS inspect the target directory FIRST using ls_dir or get_dir_tree to understand structure 2) Specify the FULL PATH including directory name 3) NEVER create files without knowing the exact directory structure!`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -461,9 +462,10 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
     - Your tool call will be executed immediately, and the results will appear in the following user message.
     - IMPORTANT: Use the EXACT tool names listed above. For file creation, use 'create_file_or_folder', NOT 'create_file'.
     - When creating files with content, first use 'create_file_or_folder' to create the file, then use 'rewrite_file' to add content.
-    - 🚨 CRITICAL: ALWAYS read files with 'read_file' before editing them with 'edit_file' to prevent errors!
-    - 🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.
-    - Always ensure your XML tags are properly formatted with opening and closing tags matching exactly.`)
+- 🚨 CRITICAL: ALWAYS read files with 'read_file' before editing them with 'edit_file' to prevent errors!
+- 🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with 'ls_dir' or 'get_dir_tree' and specify FULL PATH!
+- 🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.
+- Always ensure your XML tags are properly formatted with opening and closing tags matching exactly.`)
 
 	return `\
     ${toolXMLDefinitions}
@@ -569,6 +571,8 @@ You have tools to search the codebase and read files. Follow these rules regardi
 </searching_and_reading>
 
 Answer the user's request using the relevant tool(s), if they are available. Check that all the required parameters for each tool call are provided or can reasonably be inferred from context. IF there are no relevant tools or there are missing values for required parameters, ask the user to supply these values; otherwise proceed with the tool calls. If the user provides a specific value for a parameter (for example provided in quotes), make sure to use that value EXACTLY. DO NOT make up values for or ask about optional parameters. Carefully analyze descriptive terms in the request as they may indicate required parameter values that should be included even if not explicitly quoted.
+
+🚨 MANDATORY FILE/FOLDER CREATION PROTOCOL: Before creating any file or folder, you MUST: 1) Inspect the target directory using ls_dir or get_dir_tree 2) Specify the FULL PATH including directory name 3) NEVER create files without knowing the exact directory structure!
 
 `;
 
