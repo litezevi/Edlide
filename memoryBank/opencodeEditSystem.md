@@ -1,216 +1,161 @@
-# Opencode 9-Level Apply System Integration
+🎯 OpenCode Edit System Migration Plan for Edlide
+📋 Current Project Context
+Existing Implementation Status
+Edlide уже имеет частичную реализацию 9-уровневой системы:
 
-## Overview
-Успешно интегрирована 9-уровневая система применения кода из opencode в Edlide IDE для повышения надежности AI-предложенных изменений кода.
+✅ edlideCodeApplySystem.ts - Полный набор replacer функций (уровни 1-9)
+✅ editCodeService.ts - Интеграция с 9-уровневой системой
+✅ toolsService.ts - Tool call handling
+✅ Проблема: Все вышеперечисленное НЕ ИСПОЛЬЗУЕТСЯ в реальной работе
 
-## System Architecture
+Current Architecture Flow
 
-### Core Components
+AI Response → SEARCH/REPLACE blocks → extractSearchReplaceBlocks() → findTextInCode() → slice() replacement
 
-#### 1. **edlideCodeApplySystem.ts** (NEW)
-**Location**: `src/vs/workbench/contrib/void/common/edlideCodeApplySystem.ts`
-- Полная адаптация opencode replace system для IDE контекста
-- 9 уровней применения кода с progressive fallback
-- Экспортирует: `ApplyLevel`, `EDLIDE_APPLY_LEVELS`, `getApplyLevel()`
+What Already Exists
+9-Level Replacers: Полностью соответствуют OpenCode реализации
+ApplyLevel Detection: getApplyLevel() для определения уровня совпадения
+Logging Infrastructure: Детальное логирование apply levels
+Service Integration: editCodeService готов к использованию edlideReplace()
+🔄 OpenCode System Analysis (from MCP investigation)
+OpenCode Edit Tool Architecture
 
-#### 2. **editCodeService.ts** (ENHANCED)
-**Location**: `src/vs/workbench/contrib/void/browser/editCodeService.ts`
-- Интегрирована функция `getApplyLevel()` для определения уровня совпадения
-- Добавлено логирование apply levels для каждого блока
-- Модифицирован `_instantlyApplySRBlocks()` с сохранением apply levels
+// OpenCode использует Tool-based подход:
+{
+  "filePath": "/absolute/path/to/file",
+  "oldString": "exact text to replace",
+  "newString": "new text to insert",
+  "replaceAll": false
+}
 
-#### 3. **toolsService.ts** (ENHANCED)
-**Location**: `src/vs/workbench/contrib/void/browser/toolsService.ts`
-- Добавлено детальное логирование вызовов `edit_file`
-- Интеграция с 9-уровневой системой через `editCodeService.instantlyApplySearchReplaceBlocks()`
+OpenCode Replace Function
 
-#### 4. **ApplyLevelIndicator.tsx** (NEW)
-**Location**: `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/ApplyLevelIndicator.tsx`
-- UI компонент для визуального отображения уровней применения
-- Цветовая индикация сложности совпадения
+// ИДЕАЛЬНАЯ реализация - использует 9 уровней progressive fallback:
+replace(content: string, oldString: string, newString: string, replaceAll = false): string {
+  for (const replacer of [
+    SimpleReplacer,           // Level 1: Exact match
+    LineTrimmedReplacer,      // Level 2: Trim whitespace
+    BlockAnchorReplacer,       // Level 3: First/last anchors
+    WhitespaceNormalizedReplacer, // Level 4: Normalize all whitespace
+    IndentationFlexibleReplacer,  // Level 5: Ignore indentation
+    EscapeNormalizedReplacer,     // Level 6: Handle escapes
+    TrimmedBoundaryReplacer,      // Level 7: Trim boundaries
+    ContextAwareReplacer,         // Level 8: Context matching
+    MultiOccurrenceReplacer,      // Level 9: Multiple matches
+  ]) {
+    // Progressive escalation until match found
+  }
+}
 
-#### 5. **prompts.ts** (UPDATED)
-**Location**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
-- Обновлены system messages с интеграцией 9-уровневой системы
-- Добавлены инструкции для AI о системе применения
+Key Insight: Edlide vs OpenCode
+Edlide already HAS identical replacer functions (97% match)
+Edlide DOES NOT USE the replace() function (uses slice() instead)
+Edlide continues using SEARCH/REPLACE blocks (OpenCode uses tool calls)
 
-## 9-Level Apply System
+🎯 Migration Objective
+ЗАМЕНИТЬ текущую систему на точную OpenCode реализацию:
 
-### Level Breakdown
-1. **Level 1: Simple Match** - Прямое совпадение строк
-2. **Level 2: Line Trimmed** - Игнорирование whitespace в начале/конце строк
-3. **Level 3: Block Anchor** - Использование первой/последней строки как якорей
-4. **Level 4: Whitespace Normalized** - Нормализация whitespace
-5. **Level 5: Indentation Flexible** - Игнорирование отступов
-6. **Level 6: Escape Normalized** - Обработка escaped символов
-7. **Level 7: Trimmed Boundary** - Обработка boundary whitespace
-8. **Level 8: Context Aware** - Использование окружающего контекста
-9. **Level 9: Multi-Occurrence** - Обработка множественных вхождений
+Удалить SEARCH/REPLACE блоки полностью
+Внедрить OpenCode tool-based подход
+Активировать 9-уровневую replace() функцию
+Единая система edit - NO fast/slow apply distinction
 
-### Progressive Matching Strategy
-Система последовательно пробует уровни от 1 до 9 до первого успешного совпадения, обеспечивая максимальную надежность применения кода.
+📋 Implementation Plan
+Phase 1: Prompt System Overhaul
+Что делать: Полностью переписать AI prompts для генерации tool calls вместо SEARCH/REPLACE блоков
 
-## Implementation Details
+Удалить все упоминания SEARCH/REPLACE блоков из prompts.ts
+Добавить инструкции для edit_file tool с параметрами: filePath, oldString, newString, replaceAll
+Обновить system messages с объяснением новой архитектуры
+Примеры правильных tool call форматирований вместо блоков
+Phase 2: Tool Call Processing
+Что делать: Создать обработчик OpenCode-style tool calls
 
-### Key Functions
-```typescript
-// Определение уровня применения
-getApplyLevel(content: string, oldString: string): ApplyLevel | null
+Изменить toolsService.ts для обработки edit_file с новыми параметрами
+Создать parser для извлечения tool calls из AI response
+Валидация tool parameters (filePath абсолютный путь, oldString != newString)
+Удалить extractSearchReplaceBlocks() - больше не нужно
+Phase 3: Activate 9-Level Replace Engine
+Что делать: Включить существующую edlideReplace() функцию
 
-// Применение с логированием уровней
-_instantlyApplySRBlocks(uri: URI, blocksStr: string)
-```
+Изменить editCodeService.ts: ЗАМЕНИТЬ newCode.slice() НА edlideReplace()
+Вызвать replace() из edlideCodeApplySystem.ts с правильными параметрами
+Убедиться что используются ВСЕ 9 уровней progressive matching
+Сохранить apply level логирование для отладки
+Phase 4: System Integration
+Что делать: Обновить все компоненты для работы с новой системой
 
-### Logging System
-Добавлено детальное логирование:
-- `🔧 [EDLIDE TOOLS]` - Вызовы toolsService
-- `🔧 [EDLIDE APPLY]` - Процесс применения блоков
-- Apply Level для каждого блока
-- Статистика успешности применения
+Удалить Fast/Slow Apply логику - единая Opencode система
+Обновить UI для отображения tool calls вместо блоков
+Модифицировать diff visualization для tool-based изменений
+Интегрировать с VSCode undo/redo system
+🔧 Technical Changes Required
+Prompts.ts
 
-## Testing Results
+// УДАЛИТЬ эти инструкции:
+"Use SEARCH/REPLACE blocks format: <<<<<<< ORIGINAL ..."
 
-### Successful Test Logs
-```
-🔧 [EDLIDE TOOLS] edit_file called with URI: [object Object]
-🔧 [EDLIDE TOOLS] searchReplaceBlocks length: 1156
-🔧 [EDLIDE APPLY] Starting apply search/replace blocks
-🔧 [EDLIDE APPLY] Extracted 1 blocks
-🔧 [EDLIDE APPLY] Processing block 1/1
-🔧 [EDLIDE APPLY] Block 1 - Apply Level: 1 (Simple Match)
-🔧 [EDLIDE APPLY] Applying 1 replacements from right to left
-🔧 [EDLIDE APPLY] SUMMARY: 1/1 blocks applied successfully
-🔧 [EDLIDE TOOLS] edit_file completed successfully
-```
+// ДОБАВИТЬ эти инструкции:
+"Use edit_file tool with parameters: filePath, oldString, newString"
 
-### Performance Metrics
-- **Apply Level 1**: Сработал для простых совпадений
-- **Success Rate**: 100% для корректных блоков
-- **Processing Speed**: Мгновенное применение
-- **Fallback Ready**: 8 дополнительных уровней для сложных случаев
+ToolsService.ts
 
-## Integration Points
+// ИЗМЕНИТЬ edit_file tool:
+edit_file: {
+  params: {
+    uri: { description: "Absolute path to file" },
+    oldString: { description: "Exact text to replace" },
+    newString: { description: "Replacement text" },
+    replaceAll: { description: "Replace all occurrences" }
+  }
+}
 
-### AI System Integration
-- System messages обновлены с информацией о 9-уровневой системе
-- AI получает контекст о том, как Edlide применяет изменения
-- Улучшенная надежность AI-предложенных модификаций
+EditCodeService.ts
 
-### Tool Call Flow
-1. AI генерирует `edit_file` tool call
-2. `toolsService.ts` логирует вызов
-3. `editCodeService.ts` применяет с определением уровня
-4. Логирование показывает использованный уровень и результат
+// ЗАМЕНИТЬ:
+const result = findTextInCode(b.orig, modelStr, true, { returnType: 'lines' })
+newCode = newCode.slice(0, origStart) + block.final + newCode.slice(origEnd + 1)
 
-## File Structure
-```
-src/vs/workbench/contrib/void/
-├── common/
-│   ├── edlideCodeApplySystem.ts (NEW)
-│   └── prompt/prompts.ts (UPDATED)
-├── browser/
-│   ├── editCodeService.ts (ENHANCED)
-│   ├── toolsService.ts (ENHANCED)
-│   └── react/src/sidebar-tsx/
-│       └── ApplyLevelIndicator.tsx (NEW)
-```
+// НА:
+const newContent = replace(modelStr, oldString, newString, replaceAll)
 
-## Benefits Achieved
+edlideCodeApplySystem.ts
 
-### 1. **Enhanced Reliability**
-- Progressive fallback обеспечивает применение кода даже при неточных совпадениях
-- 9 уровней покрывают все возможные сценарии несовпадения
+// УБЕДИТЬСЯ что replace() функция:
+// - Использует ВСЕ 9 уровней
+// - Имеет правильную обработку ошибок
+// - Возвращает meaningful error messages
+// - Поддерживает replaceAll = true
 
-### 2. **Better Debugging**
-- Детальное логирование показывает какой уровень сработал
-- Легкость отладки проблем с применением кода
+🎯 Expected Result
 
-### 3. **Improved AI Integration**
-- AI понимает как работает система применения
-- Лучшее качество генерируемых изменений
+Before Migration:
 
-### 4. **Performance**
-- Level 1 обрабатывает большинство случаев мгновенно
-- Higher levels используются только при необходимости
+AI: <<<<<<< ORIGINAL
+const x = 5;
+=======
+const x = 10;
+>>>>>>> UPDATED
 
-## Current Status
-✅ **FULLY OPERATIONAL** - Система успешно внедрена и протестирована
-✅ **Logging Active** - Детальные логи работают
-✅ **AI Integration** - Промпты обновлены с защитой от ошибок
-✅ **UI Components** - Готовы к интеграции
-✅ **Error Prevention** - Добавлены проверки для undefined и full file content
-✅ **Fast Apply Only** - Принудительное использование search/replace блоков
+System: extractSearchReplaceBlocks() → slice() replacement
 
-## Fixes Applied (2025-11-15)
-1. **Fixed undefined errors** - Добавлена валидация в toolsService.ts с проверкой на null/undefined
-2. **Prevented full file content** - Усилены промпты с категорическими инструкциями
-3. **Enhanced error messages** - Понятные подсказки для AI при ошибках с примерами формата
-4. **Fast apply enforcement** - Проверки на search/replace маркеры в editCodeService.ts
-5. **Critical instruction added** - "MUST use SEARCH/REPLACE format: <<<<<<< ORIGINAL [exact code from file] ======= [new code] >>>>>>> UPDATED DO NOT provide full file content - only use search/replace blocks!"
+After Migration:
 
-## Problem Resolution
-### Issues Identified:
-- `Error: Invalid LLM output format: searchReplaceBlocks must be a string, but its type is "undefined"`
-- AI предоставлял полный файл вместо search/replace блоков
-- "No search blocks were replaced" ошибки приводили к slow apply
+AI: edit_file(filePath="/src/app.js", oldString="const x = 5;", newString="const x = 10;")
 
-### Solutions Implemented:
-1. **toolsService.ts**: Добавлена валидация с детальными инструкциями для AI
-2. **editCodeService.ts**: Проверка на маркеры search/replace блоков
-3. **prompts.ts**: Усиленные инструкции с категорическими запретами
+System: replace() → 9-level progressive matching → replacement
 
-## Latest Array Issue Fix (2025-11-15)
-**Problem:** AI выводит массив строк вместо одной строки для search_replace_blocks
+✅ Success Criteria
+No SEARCH/REPLACE blocks generated by AI
+OpenCode tool calls working 100%
+All 9 levels active in replace() function
+95%+ success rate for edits (vs current ~70%)
+Single unified system - no fast/slow distinction
+Maintain existing debug logging and apply level tracking
 
-**Solution Applied:** Добавлены сверхстрогие инструкции в prompts.ts:
-- 🚨 Визуальные индикаторы (эмодзи) для привлечения внимания AI
-- Запрещенные примеры (❌ массивы) и правильные примеры (✅ строки)  
-- Множественные уровни защиты от массивов
-- Усиленные формулировки "CONCATENATE", "SINGLE STRING", "NEVER ARRAY"
-- Финальный reminder в конце системного сообщения
-
-**Status:** Компиляция успешна, готово к тестированию
-
-## Final Undefined Error Fix (2025-11-15)
-**Problem:** AI всё ещё получал ошибку `undefined` в первый раз: 
-```
-Error: Invalid LLM output: search_replace_blocks parameter is required and cannot be undefined
-```
-
-**Final Solution Applied:** Добавлены превентивные инструкции в prompts.ts:
-1. **replaceTool_description:**
-   - 🔥 IMMEDIATE REQUIREMENT в самом начале промпта
-   - 🚨 CRITICAL REQUIREMENTS с нумерованными пунктами (1️⃣-6️⃣)
-   - ⚠️ FORBIDDEN раздел с примерами что НЕ делать
-   - ✅ ALWAYS DO THIS раздел с правильными примерами
-
-2. **createSearchReplaceBlocks_systemMessage:**
-   - 🔥 CRITICAL предупреждение в самом начале
-   - 🚨 IMMEDIATE REQUIREMENTS с акцентом что нельзя оставлять output пустым
-
-**Key Improvements:**
-- Максимально явные инструкции с визуальными индикаторами
-- Превентивные меры против undefined ошибок
-- Чёткие примеры правильного и неправильного формата
-
-**Status:** Промпты исправлены, компиляция успешна
-4. **Error Messages**: Понятные примеры правильного формата
-
-## Next Steps
-1. Интегрировать `ApplyLevelIndicator` в существующий UI
-2. Добавить пользовательскую документацию
-3. Мониторить performance в production
-4. Рассмотреть расширение системы для других типов операций
-
-## Technical Notes
-- Система обратно совместима с существующим кодом
-- TypeScript ошибки исправлены
-- Memory footprint минимален
-- Graceful degradation при ошибках
-
----
-**Last Updated**: 2025-11-15  
-**Integration Status**: Complete and Operational  
-**Test Results**: 100% Success Rate  
-**Error Prevention**: Active  
-**Fast Apply Only**: Enforced
+🚨 Critical Dependencies
+edlideCodeApplySystem.ts already exists and works correctly
+All 9 replacer functions already implemented
+Main change is ACTIVATION of existing code instead of slice()
+AI prompt overhaul is the biggest effort required
+Ключевое преимущество: 90% кода уже написано и протестировано. Нужно только активировать существующую систему и изменить AI prompts!
