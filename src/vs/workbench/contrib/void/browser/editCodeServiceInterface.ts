@@ -47,6 +47,7 @@ export interface IEditCodeService {
 	callBeforeApplyOrEdit(uri: URI | 'current'): Promise<void>;
 	startApplying(opts: StartApplyingOpts): Promise<[URI, Promise<void>] | null>;
 	instantlyApplySearchReplaceBlocks(opts: { uri: URI; searchReplaceBlocks: string }): void;
+	instantlyApplyOpenCodeEdit(opts: { uri: URI; oldString: string; newString: string; replaceAll?: boolean }): void;
 	instantlyRewriteFile(opts: { uri: URI; newContent: string }): void;
 	addCtrlKZone(opts: AddCtrlKOpts): number | undefined;
 	removeCtrlKZone(opts: { diffareaid: number }): void;

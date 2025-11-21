@@ -52,7 +52,7 @@ export type BuiltinToolCallParams = {
 	'read_lint_errors': { uri: URI },
 	// ---
 	'rewrite_file': { uri: URI, newContent: string },
-	'edit_file': { uri: URI, searchReplaceBlocks: string },
+	'edit_file': { uri: URI, oldString: string, newString: string, replaceAll: boolean },
 	'create_file_or_folder': { uri: URI, isFolder: boolean },
 	'delete_file_or_folder': { uri: URI, isRecursive: boolean, isFolder: boolean },
 	// ---

@@ -31,7 +31,7 @@ import { VOID_ACCEPT_DIFF_ACTION_ID, VOID_REJECT_DIFF_ACTION_ID } from './action
 import { mountCtrlK } from './react/out/quick-edit-tsx/index.js'
 import { QuickEditPropsType } from './quickEditActions.js';
 import { IModelContentChangedEvent } from '../../../../editor/common/textModelEvents.js';
-import { extractCodeFromFIM, extractCodeFromRegular, ExtractedSearchReplaceBlock, extractSearchReplaceBlocks } from '../common/helpers/extractCodeFromResult.js';
+import { extractCodeFromFIM, extractCodeFromRegular, ExtractedSearchReplaceBlock, extractSearchReplaceBlocks, extractOpenCodeToolCalls } from '../common/helpers/extractCodeFromResult.js';
 import { INotificationService, } from '../../../../platform/notification/common/notification.js';
 import { EditorOption } from '../../../../editor/common/config/editorOptions.js';
 import { Emitter } from '../../../../base/common/event.js';
@@ -46,7 +46,7 @@ import { deepClone } from '../../../../base/common/objects.js';
 import { acceptBg, acceptBorder, buttonFontSize, buttonTextColor, rejectBg, rejectBorder } from '../common/helpers/colors.js';
 import { DiffArea, Diff, CtrlKZone, VoidFileSnapshot, DiffAreaSnapshotEntry, diffAreaSnapshotKeys, DiffZone, TrackingZone, ComputedDiff } from '../common/editCodeServiceTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
-import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel } from '../common/edlideCodeApplySystem.js';
+import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel, edlideReplace } from '../common/edlideCodeApplySystem.js';
 // import { isMacintosh } from '../../../../base/common/platform.js';
 // import { VOID_OPEN_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
 
@@ -1638,10 +1638,28 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 
 	private _instantlyApplySRBlocks(uri: URI, blocksStr: string) {
-		console.log('🔧 [EDLIDE APPLY] Starting apply search/replace blocks')
+		console.log('🔧 [EDLIDE APPLY] Starting apply OpenCode tool calls')
 		console.log('🔧 [EDLIDE APPLY] Raw blocksStr:', blocksStr.substring(0, 500) + '...')
-		const blocks = extractSearchReplaceBlocks(blocksStr)
-		console.log(`🔧 [EDLIDE APPLY] Extracted ${blocks.length} blocks`)
+		
+		// Try to extract OpenCode tool calls first
+		const toolCalls = extractOpenCodeToolCalls(blocksStr)
+		console.log(`🔧 [EDLIDE APPLY] Extracted ${toolCalls.length} tool calls`)
+		
+		let blocks: ExtractedSearchReplaceBlock[] = []
+		
+		if (toolCalls.length > 0) {
+			// Convert tool calls to search/replace blocks for compatibility
+			blocks = toolCalls.map(toolCall => ({
+				state: 'done' as const,
+				orig: toolCall.params.oldString,
+				final: toolCall.params.newString
+			}))
+			console.log(`🔧 [EDLIDE APPLY] Converted ${toolCalls.length} tool calls to blocks`)
+		} else {
+			// Fallback to legacy search/replace blocks
+			blocks = extractSearchReplaceBlocks(blocksStr)
+			console.log(`🔧 [EDLIDE APPLY] Fallback: Extracted ${blocks.length} legacy blocks`)
+		}
 		if (blocks.length === 0) {
 			// Check if AI provided full file content instead of search/replace blocks
 			const hasOriginalMarker = blocksStr.includes('<<<<<<< ORIGINAL')
@@ -1711,17 +1729,29 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 			}
 		}
 
-		// apply each replacement from right to left (so indexes don't shift)
-		console.log(`🔧 [EDLIDE APPLY] Applying ${replacements.length} replacements from right to left`)
+		// apply each replacement using Edlide's 9-level progressive replacement system
+		console.log(`🔧 [EDLIDE APPLY] Applying ${replacements.length} replacements using 9-level edlideReplace system`)
 		let newCode: string = modelStr
 		let successCount = 0
 		for (let i = replacements.length - 1; i >= 0; i--) {
 			const { origStart, origEnd, block, applyLevel } = replacements[i]
 			console.log(`🔧 [EDLIDE APPLY] Block ${replacements.length - i} - Apply Level: ${applyLevel ? `${applyLevel.level} (${applyLevel.name})` : 'UNKNOWN'}`)
-			newCode = newCode.slice(0, origStart) + block.final + newCode.slice(origEnd + 1, Infinity)
-			successCount++
+			
+			// Use Edlide's 9-level replacement system instead of simple slice
+			try {
+				const replaceResult = edlideReplace(newCode, block.orig, block.final, false)
+				newCode = replaceResult
+				console.log(`🔧 [EDLIDE APPLY] Block ${replacements.length - i} - SUCCESS with edlideReplace`)
+				successCount++
+			} catch (e) {
+				console.error(`🔧 [EDLIDE APPLY] Block ${replacements.length - i} - ERROR in edlideReplace:`, e)
+				// Fallback to slice method if edlideReplace throws
+				newCode = newCode.slice(0, origStart) + block.final + newCode.slice(origEnd + 1, Infinity)
+				successCount++
+				console.log(`🔧 [EDLIDE APPLY] Block ${replacements.length - i} - FALLBACK to slice method succeeded`)
+			}
 		}
-		console.log(`🔧 [EDLIDE APPLY] SUMMARY: ${successCount}/${replacements.length} blocks applied successfully`)
+		console.log(`🔧 [EDLIDE APPLY] SUMMARY: ${successCount}/${replacements.length} blocks applied successfully using 9-level system`)
 
 		this._writeURIText(uri, newCode,
 			'wholeFileRange',
@@ -2027,7 +2057,20 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 						const { fullText } = params
 						onText(params)
 
-						const blocks = extractSearchReplaceBlocks(fullText)
+// Try to extract OpenCode tool calls first, fallback to legacy blocks
+					const toolCalls = extractOpenCodeToolCalls(fullText)
+					let blocks: ExtractedSearchReplaceBlock[] = []
+					
+					if (toolCalls.length > 0) {
+						// Convert tool calls to search/replace blocks for compatibility
+						blocks = toolCalls.map(toolCall => ({
+							state: 'done' as const,
+							orig: toolCall.params.oldString,
+							final: toolCall.params.newString
+						}))
+					} else {
+						blocks = extractSearchReplaceBlocks(fullText)
+					}
 						if (blocks.length === 0) {
 							this._notificationService.info(`Edlide: We ran Fast Apply, but the LLM didn't output any changes.`)
 						}
@@ -2331,6 +2374,36 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 
 		onFinishEdit()
 
+	}
+
+	// OpenCode-style single edit with 9-level progressive replacement
+	instantlyApplyOpenCodeEdit(opts: { uri: URI; oldString: string; newString: string; replaceAll?: boolean }): void {
+		const { uri, oldString, newString, replaceAll = false } = opts
+		console.log('🔧 [EDLIDE OPENCODE] instantlyApplyOpenCodeEdit called')
+		console.log('🔧 [EDLIDE OPENCODE] URI:', uri.fsPath)
+		console.log('🔧 [EDLIDE OPENCODE] oldString length:', oldString.length)
+		console.log('🔧 [EDLIDE OPENCODE] newString length:', newString.length)
+		console.log('🔧 [EDLIDE OPENCODE] replaceAll:', replaceAll)
+
+		const { model } = this._voidModelService.getModel(uri)
+		if (!model) throw new Error(`Error applying OpenCode edit: File does not exist.`)
+		
+		const originalCode = model.getValue(EndOfLinePreference.LF)
+		console.log('🔧 [EDLIDE OPENCODE] Original code length:', originalCode.length)
+
+		// Use Edlide's 9-level replacement system
+		try {
+			const replaceResult = edlideReplace(originalCode, oldString, newString, replaceAll)
+			console.log(`🔧 [EDLIDE OPENCODE] SUCCESS with edlideReplace`)
+			this._writeURIText(uri, replaceResult,
+				'wholeFileRange',
+				{ shouldRealignDiffAreas: true }
+			)
+			console.log('🔧 [EDLIDE OPENCODE] Edit applied successfully')
+		} catch (e) {
+			console.error('🔧 [EDLIDE OPENCODE] ERROR in edlideReplace:', e)
+			throw new Error(`OpenCode edit failed with error: ${e}`)
+		}
 	}
 
 }

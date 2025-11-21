@@ -21,7 +21,7 @@ import { getBasename, getFolderName } from '../sidebar-tsx/SidebarChat.js';
 import { ChevronRight, File, Folder, FolderClosed, LucideProps } from 'lucide-react';
 import { StagingSelectionItem } from '../../../../common/chatThreadServiceTypes.js';
 import { DiffEditorWidget } from '../../../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
-import { extractSearchReplaceBlocks, ExtractedSearchReplaceBlock } from '../../../../common/helpers/extractCodeFromResult.js';
+import { extractSearchReplaceBlocks, ExtractedSearchReplaceBlock, extractOpenCodeToolCalls, ExtractedToolCall } from '../../../../common/helpers/extractCodeFromResult.js';
 import { IAccessibilitySignalService } from '../../../../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IEditorProgressService } from '../../../../../../../platform/progress/common/progress.js';
 import { detectLanguage } from '../../../../common/helpers/languageHelpers.js';
@@ -2073,8 +2073,22 @@ export const VoidDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: a
 	const accessor = useAccessor();
 	const languageService = accessor.get('ILanguageService');
 
-	// Extract all blocks
-	const blocks = extractSearchReplaceBlocks(searchReplaceBlocks);
+	// Try to extract OpenCode tool calls first, fallback to legacy blocks
+	const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks);
+	let blocks: ExtractedSearchReplaceBlock[] = [];
+	
+	if (toolCalls.length > 0) {
+		// Convert tool calls to search/replace blocks for compatibility
+		blocks = toolCalls.map(toolCall => ({
+			state: 'done' as const,
+			orig: toolCall.params.oldString,
+			final: toolCall.params.newString
+		}));
+	} else if (searchReplaceBlocks) {
+		blocks = extractSearchReplaceBlocks(searchReplaceBlocks);
+	} else {
+		blocks = [];
+	}
 
 	// Use detectLanguage for language detection if not provided
 	let lang = language;

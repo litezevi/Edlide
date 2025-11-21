@@ -257,25 +257,28 @@ export class ToolsService implements IToolsService {
 			},
 
 			edit_file: (params: RawToolParamsObj) => {
-				const { uri: uriStr, search_replace_blocks: searchReplaceBlocksUnknown } = params
-				const uri = validateURI(uriStr)
+				const { uri: uriUnknown, old_string: oldStringUnknown, new_string: newStringUnknown, replace_all: replaceAllUnknown } = params
 				
-				// Prevent undefined errors with clear guidance
-				if (searchReplaceBlocksUnknown === undefined || searchReplaceBlocksUnknown === null) {
-					throw new Error(`Invalid LLM output: search_replace_blocks parameter is required and cannot be undefined. 
-
-MUST use SEARCH/REPLACE format:
-<<<<<<< ORIGINAL
-[exact code from file]
-=======
-[new code]
->>>>>>> UPDATED
-
-DO NOT provide full file content - only use search/replace blocks!`)
+				// Validate required parameters
+				if (uriUnknown === undefined || uriUnknown === null) {
+					throw new Error(`Invalid LLM output: uri parameter is required and cannot be undefined. Must be an absolute path.`)
+				}
+				if (oldStringUnknown === undefined || oldStringUnknown === null) {
+					throw new Error(`Invalid LLM output: old_string parameter is required and cannot be undefined. Must match the exact original code.`)
+				}
+				if (newStringUnknown === undefined || newStringUnknown === null) {
+					throw new Error(`Invalid LLM output: new_string parameter is required and cannot be undefined. Must contain the replacement code.`)
 				}
 				
-				const searchReplaceBlocks = validateStr('searchReplaceBlocks', searchReplaceBlocksUnknown)
-				return { uri, searchReplaceBlocks }
+				const uriStr = validateStr('uri', uriUnknown)
+				const oldString = validateStr('old_string', oldStringUnknown)
+				const newString = validateStr('new_string', newStringUnknown)
+				const replaceAll = replaceAllUnknown === 'true'
+				
+				// Convert uri string to URI format
+				const uri = validateURI(uriStr.startsWith('file://') ? uriStr : `file://${uriStr}`)
+				
+				return { uri, oldString, newString, replaceAll }
 			},
 
 			// ---
@@ -441,16 +444,22 @@ DO NOT provide full file content - only use search/replace blocks!`)
 				return { result: lintErrorsPromise }
 			},
 
-			edit_file: async ({ uri, searchReplaceBlocks }) => {
-				console.log('🔧 [EDLIDE TOOLS] edit_file called with URI:', uri)
-				console.log('🔧 [EDLIDE TOOLS] searchReplaceBlocks length:', searchReplaceBlocks?.length || 0)
+			edit_file: async ({ uri, oldString, newString, replaceAll }) => {
+				console.log('🔧 [EDLIDE TOOLS] edit_file called with OpenCode parameters')
+				console.log('🔧 [EDLIDE TOOLS] URI:', uri)
+				console.log('🔧 [EDLIDE TOOLS] oldString length:', oldString?.length || 0)
+				console.log('🔧 [EDLIDE TOOLS] newString length:', newString?.length || 0)
+				console.log('🔧 [EDLIDE TOOLS] replaceAll:', replaceAll)
+				
 				await voidModelService.initializeModel(uri)
 				if (this.commandBarService.getStreamState(uri) === 'streaming') {
 					throw new Error(`Another LLM is currently making changes to this file. Please stop streaming for now and ask the user to resume later.`)
 				}
 				await editCodeService.callBeforeApplyOrEdit(uri)
-				editCodeService.instantlyApplySearchReplaceBlocks({ uri, searchReplaceBlocks })
-				console.log('🔧 [EDLIDE TOOLS] edit_file completed successfully')
+				
+				// Use OpenCode-style single replacement instead of SEARCH/REPLACE blocks
+				editCodeService.instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll })
+				console.log('🔧 [EDLIDE TOOLS] edit_file completed successfully with 9-level replacement')
 
 				// at end, get lint errors
 				const lintErrorsPromise = Promise.resolve().then(async () => {

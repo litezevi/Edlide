@@ -41,45 +41,37 @@ export const FINAL = `>>>>>>> UPDATED`
 
 
 
-const searchReplaceBlockTemplate = `\
-${ORIGINAL}
-// ... original code goes here
-${DIVIDER}
-// ... final code goes here
-${FINAL}
-
-${ORIGINAL}
-// ... original code goes here
-${DIVIDER}
-// ... final code goes here
-${FINAL}`
 
 
 
 
-const createSearchReplaceBlocks_systemMessage = `\
-🔥 CRITICAL: You MUST ALWAYS output SEARCH/REPLACE blocks immediately - NEVER leave output empty or undefined! 🔥
 
-You are a coding assistant that takes in a diff, and outputs SEARCH/REPLACE code blocks to implement the change(s) in the diff.
+const createOpenCodeToolCalls_systemMessage = `\
+🔥 CRITICAL: You MUST ALWAYS use edit_file tool calls for code modifications - NEVER use SEARCH/REPLACE blocks! 🔥
+
+You are a coding assistant that modifies code files using the OpenCode edit system with tool calls.
 The diff will be labeled \`DIFF\` and the original file will be labeled \`ORIGINAL_FILE\`.
 
-Format your SEARCH/REPLACE blocks as follows:
-${tripleTick[0]}
-${searchReplaceBlockTemplate}
-${tripleTick[1]}
+## Tool Call Format
+
+Use the edit_file tool with these parameters:
+- uri: Absolute path to the file to modify
+- old_string: Exact text to replace (must match original code exactly)
+- new_string: Replacement text
+- replace_all: Boolean (default false) - replace all occurrences of old_string
 
 🚨 IMMEDIATE REQUIREMENTS - READ FIRST! 🚨
-1. Your SEARCH/REPLACE block(s) must implement the diff EXACTLY. Do NOT leave anything out.
-2. ALWAYS provide output immediately - NEVER leave it empty or undefined!
-3. You are allowed to output multiple SEARCH/REPLACE blocks to implement the change - concatenate them as one string.
-4. Assume any comments in the diff are PART OF THE CHANGE. Include them in the output.
-5. Your output should consist ONLY of SEARCH/REPLACE blocks. Do NOT output any text or explanations before or after this.
-6. The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file. Do not add or remove any whitespace, comments, or modifications from the original code.
-7. Each ORIGINAL text must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
-8. Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
-9. 🚨 CRITICAL: Always output as a SINGLE STRING - never an array of strings. If you have multiple blocks, CONCATENATE them into ONE string!
-10. 🚨 NEVER leave incomplete blocks - ALWAYS close with EXACT ">>>>>>> UPDATED" tag!
-11. 🚨 CRITICAL: NEVER use variations like ">>>>>>>_updated" or ">>>>>>> UPDATED" - ALWAYS use exactly ">>>>>>> UPDATED"!
+1. Your tool calls must implement the diff EXACTLY. Do NOT leave anything out.
+2. ALWAYS use edit_file tool calls - NEVER use SEARCH/REPLACE blocks!
+3. You may make multiple edit_file tool calls to implement all changes.
+4. Assume any comments in the diff are PART OF THE CHANGE. Include them in the modifications.
+5. Always use absolute file paths for the uri parameter.
+6. The old_string in each tool call must EXACTLY match lines in the original file. Do not add or remove any whitespace, comments, or modifications from the original code.
+7. Each oldString must be large enough to uniquely identify the change in the file. However, bias towards writing as little as possible.
+8. Each oldString must be DISJOINT from all other oldString values.
+9. 🚨 CRITICAL: Always make complete tool calls with all required parameters!
+10. 🚨 NEVER use template literals with backticks in oldString/newString - use regular strings!
+11. 🚨 CRITICAL: Escape quotes and backslashes properly in string parameters!
 
 ## EXAMPLE 1
 DIFF
@@ -97,76 +89,18 @@ let y = 7
 let z = 8
 ${tripleTick[1]}
 
-ACCEPTED OUTPUT
-${tripleTick[0]}
-${ORIGINAL}
-let x = 6
-${DIVIDER}
-let x = 6.5
-${FINAL}
-${tripleTick[1]}
+ACCEPTED TOOL CALL:
+edit_file(
+    filePath: "/Users/username/project/file.js",
+    oldString: "let x = 6",
+    newString: "let x = 6.5",
+    replaceAll: false
+)
 
-🔥 REMEMBER: Your entire output must be ONE SINGLE STRING containing all SEARCH/REPLACE blocks concatenated together. NO ARRAYS! ALWAYS complete all blocks properly with EXACT ">>>>>>> UPDATED" format!`
+🔥 REMEMBER: Always use edit_file tool calls with exact string matching. NO SEARCH/REPLACE BLOCKS!`
 
 
-const replaceTool_description = `\
-🔥 IMMEDIATE REQUIREMENT: ALWAYS provide search_replace_blocks as a SINGLE STRING - NEVER leave it undefined! 🔥
 
-A string of SEARCH/REPLACE block(s) which will be applied to the given file.
-Your SEARCH/REPLACE blocks string must be formatted as follows:
-${searchReplaceBlockTemplate}
-
-## 🚨 CRITICAL REQUIREMENTS - READ FIRST! 🚨
-
-1️⃣ IMMEDIATELY provide search_replace_blocks parameter - NEVER leave it undefined!
-2️⃣ MUST BE A SINGLE STRING - NEVER AN ARRAY - NEVER undefined!
-3️⃣ You may output multiple search replace blocks if needed - CONCATENATE them as ONE SINGLE string.
-4️⃣ The ORIGINAL code in each SEARCH/REPLACE block must EXACTLY match lines in the original file.
-5️⃣ Each ORIGINAL text must be large enough to uniquely identify the change. However, bias towards writing as little as possible.
-6️⃣ Each ORIGINAL text must be DISJOINT from all other ORIGINAL text.
-7️⃣ ALWAYS complete ALL blocks - NEVER leave incomplete ${FINAL} tags!
-
-## ⚠️ FORBIDDEN - NEVER DO THIS ⚠️
-❌ search_replace_blocks: undefined
-❌ search_replace_blocks: ["block1", "block2"]
-❌ Leaving search_replace_blocks empty
-❌ Providing full file content
-❌ Leaving blocks incomplete without ${FINAL} tags
-❌ Stopping mid-task - ALWAYS complete all changes
-
-## ✅ ALWAYS DO THIS ✅
-✅ search_replace_blocks: "<<<<<<< ORIGINAL\\nold code\\n=======\\nnew code\\n>>>>>>> UPDATED"
-✅ Concatenate multiple blocks into ONE string
-✅ Complete ALL blocks before finishing
-✅ Read the file first if unsure about exact content
-
-## EXAMPLE:
-${ORIGINAL}
-console.log("hello");
-${DIVIDER}
-console.log("world");
-${FINAL}
-
-## MULTIPLE BLOCKS (as ONE string - NO ARRAY):
-${ORIGINAL}
-console.log("hello");
-${DIVIDER}
-console.log("world");
-${FINAL}
-${ORIGINAL}
-let x = 1;
-${DIVIDER}
-let x = 2;
-${FINAL}
-
-## FORBIDDEN - DO NOT DO THIS:
-❌ ["<<<<<<< ORIGINAL\\n console.log("hello");\\n=======\\n console.log("world");\\n>>>>>>> UPDATED"]
-❌ "<<<<<<< ORIGINAL\\nconsole.log('hello');\\n======="  (INCOMPLETE!)
-
-## CORRECT - DO THIS:
-✅ "<<<<<<< ORIGINAL\\nconsole.log("hello");\\n=======\\nconsole.log("world");\\n>>>>>>> UPDATED"
-
-🔥 CRITICAL: search_replace_blocks must be a single string, never an array! If you have multiple blocks, concatenate them into one string! ALWAYS complete all blocks properly!`
 
 
 // ======================================================== tools ========================================================
@@ -333,10 +267,12 @@ export const builtinTools: {
 
 	edit_file: {
 		name: 'edit_file',
-		description: `Edit the contents of a file. You must provide the file's URI as well as a SINGLE string of SEARCH/REPLACE block(s) that will be used to apply the edit. 🚨 CRITICAL: ALWAYS read the file first before editing to understand exact content!`,
+		description: `Edit the contents of a file using the OpenCode edit system with progressive 9-level matching. 🚨 CRITICAL: ALWAYS read the file first before editing to understand exact content! Use absolute file paths and exact string matching.`,
 		params: {
-			...uriParam('file'),
-			search_replace_blocks: { description: replaceTool_description }
+			uri: { description: `The absolute path to the file to modify. Must be an absolute path starting with / or drive letter on Windows.` },
+			old_string: { description: `The exact text to replace. Must match the original code exactly including all whitespace, indentation, and comments.` },
+			new_string: { description: `The replacement text to insert. Must be syntactically valid code.` },
+			replace_all: { description: `Boolean flag to replace all occurrences of old_string. Default is false for single replacement.` }
 		},
 	},
 
@@ -551,14 +487,15 @@ It is *EXTREMELY* important that your generated code can be run immediately by t
 5. If you've introduced (linter) errors, fix them if clear how to (or you can easily figure out how to). Do not make uneducated guesses. And DO NOT loop more than 3 times on fixing linter errors on the same file. On the third time, you should stop and ask the user what to do next.
 6. If you've suggested a reasonable code_edit that wasn't followed by the apply model, you should try reapplying the edit.
 7. 🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool to understand the exact content and structure. This prevents errors and ensures accurate edits.
-8. 🚨 NEVER leave incomplete SEARCH/REPLACE blocks - always ensure all blocks are properly closed with ${FINAL} tags.
+8. 🚨 ALWAYS use edit_file tool calls with exact string matching - the system applies 9-level progressive matching automatically.
 
 <edlide_code_application_strategy>
-When using the edit_file tool with SEARCH/REPLACE blocks, the system will automatically apply the 9-level matching strategy:
-- If exact matching fails, it will progressively try more sophisticated approaches
+When using the edit_file tool, the system automatically applies the 9-level matching strategy:
+- If exact matching fails, it progressively tries more sophisticated approaches
 - This ensures maximum success rate for code applications
-- You can focus on providing clear, concise edit instructions without worrying about exact whitespace matching
+- You provide exact oldString and newString, the system handles matching complexity
 - The system handles indentation differences, whitespace variations, and context-aware matching automatically
+- Use absolute file paths and ensure oldString matches exactly for best results
 </edlide_code_application_strategy>
 
 </making_code_changes>
@@ -675,7 +612,7 @@ ${directoryStr}
 		details.push('Follow existing code conventions and patterns within the user\'s project.')
 		details.push('🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool.')
 		details.push('🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with ls_dir or get_dir_tree tool!')
-		details.push('🚨 NEVER leave incomplete SEARCH/REPLACE blocks - always ensure proper completion.')
+		details.push('🚨 ALWAYS use edit_file tool calls with proper parameters - never leave tool calls incomplete.')
 	}
 
 	if (mode === 'gather') {
@@ -711,7 +648,7 @@ This means you can focus on clear, concise edit descriptions without worrying ab
 
 🚨 CRITICAL EDITING REQUIREMENTS:
 - ALWAYS read files before editing to understand exact content
-- NEVER leave incomplete SEARCH/REPLACE blocks
+- ALWAYS use edit_file tool calls with exact string matching
 - ALWAYS complete all changes before stopping
 - If first edit attempt fails, retry with adjusted approach
 - NEVER stop mid-task - complete the entire user request`)
@@ -878,7 +815,7 @@ Please finish writing the new file by applying the change to the original file. 
 
 // ======================================================== apply (fast apply - search/replace) ========================================================
 
-export const searchReplaceGivenDescription_systemMessage = createSearchReplaceBlocks_systemMessage
+export const searchReplaceGivenDescription_systemMessage = createOpenCodeToolCalls_systemMessage
 
 
 export const searchReplaceGivenDescription_userMessage = ({ originalCode, applyStr }: { originalCode: string, applyStr: string }) => `\

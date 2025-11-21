@@ -170,6 +170,18 @@ export type ExtractedSearchReplaceBlock = {
 	final: string,
 }
 
+// New type for OpenCode tool call extraction
+export type ExtractedToolCall = {
+	name: string;
+	params: {
+		filePath: string;
+		oldString: string;
+		newString: string;
+		replaceAll?: boolean;
+	};
+	state: 'parsing' | 'complete';
+}
+
 
 // JS substring swaps indices, so "ab".substr(1,0) will NOT be '', it will be 'a'!
 const voidSubstr = (str: string, start: number, end: number) => end < start ? '' : str.substring(start, end)
@@ -183,8 +195,46 @@ export const endsWithAnyPrefixOf = (str: string, anyPrefix: string) => {
 	return null
 }
 
+// Extract OpenCode tool calls from AI response
+export const extractOpenCodeToolCalls = (text: string): ExtractedToolCall[] => {
+	const toolCalls: ExtractedToolCall[] = [];
+	
+	// Pattern to match tool call blocks in the response
+	// This matches the format: <invoke name="edit_file">
+	// <parameter name="uri">...</parameter>
+	// <parameter name="old_string">...</parameter>
+	// <parameter name="new_string">...</parameter>
+	// </invoke>
+	const toolCallRegex = /<invoke\s+name="([^"]+)">[\s\S]*?<parameter\s+name="uri">([\s\S]*?)<\/parameter>[\s\S]*?<parameter\s+name="old_string">([\s\S]*?)<\/parameter>[\s\S]*?<parameter\s+name="new_string">([\s\S]*?)<\/parameter>[\s\S]*?<\/invoke>/g;
+	
+	let match;
+	while ((match = toolCallRegex.exec(text)) !== null) {
+		const [, name, uri, oldString, newString] = match;
+		
+		// Clean up the extracted values (remove CDATA if present)
+		const cleanValue = (value: string) => {
+			return value.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
+		};
+		
+		toolCalls.push({
+			name: cleanValue(name),
+			params: {
+				filePath: cleanValue(uri), // Keep as filePath for compatibility with existing code
+				oldString: cleanValue(oldString),
+				newString: cleanValue(newString),
+			},
+			state: 'complete'
+		});
+	}
+	
+	return toolCalls;
+};
+
 // guarantees if you keep adding text, array length will strictly grow and state will progress without going back
 export const extractSearchReplaceBlocks = (str: string) => {
+	if (!str) {
+		return []
+	}
 
 	const ORIGINAL_ = ORIGINAL + `\n`
 	const DIVIDER_ = '\n' + DIVIDER + `\n`
