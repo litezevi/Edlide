@@ -2073,20 +2073,38 @@ export const VoidDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: a
 	const accessor = useAccessor();
 	const languageService = accessor.get('ILanguageService');
 
+	console.log('🔧 [VOID DIFF EDITOR] VoidDiffEditor rendering')
+	console.log('🔧 [VOID DIFF EDITOR] URI:', uri)
+	console.log('🔧 [VOID DIFF EDITOR] searchReplaceBlocks length:', searchReplaceBlocks?.length || 0)
+	console.log('🔧 [VOID DIFF EDITOR] searchReplaceBlocks preview:', searchReplaceBlocks?.substring(0, 300) + '...')
+
 	// Try to extract OpenCode tool calls first, fallback to legacy blocks
 	const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks);
+	console.log('🔧 [VOID DIFF EDITOR] Extracted tool calls:', toolCalls.length)
+	
 	let blocks: ExtractedSearchReplaceBlock[] = [];
 	
 	if (toolCalls.length > 0) {
+		console.log('🔧 [VOID DIFF EDITOR] Processing tool calls...')
 		// Convert tool calls to search/replace blocks for compatibility
 		blocks = toolCalls.map(toolCall => ({
 			state: 'done' as const,
 			orig: toolCall.params.oldString,
 			final: toolCall.params.newString
 		}));
+		console.log('🔧 [VOID DIFF EDITOR] Converted', toolCalls.length, 'tool calls to blocks')
+		toolCalls.forEach((tc, i) => {
+			console.log(`  Tool call ${i + 1}: ${tc.name}`)
+			console.log(`    filePath: ${tc.params.filePath}`)
+			console.log(`    oldString length: ${tc.params.oldString.length}`)
+			console.log(`    newString length: ${tc.params.newString.length}`)
+		})
 	} else if (searchReplaceBlocks) {
+		console.log('🔧 [VOID DIFF EDITOR] Fallback to legacy search/replace blocks')
 		blocks = extractSearchReplaceBlocks(searchReplaceBlocks);
+		console.log('🔧 [VOID DIFF EDITOR] Extracted', blocks.length, 'legacy blocks')
 	} else {
+		console.log('🔧 [VOID DIFF EDITOR] No searchReplaceBlocks provided')
 		blocks = [];
 	}
 
@@ -2098,8 +2116,11 @@ export const VoidDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: a
 
 	// If no blocks, show empty state
 	if (blocks.length === 0) {
+		console.log('🔧 [VOID DIFF EDITOR] No blocks found - showing "No changes found"')
 		return <div className="w-full p-4 text-void-fg-4 text-sm">No changes found</div>;
 	}
+
+	console.log('🔧 [VOID DIFF EDITOR] Rendering', blocks.length, 'blocks for diff display')
 
 	// Display all blocks
 	return (

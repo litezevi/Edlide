@@ -2665,7 +2665,15 @@ const builtinToolNameToComponent: { [T in BuiltinToolName]: { resultWrapper: Res
 	},
 	'edit_file': {
 		resultWrapper: (params) => {
-			return <EditTool {...params} content={params.toolMessage.params.searchReplaceBlocks} />
+			// Create searchReplaceBlocks from oldString and newString for UI display
+			const { oldString, newString } = params.toolMessage.params
+			const searchReplaceBlocks = `<<<<<<< ORIGINAL
+${oldString}
+=======
+${newString}
+>>>>>>> UPDATED`
+			console.log('🔧 [CHAT EDIT] Creating searchReplaceBlocks for edit_file:', searchReplaceBlocks.substring(0, 200) + '...')
+			return <EditTool {...params} content={searchReplaceBlocks} />
 		}
 	},
 

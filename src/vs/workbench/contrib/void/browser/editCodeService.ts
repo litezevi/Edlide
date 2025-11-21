@@ -649,8 +649,15 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 	weAreWriting = false
 	private _writeURIText(uri: URI, text: string, range_: IRange | 'wholeFileRange', { shouldRealignDiffAreas, }: { shouldRealignDiffAreas: boolean, }) {
+		console.log('🔧 [EDLIDE WRITE] Starting _writeURIText')
+		console.log('🔧 [EDLIDE WRITE] URI:', uri.toString())
+		console.log('🔧 [EDLIDE WRITE] Range:', range_)
+		console.log('🔧 [EDLIDE WRITE] Text length:', text.length)
+		console.log('🔧 [EDLIDE WRITE] Text preview:', text.substring(0, 200) + '...')
+		
 		const { model } = this._voidModelService.getModel(uri)
 		if (!model) {
+			console.error('🔧 [EDLIDE WRITE] ERROR: No model found for URI:', uri.toString())
 			this._refreshStylesAndDiffsInURI(uri) // at the end of a write, we still expect to refresh all styles. e.g. sometimes we expect to restore all the decorations even if no edits were made when _writeText is used
 			return
 		}
@@ -659,27 +666,37 @@ class EditCodeService extends Disposable implements IEditCodeService {
 			{ startLineNumber: 1, startColumn: 1, endLineNumber: model.getLineCount(), endColumn: Number.MAX_SAFE_INTEGER } // whole file
 			: range_
 
+		console.log('🔧 [EDLIDE WRITE] Resolved range:', range)
+
 		// realign is 100% independent from written text (diffareas are nonphysical), can do this first
 		if (shouldRealignDiffAreas) {
+			console.log('🔧 [EDLIDE WRITE] Realigning diff areas...')
 			const newText = text
 			const oldRange = range
 			this._realignAllDiffAreasLines(uri, newText, oldRange)
 		}
 
 		const uriStr = model.getValue(EndOfLinePreference.LF)
+		console.log('🔧 [EDLIDE WRITE] Current model content length:', uriStr.length)
 
 		// heuristic check
 		const dontNeedToWrite = uriStr === text
+		console.log('🔧 [EDLIDE WRITE] Needs write check:', dontNeedToWrite ? 'NO - content identical' : 'YES - content differs')
 		if (dontNeedToWrite) {
+			console.log('🔧 [EDLIDE WRITE] Skipping write - content identical')
 			this._refreshStylesAndDiffsInURI(uri) // at the end of a write, we still expect to refresh all styles. e.g. sometimes we expect to restore all the decorations even if no edits were made when _writeText is used
 			return
 		}
 
+		console.log('🔧 [EDLIDE WRITE] Applying edits to model...')
 		this.weAreWriting = true
-		model.applyEdits([{ range, text }])
+		const editResult = model.applyEdits([{ range, text }])
 		this.weAreWriting = false
+		console.log('🔧 [EDLIDE WRITE] Edit applied successfully. Result:', editResult)
 
+		console.log('🔧 [EDLIDE WRITE] Refreshing styles and diffs...')
 		this._refreshStylesAndDiffsInURI(uri)
+		console.log('🔧 [EDLIDE WRITE] _writeURIText completed')
 	}
 
 
@@ -1258,6 +1275,41 @@ class EditCodeService extends Disposable implements IEditCodeService {
 		onDone()
 	}
 
+	public instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll = false }: { uri: URI; oldString: string; newString: string; replaceAll?: boolean }) {
+		console.log('🔧 [EDLIDE OPENCODE] instantlyApplyOpenCodeEdit called')
+		console.log('🔧 [EDLIDE OPENCODE] URI:', uri.toString())
+		console.log('🔧 [EDLIDE OPENCODE] oldString length:', oldString.length)
+		console.log('🔧 [EDLIDE OPENCODE] newString length:', newString.length)
+		console.log('🔧 [EDLIDE OPENCODE] replaceAll:', replaceAll)
+		console.log('🔧 [EDLIDE OPENCODE] oldString preview:', oldString.substring(0, 100) + '...')
+		console.log('🔧 [EDLIDE OPENCODE] newString preview:', newString.substring(0, 100) + '...')
+
+		const { model } = this._voidModelService.getModel(uri)
+		if (!model) {
+			throw new Error(`File does not exist: ${uri.toString()}`)
+		}
+
+		const modelStr = model.getValue(EndOfLinePreference.LF)
+		console.log('🔧 [EDLIDE OPENCODE] Current model content length:', modelStr.length)
+
+		// Use Edlide's 9-level replacement system to get the new code
+		console.log('🔧 [EDLIDE OPENCODE] Applying replacement using 9-level edlideReplace system...')
+		const newCode = edlideReplace(modelStr, oldString, newString, replaceAll)
+		console.log('🔧 [EDLIDE OPENCODE] Replacement applied. New code length:', newCode.length)
+
+		// Create search/replace blocks for UI display
+		const searchReplaceBlocks = `<<<<<<< ORIGINAL
+${oldString}
+=======
+${newString}
+>>>>>>> UPDATED`
+
+		console.log('🔧 [EDLIDE OPENCODE] Using instantlyApplySearchReplaceBlocks for UI visibility')
+		// Use the existing method that creates proper diff zones for UI
+		this.instantlyApplySearchReplaceBlocks({ uri, searchReplaceBlocks })
+		console.log('🔧 [EDLIDE OPENCODE] instantlyApplyOpenCodeEdit completed successfully')
+	}
+
 
 	private _findOverlappingDiffArea({ startLine, endLine, uri, filter }: { startLine: number, endLine: number, uri: URI, filter?: (diffArea: DiffArea) => boolean }): DiffArea | null {
 		// check if there's overlap with any other diffAreas and return early if there is
@@ -1639,11 +1691,24 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 	private _instantlyApplySRBlocks(uri: URI, blocksStr: string) {
 		console.log('🔧 [EDLIDE APPLY] Starting apply OpenCode tool calls')
-		console.log('🔧 [EDLIDE APPLY] Raw blocksStr:', blocksStr.substring(0, 500) + '...')
+		console.log('🔧 [EDLIDE APPLY] URI:', uri.toString())
+		console.log('🔧 [EDLIDE APPLY] Raw blocksStr length:', blocksStr.length)
+		console.log('🔧 [EDLIDE APPLY] Raw blocksStr preview:', blocksStr.substring(0, 500) + '...')
 		
 		// Try to extract OpenCode tool calls first
 		const toolCalls = extractOpenCodeToolCalls(blocksStr)
 		console.log(`🔧 [EDLIDE APPLY] Extracted ${toolCalls.length} tool calls`)
+		
+		if (toolCalls.length > 0) {
+			console.log('🔧 [EDLIDE APPLY] Tool call details:')
+			toolCalls.forEach((tc, i) => {
+				console.log(`  ${i + 1}. Name: ${tc.name}`)
+				console.log(`     oldString length: ${tc.params.oldString.length}`)
+				console.log(`     newString length: ${tc.params.newString.length}`)
+				console.log(`     oldString preview: ${tc.params.oldString.substring(0, 100)}...`)
+				console.log(`     newString preview: ${tc.params.newString.substring(0, 100)}...`)
+			})
+		}
 		
 		let blocks: ExtractedSearchReplaceBlock[] = []
 		
@@ -1752,11 +1817,15 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 			}
 		}
 		console.log(`🔧 [EDLIDE APPLY] SUMMARY: ${successCount}/${replacements.length} blocks applied successfully using 9-level system`)
+		console.log('🔧 [EDLIDE APPLY] Final newCode length:', newCode.length)
+		console.log('🔧 [EDLIDE APPLY] Final newCode preview:', newCode.substring(0, 200) + '...')
 
+		console.log('🔧 [EDLIDE APPLY] Calling _writeURIText with final code...')
 		this._writeURIText(uri, newCode,
 			'wholeFileRange',
 			{ shouldRealignDiffAreas: true }
 		)
+		console.log('🔧 [EDLIDE APPLY] _instantlyApplySRBlocks completed')
 	}
 
 	private async _initializeSearchAndReplaceStream(opts: StartApplyingOpts & { from: 'ClickApply' }): Promise<[DiffZone, Promise<void>] | undefined> {
@@ -2374,36 +2443,6 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 
 		onFinishEdit()
 
-	}
-
-	// OpenCode-style single edit with 9-level progressive replacement
-	instantlyApplyOpenCodeEdit(opts: { uri: URI; oldString: string; newString: string; replaceAll?: boolean }): void {
-		const { uri, oldString, newString, replaceAll = false } = opts
-		console.log('🔧 [EDLIDE OPENCODE] instantlyApplyOpenCodeEdit called')
-		console.log('🔧 [EDLIDE OPENCODE] URI:', uri.fsPath)
-		console.log('🔧 [EDLIDE OPENCODE] oldString length:', oldString.length)
-		console.log('🔧 [EDLIDE OPENCODE] newString length:', newString.length)
-		console.log('🔧 [EDLIDE OPENCODE] replaceAll:', replaceAll)
-
-		const { model } = this._voidModelService.getModel(uri)
-		if (!model) throw new Error(`Error applying OpenCode edit: File does not exist.`)
-		
-		const originalCode = model.getValue(EndOfLinePreference.LF)
-		console.log('🔧 [EDLIDE OPENCODE] Original code length:', originalCode.length)
-
-		// Use Edlide's 9-level replacement system
-		try {
-			const replaceResult = edlideReplace(originalCode, oldString, newString, replaceAll)
-			console.log(`🔧 [EDLIDE OPENCODE] SUCCESS with edlideReplace`)
-			this._writeURIText(uri, replaceResult,
-				'wholeFileRange',
-				{ shouldRealignDiffAreas: true }
-			)
-			console.log('🔧 [EDLIDE OPENCODE] Edit applied successfully')
-		} catch (e) {
-			console.error('🔧 [EDLIDE OPENCODE] ERROR in edlideReplace:', e)
-			throw new Error(`OpenCode edit failed with error: ${e}`)
-		}
 	}
 
 }
