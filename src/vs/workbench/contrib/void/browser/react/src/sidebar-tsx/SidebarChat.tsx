@@ -3235,24 +3235,24 @@ export const SidebarChat = () => {
 
 	const getModelContextLimit = (modelName: string): number => {
 		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-			return 262144; // kimi-k2: 256k tokens
+			return 20000; // kimi-k2: 256k tokens
 		}
 		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
-			return 202752; // glm-4.6: 200k tokens
+			return 20000; // glm-4.6: 200k tokens
 		}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
-			return 163840; // deepseek v3.1 terminus: 162k tokens
+			return 20000; // deepseek v3.1 terminus: 162k tokens
 		}
 		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
-			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
+			return 20000; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
-			return 196608; // Minimax M2: 200k tokens
+			return 20000; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
-			return 162000; // deepseek v3.1 variants: 162k tokens
+			return 20000; // deepseek v3.1 variants: 162k tokens
 		}
-		return 128000; // Default fallback
+		return 20000; // Default fallback
 	};
 
   	const maxTokens = getModelContextLimit(modelName);
