@@ -1130,7 +1130,7 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
 	'zai-org/GLM-4.6:THINKING': {
-		contextWindow: 202_752,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
@@ -1140,7 +1140,7 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'deepseek-ai/DeepSeek-V3.1-Terminus': {
-		contextWindow: 163_840,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
@@ -1150,7 +1150,7 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'MiniMaxAI/MiniMax-M2:THINKING': {
-		contextWindow: 196_608,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
@@ -1161,7 +1161,7 @@ const edlideModelOptions = {
 	},
 
 	'openai/gpt-oss-20b': {
-		contextWindow: 128_000,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 4_096,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
@@ -1171,7 +1171,7 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8': {
-		contextWindow: 262_144,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
@@ -1181,7 +1181,7 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 	'moonshotai/Kimi-K2-Instruct-0905': {
-		contextWindow: 262_144,
+		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
