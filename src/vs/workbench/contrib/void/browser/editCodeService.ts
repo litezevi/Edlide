@@ -1292,10 +1292,15 @@ class EditCodeService extends Disposable implements IEditCodeService {
 		const modelStr = model.getValue(EndOfLinePreference.LF)
 		console.log('🔧 [EDLIDE OPENCODE] Current model content length:', modelStr.length)
 
+		// Check which apply level will be used for matching
+		const applyLevel = getApplyLevel(modelStr, oldString);
+		console.log(`🔧 [EDLIDE OPENCODE] Apply Level: ${applyLevel ? `${applyLevel.level} (${applyLevel.name})` : 'NOT FOUND'}`)
+
 		// Use Edlide's 9-level replacement system to get the new code
 		console.log('🔧 [EDLIDE OPENCODE] Applying replacement using 9-level edlideReplace system...')
 		const newCode = edlideReplace(modelStr, oldString, newString, replaceAll)
 		console.log('🔧 [EDLIDE OPENCODE] Replacement applied. New code length:', newCode.length)
+		console.log(`🔧 [EDLIDE OPENCODE] SUCCESS: Applied using ${applyLevel ? `Level ${applyLevel.level} (${applyLevel.name})` : 'Unknown Level'} with 9-level system`)
 
 		// Create search/replace blocks for UI display
 		const searchReplaceBlocks = `<<<<<<< ORIGINAL

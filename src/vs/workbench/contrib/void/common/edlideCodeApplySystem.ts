@@ -523,18 +523,29 @@ export function edlideReplace(content: string, oldString: string, newString: str
       const index = content.indexOf(search);
       if (index === -1) continue;
       notFound = false;
+      
+      console.log(`🔧 [EDLIDE REPLACE] SUCCESS with Level ${level.level} (${level.name})`);
+      console.log(`🔧 [EDLIDE REPLACE] Found match at index ${index}, search length: ${search.length}`);
+      
       if (replaceAll) {
+        console.log(`🔧 [EDLIDE REPLACE] ReplaceAll mode - replacing all occurrences`);
         return content.replaceAll(search, newString);
       }
       const lastIndex = content.lastIndexOf(search);
-      if (index !== lastIndex) continue;
+      if (index !== lastIndex) {
+        console.log(`🔧 [EDLIDE REPLACE] Multiple matches found, skipping level ${level.level}`);
+        continue;
+      }
+      console.log(`🔧 [EDLIDE REPLACE] Single match confirmed - applying replacement`);
       return content.substring(0, index) + newString + content.substring(index + search.length);
     }
   }
 
   if (notFound) {
+    console.log(`🔧 [EDLIDE REPLACE] ERROR: oldString not found in content after trying all 9 levels`);
     throw new Error("oldString not found in content");
   }
+  console.log(`🔧 [EDLIDE REPLACE] ERROR: Found multiple matches for oldString after trying all 9 levels`);
   throw new Error(
     "Found multiple matches for oldString. Provide more surrounding lines in oldString to identify the correct match.",
   );
@@ -544,13 +555,16 @@ export function edlideReplace(content: string, oldString: string, newString: str
  * Get the highest level that successfully matches
  */
 export function getApplyLevel(content: string, oldString: string): ApplyLevel | null {
+  console.log(`🔧 [GET APPLY LEVEL] Checking ${EDLIDE_APPLY_LEVELS.length} levels for match...`);
   for (const level of EDLIDE_APPLY_LEVELS) {
     for (const search of level.replacer(content, oldString)) {
       const index = content.indexOf(search);
       if (index !== -1) {
+        console.log(`🔧 [GET APPLY LEVEL] FOUND Level ${level.level} (${level.name}) - match at index ${index}`);
         return level;
       }
     }
   }
+  console.log(`🔧 [GET APPLY LEVEL] NO MATCH FOUND - tried all ${EDLIDE_APPLY_LEVELS.length} levels`);
   return null;
 }
