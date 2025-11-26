@@ -12,14 +12,6 @@
         "list_tables"
       ]
     },
-    "dodopayments_api": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote@latest",
-        "https://mcp.dodopayments.com/sse"
-      ]
-    },
       "brave-search": {
       "command": "npx",
       "args": [
