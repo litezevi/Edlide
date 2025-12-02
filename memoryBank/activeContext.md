@@ -80,22 +80,22 @@ instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll }) {
 
 **📊 SYSTEM ARCHITECTURE - Dual-Path Execution Flow:**
 ```
-AI generates edit_file tool call → toolsService.ts processes → 
-editCodeService.instantlyApplyOpenCodeEdit() → 
+AI generates edit_file tool call → toolsService.ts processes →
+editCodeService.instantlyApplyOpenCodeEdit() →
 Path 1: edlideReplace() → _writeURIText() → File saved
 Path 2: searchReplaceBlocks → VoidDiffEditor → UI shows diff
 ```
 
 **📁 FILES MODIFIED:**
 1. **toolsService.ts** - Added `instantlyApplyOpenCodeEdit` implementation
-2. **editCodeService.ts** - Enhanced with logging and dual-path architecture  
+2. **editCodeService.ts** - Enhanced with logging and dual-path architecture
 3. **SidebarChat.tsx** - Fixed UI diff display for edit_file operations
 4. **inputs.tsx** - Enhanced VoidDiffEditor with logging and type fixes
 
 **🎮 CURRENT STATE: FULLY FUNCTIONAL** ✅
 Based on user confirmation ("супер все появилось"), the system is now working perfectly:
 - ✅ AI `edit_file` tool calls successfully modify files
-- ✅ Changes are immediately saved to disk  
+- ✅ Changes are immediately saved to disk
 - ✅ Diff visualization appears in chat UI showing exactly what changed
 - ✅ 9-level replacement system ensures 95%+ success rate
 - ✅ Comprehensive logging provides debugging visibility
@@ -108,7 +108,7 @@ Based on user confirmation ("супер все появилось"), the system 
 
 **🔄 PROBLEMS SOLVED:**
 - **Before**: 9-level replacement system worked in background but users couldn't see which level was being applied
-- **Before**: Console logs only showed basic "[pasted #1 1+ lines]" without level information  
+- **Before**: Console logs only showed basic "[pasted #1 1+ lines]" without level information
 - **After**: Enhanced logging shows detailed 9-level replacement process with level detection and success confirmation
 - **Result**: Users now see exactly which level matched and how the replacement was applied
 
@@ -119,20 +119,20 @@ Based on user confirmation ("супер все появилось"), the system 
 // Added comprehensive logging to show level checking process
 export function getApplyLevel(content: string, oldString: string): ApplyLevel | undefined {
   console.log(`🔧 [EDLIDE LEVEL] Starting level detection for oldString length: ${oldString.length}`);
-  
+
   for (const level of EDLIDE_APPLY_LEVELS) {
     console.log(`🔧 [EDLIDE LEVEL] Checking Level ${level.level} (${level.name})...`);
-    
+
     for (const search of level.replacer(content, oldString)) {
       const index = content.indexOf(search);
       if (index === -1) continue;
-      
+
       console.log(`🔧 [EDLIDE LEVEL] ✅ Level ${level.level} MATCH FOUND!`);
       console.log(`🔧 [EDLIDE LEVEL] Search pattern length: ${search.length}, Index: ${index}`);
       return level;
     }
   }
-  
+
   console.log(`🔧 [EDLIDE LEVEL] ❌ No matching level found after trying all 9 levels`);
   return undefined;
 }
@@ -143,7 +143,7 @@ export function getApplyLevel(content: string, oldString: string): ApplyLevel | 
 // Added success logging with applied level information
 export function edlideReplace(content: string, oldString: string, newString: string, replaceAll = false): string {
   // ... existing logic ...
-  
+
   for (const level of EDLIDE_APPLY_LEVELS) {
     for (const search of level.replacer(content, oldString)) {
       const index = content.indexOf(search);
@@ -151,10 +151,10 @@ export function edlideReplace(content: string, oldString: string, newString: str
       notFound = false;
       usedLevel = level;
       usedSearch = search;
-      
+
       console.log(`🔧 [EDLIDE REPLACE] SUCCESS with Level ${level.level} (${level.name})`);
       console.log(`🔧 [EDLIDE REPLACE] Found match at index ${index}, search length: ${search.length}`);
-      
+
       // ... replacement logic ...
     }
   }
@@ -166,17 +166,17 @@ export function edlideReplace(content: string, oldString: string, newString: str
 // Added level detection and logging before applying changes
 public instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll = false }) {
   // ... existing setup ...
-  
+
   // Check which apply level will be used for matching
   const applyLevel = getApplyLevel(modelStr, oldString);
   console.log(`🔧 [EDLIDE OPENCODE] Apply Level: ${applyLevel ? `${applyLevel.level} (${applyLevel.name})` : 'NOT FOUND'}`)
-  
+
   // Use Edlide's 9-level replacement system to get the new code
   console.log('🔧 [EDLIDE OPENCODE] Applying replacement using 9-level edlideReplace system...');
   const newCode = edlideReplace(modelStr, oldString, newString, replaceAll)
   console.log('🔧 [EDLIDE OPENCODE] Replacement applied. New code length:', newCode.length)
   console.log(`🔧 [EDLIDE OPENCODE] SUCCESS: Applied using ${applyLevel ? `Level ${applyLevel.level} (${applyLevel.name})` : 'Unknown Level'} with 9-level system`)
-  
+
   // ... continue with UI updates ...
 }
 ```
@@ -226,19 +226,19 @@ public instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll = fals
 
 **Level Detection Pattern:**
 ```
-Edit Request → getApplyLevel() → Check Levels 1-9 Sequentially → 
+Edit Request → getApplyLevel() → Check Levels 1-9 Sequentially →
 Find Match → Log Level Details → Apply Replacement → Success Confirmation
 ```
 
 **Transparency Pattern:**
 ```
-Background Processing → Detailed Console Logging → User Visibility → 
+Background Processing → Detailed Console Logging → User Visibility →
 Debugging Support → System Understanding
 ```
 
 **Error Prevention Pattern:**
 ```
-Level Detection → Replacement Application → Success Verification → 
+Level Detection → Replacement Application → Success Verification →
 UI Update → Complete Operation Flow
 ```
 
@@ -332,13 +332,13 @@ export const extractSearchReplaceBlocks = (str: string) => {
 # Before: Legacy SEARCH/REPLACE
 search_replace_blocks: "<<<< ORIGINAL\n...code...\n====\n...new code...\n>>>> REPLACE"
 
-# After: OpenCode Tool Calls  
+# After: OpenCode Tool Calls
 {
   "tool_name": "edit_file",
   "params": {
     "uri": "file://path/to/file.ts",
     "old_string": "exact old code",
-    "new_string": "new replacement code", 
+    "new_string": "new replacement code",
     "replace_all": "false"
   }
 }
@@ -475,7 +475,7 @@ Graceful fallbacks → Zero crash reliability
 **Problem 2: False Positive Edit Notifications - SOLVED ✅**
 - **Issue**: System shows "edited file" but no actual changes were made to the file
 - **Solution**: Added pre-validation and change detection in multiple layers
-- **Implementation**: 
+- **Implementation**:
   - toolsService.ts: Prevent identical oldString/newString calls
   - VoidDiffEditor: Filter out blocks with no changes
   - editCodeService.ts: Detect when no actual changes occur
@@ -924,9 +924,9 @@ Active Context Update → Future Reference Complete
 **✅ MODEL REPLACEMENT & ADDITION - DeepSeek V3.2 + Kimi K2:**
 
 **🔄 MODELS UPDATED:**
-- **Replaced**: `deepseek-ai/DeepSeek-V3.1-Terminus` → `deepseek-ai/DeepSeek-V3.1-Terminus`
+- **Replaced**: `deepseek-ai/DeepSeek-V3.2-Speciale` → `deepseek-ai/DeepSeek-V3.2-Speciale`
 - **Added**: `moonshotai/Kimi-K2-Instruct-0905`
-- **UI Names**: `"deepseek-v3.1-terminus"` (short, user-friendly)
+- **UI Names**: `"deepseek-v3.2-speciale"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
@@ -936,7 +936,7 @@ Active Context Update → Future Reference Complete
 // modelCapabilities.ts - Backend model definitions
 edlide: [
   'zai-org/GLM-4.6:THINKING',
-  'deepseek-ai/DeepSeek-V3.1-Terminus',    // Replaced V3.1-Terminus
+  'deepseek-ai/DeepSeek-V3.2-Speciale',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
   'moonshotai/Kimi-K2-Instruct-0905',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
@@ -945,7 +945,7 @@ edlide: [
 // UI display name mapping in both ModelDropdown.tsx and Settings.tsx
 const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   if (providerName === 'edlide') {
-    if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+    if (modelName === 'deepseek-ai/DeepSeek-V3.2-Speciale') return 'deepseek-v3.2-speciale'
 
   }
   return modelName
@@ -955,7 +955,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 **Updated Model Capabilities:**
 ```typescript
 // DeepSeek V3.2-Exp Configuration
-'deepseek-ai/DeepSeek-V3.1-Terminus': {
+'deepseek-ai/DeepSeek-V3.2-Speciale': {
   contextWindow: 163840,
   reservedOutputTokenSpace: 8192, // 95% context utilization
   cost: { input: 0, output: 0 },
@@ -1025,7 +1025,7 @@ for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models
 **📊 USER EXPERIENCE TRANSFORMED:**
 - **Model Management**: Users can now properly hide/unhide models in Settings
 - **UI Consistency**: Model names identical in Settings and Chat dropdowns
-- **Clean Interface**: Friendly short names (`deepseek-v3.1-terminus`) throughout UI
+- **Clean Interface**: Friendly short names (`deepseek-v3.2-speciale`) throughout UI
 - **Backend Compatibility**: Full API names preserved for provider communication
 - **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
 
@@ -1351,7 +1351,7 @@ OUTPUT VALIDATION CHECKLIST:
   Available for messages: 194,560 tokens (+24,576!)
 }
 
-'deepseek-ai/DeepSeek-V3.1-Terminus': {
+'deepseek-ai/DeepSeek-V3.2-Speciale': {
   contextWindow: 163840,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 155,648 tokens (+24,576!)

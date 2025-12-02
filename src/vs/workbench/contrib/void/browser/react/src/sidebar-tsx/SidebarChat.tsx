@@ -42,7 +42,7 @@ import { ProviderName } from '../../../../../../../workbench/contrib/void/common
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6:THINKING') return 'glm-4.6'
-		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.2-Speciale') return 'deepseek-v3.2-speciale'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
@@ -137,7 +137,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
 			return 20000; // deepseek v3.1 terminus: 162k tokens
 		}
-		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
+		if (modelName.includes('deepseek-v3.2-speciale') || modelName.includes('deepseek-ai/DeepSeek-V3.2-Speciale')) {
 			return 20000; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
@@ -3243,7 +3243,7 @@ export const SidebarChat = () => {
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
 			return 20000; // deepseek v3.1 terminus: 162k tokens
 		}
-		if (modelName.includes('DeepSeek-V3.1-Terminus') || modelName.includes('deepseek-ai/DeepSeek-V3.1-Terminus')) {
+		if (modelName.includes('deepseek-v3.2-speciale') || modelName.includes('deepseek-ai/DeepSeek-V3.2-Speciale')) {
 			return 20000; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {

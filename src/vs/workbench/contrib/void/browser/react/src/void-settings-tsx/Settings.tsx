@@ -33,7 +33,7 @@ import { VSBuffer } from '../../../../../../../base/common/buffer.js';
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6:THINKING') return 'glm-4.6'
-		if (modelName === 'deepseek-ai/DeepSeek-V3.1-Terminus') return 'deepseek-v3.1-terminus'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.2-Speciale') return 'deepseek-v3.2-speciale'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 	    if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
@@ -1544,7 +1544,7 @@ export const Settings = () => {
 											{/* Free Tier */}
 											<div className='flex items-center justify-between p-4 bg-void-bg-2 rounded-lg border border-void-border-1'>
 												<span className='text-void-fg-1 font-medium'>Free Plan</span>
-												<VoidButtonBgDarken 
+												<VoidButtonBgDarken
 													className="bg-[#0e70c0] hover:bg-[#1177cb] text-white px-4 py-2"
 													onClick={() => {
 														// TODO: Implement upgrade logic
@@ -1573,7 +1573,7 @@ export const Settings = () => {
 												</div>
 												<div className='flex items-center gap-3'>
 													<span className='text-sm text-void-fg-2'>Next billing: Dec 1, 2025</span>
-													<VoidButtonBgDarken 
+													<VoidButtonBgDarken
 														className="border border-void-border-1 text-void-fg-1 hover:bg-void-bg-3 px-3 py-1"
 														onClick={() => {
 															// TODO: Manage billing logic
@@ -1611,7 +1611,7 @@ export const Settings = () => {
 									</div>
 								</ErrorBoundary>
 							</div>
-							
+
 							{/* General section */}
 							<div className={`${shouldShowTab('general') ? `` : 'hidden'} flex flex-col gap-12`}>
 								{/* One-Click Switch section */}

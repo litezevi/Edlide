@@ -44,8 +44,8 @@ Add to `defaultModelsOfProvider`:
 ```typescript
 edlide: [
   'zai-org/GLM-4.6:THINKING-turbo',
-  'deepseek-ai/DeepSeek-V3.1-Terminus',
-  'deepseek-ai/DeepSeek-V3.1-Terminus',
+  'deepseek-ai/DeepSeek-V3.2-Speciale',
+  'deepseek-ai/DeepSeek-V3.2-Speciale',
   'moonshotai/Kimi-K2-Instruct-0905'
 ],
 ```
