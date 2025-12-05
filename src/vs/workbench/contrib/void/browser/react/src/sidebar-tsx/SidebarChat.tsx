@@ -317,12 +317,16 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 	}, [threadId, isEdlideProvider, loadChatTokens]);
 
+	// Check if context is 80% or more full
+	const isContextHigh = contextPercentage >= 80;
+
 	return {
 		contextPercentage,
 		showContextBar,
 		isEdlideProvider: isEdlideProvider(),
 		actualTotalTokens,
-		isApiVerified
+		isApiVerified,
+		isContextHigh
 	};
 };
 
@@ -436,6 +440,79 @@ export const IconLoading = ({ className = '' }: { className?: string }) => {
 	return <div className={`${className}`}>{loadingText}</div>;
 
 }
+
+export const IconCompacting = ({ className = '' }: { className?: string }) => {
+
+	const [compactingText, setCompactingText] = useState('.');
+
+	useEffect(() => {
+		let intervalId;
+
+		// Function to handle the animation
+		const toggleCompactingText = () => {
+			if (compactingText === '...') {
+				setCompactingText('.');
+			} else {
+				setCompactingText(compactingText + '.');
+			}
+		};
+
+		// Start the animation loop
+		intervalId = setInterval(toggleCompactingText, 300);
+
+		// Cleanup function to clear the interval when component unmounts
+		return () => clearInterval(intervalId);
+	}, [compactingText, setCompactingText]);
+
+	return <div className={`${className}`}>{compactingText}</div>;
+
+}
+
+const CompactingIndicator = () => {
+	const [isOpen, setIsOpen] = useState(false);
+
+	return (
+		<div className="flex items-center gap-1 text-void-fg-3 text-xs cursor-pointer hover:brightness-125 transition-all duration-200">
+			<ChevronRight
+				className={`
+					h-3 w-3 flex-shrink-0 transition-transform duration-100 ease-[cubic-bezier(0.4,0,0.2,1)]
+					${isOpen ? 'rotate-90' : ''}
+				`}
+				onClick={() => setIsOpen(v => !v)}
+			/>
+			<span>compacting</span>
+			<IconCompacting className='w-3 text-sm' />
+		</div>
+	);
+};
+
+const CompactingSystemMessage = () => {
+	const [isOpen, setIsOpen] = useState(false);
+
+	return (
+		<div className="flex flex-col">
+			<div 
+				className="flex items-center gap-2 text-void-fg-3 text-xs cursor-pointer hover:brightness-125 transition-all duration-200 p-2 rounded hover:bg-void-bg-2"
+				onClick={() => setIsOpen(v => !v)}
+			>
+				<ChevronRight
+					className={`
+						h-3 w-3 flex-shrink-0 transition-transform duration-100 ease-[cubic-bezier(0.4,0,0.2,1)]
+						${isOpen ? 'rotate-90' : ''}
+					`}
+				/>
+				<span className="italic">compacting</span>
+				<IconCompacting className='w-3 text-sm' />
+			</div>
+			
+			{isOpen && (
+				<div className="ml-6 text-void-fg-4 text-xs p-2 border-l-2 border-void-border-2">
+					<p>Context window is reaching 80% capacity. The system is optimizing memory usage to maintain performance.</p>
+				</div>
+			)}
+		</div>
+	);
+};
 
 
 
@@ -3227,7 +3304,7 @@ export const SidebarChat = () => {
 	const toolIsGenerating = toolCallSoFar && !toolCallSoFar.isDone // show loading for slow tools (right now just edit)
 
 	// Context tracking for Edlide provider
-    const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
+    const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified, isContextHigh } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
 
 	// Get current model and calculate exact token count for tooltip
 	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
@@ -3381,6 +3458,11 @@ export const SidebarChat = () => {
 		{/* Generating tool */}
 		{generatingTool}
 
+		{/* Compacting system message - shows when context is 80%+ full */}
+		{showContextBar && isContextHigh && (
+			<CompactingSystemMessage />
+		)}
+
 		{/* loading indicator */}
 		{isRunning === 'LLM' || isRunning === 'idle' && !toolIsGenerating ? <ProseWrapper>
 			{<IconLoading className='opacity-50 text-sm' />}
@@ -3414,7 +3496,7 @@ export const SidebarChat = () => {
 		}
 	}, [onSubmit, onAbort, isRunning])
 
-	const inputChatArea = <VoidChatArea
+const inputChatArea = <VoidChatArea
 		featureName='Chat'
 		onSubmit={() => onSubmit()}
 		onAbort={onAbort}
@@ -3427,7 +3509,7 @@ export const SidebarChat = () => {
 		onClickAnywhere={() => { textAreaRef.current?.focus() }}
 		contextPercentage={contextPercentage}
 		showContextBar={showContextBar}
-  	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
+   	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
 	>
 		<VoidInputBox2
 			enableAtToMention
