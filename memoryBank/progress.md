@@ -169,6 +169,7 @@
 - **Build System**: Optimized React build pipeline with daily verification
 
 ### 🔄 **In Progress**
+- **Backend Compacting Logic**: Implement actual context window compacting functionality when 80% threshold reached
 - **Context Bar Testing**: Validate context tracking accuracy across different chat scenarios
 - **Documentation**: Comprehensive API documentation
 - **Testing**: Improved test coverage for core services
@@ -176,14 +177,16 @@
 - **User Testing**: Validate consolidated provider interface
 
 ### 📋 **Immediate Next Steps**
-1. **Enhanced Context Bar Validation**: Test improved positioning and tooltip functionality
-2. **Tooltip Accuracy Testing**: Verify token count display matches actual context usage
-3. **Context Bar Validation**: Test context progress bar with various chat scenarios
-4. **User Validation**: Test consolidated provider management workflow
-5. **UI Polish**: Minor interface improvements and user feedback integration
-6. **Testing**: Increase test coverage to 80%+
-7. **Performance**: Profile and optimize memory usage
-8. **Documentation**: Complete provider configuration documentation
+1. **Backend Compacting Implementation**: Connect UI animation to actual context window optimization logic
+2. **Context Threshold Testing**: Verify 80% detection works accurately across all Edlide models
+3. **Enhanced Context Bar Validation**: Test improved positioning and tooltip functionality
+4. **Tooltip Accuracy Testing**: Verify token count display matches actual context usage
+5. **Context Bar Validation**: Test context progress bar with various chat scenarios
+6. **User Validation**: Test consolidated provider management workflow
+7. **UI Polish**: Minor interface improvements and user feedback integration
+8. **Testing**: Increase test coverage to 80%+
+9. **Performance**: Profile and optimize memory usage
+10. **Documentation**: Complete provider configuration documentation
 
 ## Completed Features
 
