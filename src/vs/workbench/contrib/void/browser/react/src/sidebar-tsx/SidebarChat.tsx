@@ -487,30 +487,21 @@ const CompactingIndicator = () => {
 };
 
 const CompactingSystemMessage = () => {
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(true); // Start open like ReasoningWrapper
 
 	return (
-		<div className="flex flex-col">
-			<div 
-				className="flex items-center gap-2 text-void-fg-3 text-xs cursor-pointer hover:brightness-125 transition-all duration-200 p-2 rounded hover:bg-void-bg-2"
-				onClick={() => setIsOpen(v => !v)}
-			>
-				<ChevronRight
-					className={`
-						h-3 w-3 flex-shrink-0 transition-transform duration-100 ease-[cubic-bezier(0.4,0,0.2,1)]
-						${isOpen ? 'rotate-90' : ''}
-					`}
-				/>
-				<span className="italic">compacting</span>
-				<IconCompacting className='w-3 text-sm' />
-			</div>
-			
-			{isOpen && (
-				<div className="ml-6 text-void-fg-4 text-xs p-2 border-l-2 border-void-border-2">
-					<p>Context window is reaching 80% capacity. The system is optimizing memory usage to maintain performance.</p>
+		<ToolHeaderWrapper 
+			title='Compacting' 
+			desc1={<IconCompacting />} 
+			isOpen={isOpen} 
+			onClick={() => setIsOpen(v => !v)}
+		>
+			<ToolChildrenWrapper>
+				<div className='!select-text cursor-auto text-void-fg-4 text-xs'>
+					Context window is reaching 80% capacity. The system is optimizing memory usage to maintain performance.
 				</div>
-			)}
-		</div>
+			</ToolChildrenWrapper>
+		</ToolHeaderWrapper>
 	);
 };
 
