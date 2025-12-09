@@ -9,7 +9,7 @@
 - If `memoryBank` has not been completely read from start to finish, you must halt all other operations and return to reading it.
 - Any violation of this rule is a critical error and invalidates all further output in this session.
 - The agent should only modify files without building or compiling anything.
-- не запускай "npm run", "npm run lint" не каких сука команд не запускай просто после редактирование напиши что закончил то что просил пользователь, ничего не запускай в команде просто напиши что закончил пользователю это супер важно!
+- не запускай "npm run compile"
 
 ---
 
