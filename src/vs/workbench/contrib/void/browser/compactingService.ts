@@ -8,11 +8,48 @@ import { registerSingleton, InstantiationType } from '../../../../platform/insta
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ILLMMessageService } from '../common/sendLLMMessageService.js';
-import { IChatThreadService } from './chatThreadService.js';
 import { IVoidSettingsService } from '../common/voidSettingsService.js';
 import { CompactingState } from '../common/chatThreadServiceTypes.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+
+// Use interface without importing implementation to avoid circular dependency
+export interface IChatThreadService {
+	readonly _serviceBrand: undefined;
+	readonly state: any;
+	readonly streamState: any;
+	onDidChangeCurrentThread: Event<void>;
+	onDidChangeStreamState: Event<{ threadId: string }>;
+	getCurrentThread(): any;
+	openNewThread(): void;
+	switchToThread(threadId: string): void;
+	deleteThread(threadId: string): void;
+	duplicateThread(threadId: string): void;
+	getCurrentMessageState(messageIdx: number): any;
+	setCurrentMessageState(messageIdx: number, newState: any): void;
+	getCurrentThreadState(): any;
+	setCurrentThreadState(newState: any): void;
+	getCurrentFocusedMessageIdx(): number | undefined;
+	isCurrentlyFocusingMessage(): boolean;
+	setCurrentlyFocusedMessageIdx(messageIdx: number | undefined): void;
+	popStagingSelections(numPops?: number): void;
+	addNewStagingSelection(newSelection: any): void;
+	dangerousSetState(newState: any): void;
+	resetState(): void;
+	getCodespanLink(opts: { codespanStr: string, messageIdx: number, threadId: string }): any | undefined;
+	addCodespanLink(opts: { newLinkText: string, newLinkLocation: any, messageIdx: number, threadId: string }): void;
+	generateCodespanLink(opts: { codespanStr: string, threadId: string }): Promise<any>;
+	getRelativeStr(uri: any): string | undefined;
+	abortRunning(threadId: string): Promise<void>;
+	dismissStreamError(threadId: string): void;
+	editUserMessageAndStreamResponse({ userMessage, messageIdx, threadId }: { userMessage: string, messageIdx: number, threadId: string }): Promise<void>;
+	addUserMessageAndStreamResponse({ userMessage, threadId }: { userMessage: string, threadId: string }): Promise<void>;
+	approveLatestToolRequest(threadId: string): void;
+	rejectLatestToolRequest(threadId: string): void;
+	jumpToCheckpointBeforeMessageIdx(opts: { threadId: string, messageIdx: number, jumpToUserModified: boolean }): void;
+	focusCurrentChat(): Promise<void>;
+	blurCurrentChat(): Promise<void>;
+}
 
 export interface ICompactingService {
 	readonly _serviceBrand: undefined;
@@ -39,11 +76,26 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 	constructor(
 		@ILLMMessageService private readonly llmMessageService: ILLMMessageService,
-		@IChatThreadService private readonly chatThreadService: IChatThreadService,
-		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
 		@IStorageService private readonly storageService: IStorageService,
+		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
 	) {
 		super();
+	}
+
+	// Lazy getter for chatThreadService to avoid circular dependency
+	private _chatThreadService: IChatThreadService | null = null;
+	private get chatThreadService(): IChatThreadService {
+		if (!this._chatThreadService) {
+			// Get service from instantiation service
+			const instantiationService = (this as any)._instantiationService;
+			if (!instantiationService) {
+				throw new Error('Instantiation service not available');
+			}
+			this._chatThreadService = instantiationService.invokeFunction((accessor: any) => {
+				return accessor.get(createDecorator<IChatThreadService>('voidChatThreadService'));
+			});
+		}
+		return this._chatThreadService!;
 	}
 
 	isCompacting(threadId: string): boolean {

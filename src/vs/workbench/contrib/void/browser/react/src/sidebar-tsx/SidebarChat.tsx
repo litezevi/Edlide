@@ -320,6 +320,33 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 	}, [threadId, isEdlideProvider, loadChatTokens]);
 
+	// Listen for compacting state changes
+	useEffect(() => {
+		const disposable = compactingService.onDidChangeCompactingState(({ threadId: eventThreadId, state }) => {
+			if (eventThreadId === threadId) {
+				setCompactingState(state);
+			}
+		});
+
+		return () => disposable.dispose();
+	}, [threadId, compactingService]);
+
+	// Start compacting when context reaches 80% and not already compacting
+	useEffect(() => {
+		const shouldStartCompacting = 
+			isEdlideProvider() && 
+			contextPercentage >= 80 && 
+			!compactingState?.isActive && 
+			!compactingService.isCompacting(threadId);
+
+		if (shouldStartCompacting) {
+			console.log(`[COMPACTING] Context at ${contextPercentage}%, starting compacting for thread ${threadId}`);
+			compactingService.startCompacting(threadId).catch(error => {
+				console.error(`[COMPACTING] Failed to start compacting:`, error);
+			});
+		}
+	}, [contextPercentage, threadId, isEdlideProvider, compactingState, compactingService]);
+
 	// Check if context is 80% or more full
 	const isContextHigh = contextPercentage >= 80;
 
@@ -329,7 +356,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		isEdlideProvider: isEdlideProvider(),
 		actualTotalTokens,
 		isApiVerified,
-		isContextHigh
+		isContextHigh,
+		compactingState
 	};
 };
 
@@ -489,19 +517,41 @@ const CompactingIndicator = () => {
 	);
 };
 
-const CompactingSystemMessage = () => {
+const CompactingSystemMessage = ({ compactingState }: { compactingState?: CompactingState | null }) => {
 	const [isOpen, setIsOpen] = useState(true); // Start open like ReasoningWrapper
+
+	// Определяем состояние: compacting... или compacted
+	const isCompacting = compactingState?.isActive === true;
+	const isCompacted = compactingState?.isActive === false && compactingState?.summaryText;
 
 	return (
 		<ToolHeaderWrapper
-			title='Compacting'
-			desc1={<IconCompacting />}
+			title={isCompacted ? 'Compacted' : 'Compacting'}
+			desc1={isCompacted ? '✓' : <IconCompacting />}
 			isOpen={isOpen}
 			onClick={() => setIsOpen(v => !v)}
 		>
 			<ToolChildrenWrapper>
 				<div className='!select-text cursor-auto text-void-fg-4 text-xs'>
-					Context window is reaching 80% capacity. The system is optimizing memory usage to maintain performance.
+					{isCompacting ? (
+						<>
+							<div className="mb-1">Summarizing conversation...</div>
+							{compactingState.summaryText && (
+								<div className="mt-1 text-void-fg-3 text-xs italic">
+									"{compactingState.summaryText}"
+								</div>
+							)}
+						</>
+					) : isCompacted ? (
+						<>
+							<div className="mb-1">Context summarized and reset</div>
+							<div className="mt-1 text-void-fg-3 text-xs italic">
+								"{compactingState.summaryText}"
+							</div>
+						</>
+					) : (
+						'Context window is reaching 80% capacity. The system is optimizing memory usage to maintain performance.'
+					)}
 				</div>
 			</ToolChildrenWrapper>
 		</ToolHeaderWrapper>

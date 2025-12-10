@@ -231,6 +231,8 @@ try {
 - Cancellation support with `CancellationTokenSource`
 - Integration with existing chat and AI services
 - Token reset functionality
+- **Исправление циклической зависимости**: Использован локальный интерфейс `IChatThreadService` вместо импорта для избежания циклической зависимости
+- **Ленивая загрузка сервиса**: `chatThreadService` получается через `instantiationService.invokeFunction` при первом использовании
 
 ### 3. `src/vs/workbench/contrib/void/browser/void.contribution.ts`
 - Added import: `import './compactingService.js'`
