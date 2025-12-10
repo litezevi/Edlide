@@ -141,10 +141,10 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 			console.log(`[COMPACTING] Compacting completed for thread ${threadId}, summary length: ${summary.length}`);
 
-			// 5. Добавляем summarized сообщение в чат ПЕРЕД сбросом контекста
-			this.addSummaryToChat(threadId, summary);
+			// 5. Создаем summary в НОВОМ thread ПЕРЕД сбросом контекста старого thread
+			await this.createSummaryInNewThread(threadId, summary);
 
-			// 6. Сбрасываем контекстные токены ПОСЛЕ добавления сообщения
+			// 6. Сбрасываем контекстные токены старого thread ПОСЛЕ создания нового
 			this.resetContextTokens(threadId);
 
 			// 7. ВОССТАНАВЛИВАЕМ СОСТОЯНИЕ ЧАТА - просто очищаем стрим состояние
@@ -392,20 +392,48 @@ export class CompactingService extends Disposable implements ICompactingService 
 		}
 	}
 
-private addSummaryToChat(threadId: string, summary: string): void {
+private async createSummaryInNewThread(oldThreadId: string, summary: string): Promise<void> {
 		try {
-			// Используем нативный метод добавления сообщения пользователя
-			// Это автоматически триггерит правильные события и не остановит чат
+			console.log(`[COMPACTING] Creating summary in new thread from old thread: ${oldThreadId}`);
+			
+			// 1. Создать новый thread (метод автоматически делает его текущим)
+			this.chatThreadService.openNewThread();
+			
+			// 2. Получить ID нового thread (он должен быть текущим)
+			const newThreadId = this.chatThreadService.state.currentThreadId;
+			if (!newThreadId) {
+				throw new Error('Failed to get new thread ID after opening new thread');
+			}
+			
+			console.log(`[COMPACTING] New thread created: ${newThreadId}`);
+			
+			// 3. Добавить summary как первое сообщение в новый thread
+			await this.chatThreadService.addUserMessageAndStreamResponse({
+				userMessage: `📝 **Previous conversation summary:**\n\n${summary}`,
+				threadId: newThreadId
+			});
+			
+			console.log(`[COMPACTING] Summary successfully added to new thread: ${newThreadId} (from old: ${oldThreadId})`);
+		} catch (error) {
+			console.error(`[COMPACTING] Failed to create summary in new thread:`, error);
+			// Fallback: добавить в старый thread если новый не создался
+			this.addSummaryToChatFallback(oldThreadId, summary);
+		}
+	}
+
+	private addSummaryToChatFallback(threadId: string, summary: string): void {
+		console.warn(`[COMPACTING] Using fallback: adding summary to old thread ${threadId}`);
+		try {
 			this.chatThreadService.addUserMessageAndStreamResponse({ 
-				userMessage: summary, 
+				userMessage: `📝 **Previous conversation summary:**\n\n${summary}`,
 				threadId: threadId 
 			}).then(() => {
-				console.log(`[COMPACTING] Summary added successfully, chat should continue working`);
+				console.log(`[COMPACTING] Fallback summary added successfully`);
 			}).catch((error: any) => {
-				console.error(`[COMPACTING] Error adding summary via native method:`, error);
+				console.error(`[COMPACTING] Error adding fallback summary:`, error);
 			});
 		} catch (error) {
-			console.error(`[COMPACTING] Error adding summary to chat for thread ${threadId}:`, error);
+			console.error(`[COMPACTING] Error in fallback for thread ${threadId}:`, error);
 		}
 	}
 }
