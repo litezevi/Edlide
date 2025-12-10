@@ -924,9 +924,9 @@ Active Context Update → Future Reference Complete
 **✅ MODEL REPLACEMENT & ADDITION - DeepSeek V3.2 + Kimi K2:**
 
 **🔄 MODELS UPDATED:**
-- **Replaced**: `deepseek-ai/DeepSeek-V3.2-Speciale` → `deepseek-ai/DeepSeek-V3.2-Speciale`
+- **Replaced**: `deepseek-ai/DeepSeek-V3.2` → `deepseek-ai/DeepSeek-V3.2`
 - **Added**: `moonshotai/Kimi-K2-Instruct-0905`
-- **UI Names**: `"deepseek-v3.2-speciale"` (short, user-friendly)
+- **UI Names**: `"deepseek-v3.2"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
 **🏗️ TECHNICAL IMPLEMENTATION:**
@@ -936,7 +936,7 @@ Active Context Update → Future Reference Complete
 // modelCapabilities.ts - Backend model definitions
 edlide: [
   'zai-org/GLM-4.6:THINKING',
-  'deepseek-ai/DeepSeek-V3.2-Speciale',    // Replaced V3.1-Terminus
+  'deepseek-ai/DeepSeek-V3.2',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
   'moonshotai/Kimi-K2-Instruct-0905',  // New model added
   'openai/gpt-oss-20b' // Hidden SCM-only
@@ -945,7 +945,7 @@ edlide: [
 // UI display name mapping in both ModelDropdown.tsx and Settings.tsx
 const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
   if (providerName === 'edlide') {
-    if (modelName === 'deepseek-ai/DeepSeek-V3.2-Speciale') return 'deepseek-v3.2-speciale'
+    if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 
   }
   return modelName
@@ -955,7 +955,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 **Updated Model Capabilities:**
 ```typescript
 // DeepSeek V3.2-Exp Configuration
-'deepseek-ai/DeepSeek-V3.2-Speciale': {
+'deepseek-ai/DeepSeek-V3.2': {
   contextWindow: 163840,
   reservedOutputTokenSpace: 8192, // 95% context utilization
   cost: { input: 0, output: 0 },
@@ -1025,7 +1025,7 @@ for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models
 **📊 USER EXPERIENCE TRANSFORMED:**
 - **Model Management**: Users can now properly hide/unhide models in Settings
 - **UI Consistency**: Model names identical in Settings and Chat dropdowns
-- **Clean Interface**: Friendly short names (`deepseek-v3.2-speciale`) throughout UI
+- **Clean Interface**: Friendly short names (`deepseek-v3.2`) throughout UI
 - **Backend Compatibility**: Full API names preserved for provider communication
 - **Immediate Sync**: Model disable/enable changes reflect instantly everywhere
 
@@ -1351,7 +1351,7 @@ OUTPUT VALIDATION CHECKLIST:
   Available for messages: 194,560 tokens (+24,576!)
 }
 
-'deepseek-ai/DeepSeek-V3.2-Speciale': {
+'deepseek-ai/DeepSeek-V3.2': {
   contextWindow: 163840,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 155,648 tokens (+24,576!)

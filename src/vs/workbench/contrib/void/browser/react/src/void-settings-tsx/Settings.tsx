@@ -33,7 +33,7 @@ import { VSBuffer } from '../../../../../../../base/common/buffer.js';
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6:THINKING') return 'glm-4.6'
-		if (modelName === 'deepseek-ai/DeepSeek-V3.2-Speciale') return 'deepseek-v3.2-speciale'
+		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 	    if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'

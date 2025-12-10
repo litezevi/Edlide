@@ -79,7 +79,7 @@ export const defaultModelsOfProvider = {
 		'zai-org/GLM-4.6:THINKING',
 		//'moonshotai/Kimi-K2-Instruct-0905',
 		'MiniMaxAI/MiniMax-M2:THINKING',
-		'deepseek-ai/DeepSeek-V3.2-Speciale',
+		'deepseek-ai/DeepSeek-V3.2',
 		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
 		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
 	],
@@ -1139,7 +1139,7 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-	'deepseek-ai/DeepSeek-V3.2-Speciale': {
+	'deepseek-ai/DeepSeek-V3.2': {
 		contextWindow: 20_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
