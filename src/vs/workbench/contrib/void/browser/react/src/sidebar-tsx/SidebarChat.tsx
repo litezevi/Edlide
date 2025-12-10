@@ -336,20 +336,37 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		const disposable = compactingService.onDidChangeCompactingState(({ threadId: eventThreadId, state }) => {
 			if (eventThreadId === threadId) {
 				setCompactingState(state);
+				console.log(`[COMPACTING] State updated for thread ${threadId}:`, { isActive: state?.isActive, hasSummary: !!state?.summaryText });
 			}
 		});
 
 		return () => disposable.dispose();
 	}, [threadId, compactingService]);
 
+	// Initialize compacting state for new threads - ensure clean state
+	useEffect(() => {
+		const currentCompactingState = compactingService.getCompactingState(threadId);
+		if (currentCompactingState) {
+			setCompactingState(currentCompactingState);
+			console.log(`[COMPACTING] Initialized compacting state for thread ${threadId}:`, { isActive: currentCompactingState?.isActive, hasSummary: !!currentCompactingState?.summaryText });
+		} else {
+			// Ensure clean state for new threads
+			setCompactingState(null);
+			console.log(`[COMPACTING] Clean compacting state for new thread ${threadId}`);
+		}
+	}, [threadId, compactingService]);
+
 	// Start compacting when context reaches 80% and not already compacting
 	useEffect(() => {
+		// Check if this specific thread has already been compacted (has completed compacting state)
+		const hasThisThreadBeenCompacted = compactingState?.isActive === false && compactingState?.summaryText;
+		
 		const shouldStartCompacting = 
 			isEdlideProvider() && 
 			contextPercentage >= 80 && 
 			!compactingState?.isActive && 
 			!compactingService.isCompacting(threadId) &&
-			!compactingState?.summaryText; // Prevent re-starting after completion
+			!hasThisThreadBeenCompacted; // Only prevent re-compacting for this specific thread
 
 		if (shouldStartCompacting) {
 			console.log(`[COMPACTING] Context at ${contextPercentage}%, stopping chat and starting compacting for thread ${threadId}`);

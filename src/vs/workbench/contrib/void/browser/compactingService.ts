@@ -410,13 +410,21 @@ private async createSummaryInNewThread(oldThreadId: string, summary: string): Pr
 			
 			console.log(`[COMPACTING] New thread created: ${newThreadId}`);
 			
-			// 3. Добавить summary как первое сообщение в новый thread
+			// 3. УБЕДИТЬСЯ ЧТО НОВЫЙ THREAD НАЧИНАЕТ С ЧИСТОГО СОСТОЯНИЯ COMPACTING
+			// Очищаем любое compacting состояние для нового thread
+			if (this.compactingStates.has(newThreadId)) {
+				this.compactingStates.delete(newThreadId);
+				console.log(`[COMPACTING] Cleared any existing compacting state for new thread: ${newThreadId}`);
+			}
+			
+			// 4. Добавить summary как первое сообщение в новый thread
 			await this.chatThreadService.addUserMessageAndStreamResponse({
 				userMessage: `📝 **Previous conversation summary:**\n\n${summary}`,
 				threadId: newThreadId
 			});
 			
 			console.log(`[COMPACTING] Summary successfully added to new thread: ${newThreadId} (from old: ${oldThreadId})`);
+			console.log(`[COMPACTING] New thread ${newThreadId} is now ready for compacting when it reaches 80% context`);
 		} catch (error) {
 			console.error(`[COMPACTING] Failed to create summary in new thread:`, error);
 			// Fallback: добавить в старый thread если новый не создался
