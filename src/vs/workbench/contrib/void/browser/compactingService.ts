@@ -147,6 +147,19 @@ export class CompactingService extends Disposable implements ICompactingService 
 			// 6. Сбрасываем контекстные токены ПОСЛЕ добавления сообщения
 			this.resetContextTokens(threadId);
 
+			// 7. ВОССТАНАВЛИВАЕМ СОСТОЯНИЕ ЧАТА - просто очищаем стрим состояние
+			try {
+				// Принудительно очищаем состояние стрима
+				(this.chatThreadService as any)._setStreamState(threadId, undefined);
+				
+				// Запускаем событие что чат обновился
+				this.chatThreadService._onDidChangeCurrentThread.fire();
+				
+				console.log('[COMPACTING] Chat reactivated - ready for new messages');
+			} catch (error) {
+				console.warn('[COMPACTING] Error reactivating chat:', error);
+			}
+
 		} catch (error) {
 			console.error(`[COMPACTING] Error during compacting for thread ${threadId}:`, error);
 
@@ -379,44 +392,18 @@ export class CompactingService extends Disposable implements ICompactingService 
 		}
 	}
 
-	private addSummaryToChat(threadId: string, summary: string): void {
+private addSummaryToChat(threadId: string, summary: string): void {
 		try {
-			// Получаем текущий thread
-			const thread = this.chatThreadService.state.allThreads[threadId];
-			if (thread) {
-				// Создаем сообщение от пользователя с саммари от AI
-				const userMessageWithSummary = {
-					role: 'user' as const,
-					content: summary,
-					displayContent: summary,
-					selections: null as any,
-					state: {
-						stagingSelections: [] as any[],
-						isBeingEdited: false
-					}
-				};
-
-				// Получаем текущее состояние
-				const currentState = this.chatThreadService.state;
-				
-				// Добавляем сообщение в thread как первое сообщение в новом контексте
-				const updatedThread = {
-					...thread,
-					messages: [...thread.messages, userMessageWithSummary]
-				};
-
-				// Обновляем состояние
-				const newState = {
-					...currentState,
-					allThreads: {
-						...currentState.allThreads,
-						[threadId]: updatedThread
-					}
-				};
-
-				this.chatThreadService.dangerousSetState(newState);
-				console.log(`[COMPACTING] Added summary as user message to thread ${threadId}, length: ${summary.length}`);
-			}
+			// Используем нативный метод добавления сообщения пользователя
+			// Это автоматически триггерит правильные события и не остановит чат
+			this.chatThreadService.addUserMessageAndStreamResponse({ 
+				userMessage: summary, 
+				threadId: threadId 
+			}).then(() => {
+				console.log(`[COMPACTING] Summary added successfully, chat should continue working`);
+			}).catch((error: any) => {
+				console.error(`[COMPACTING] Error adding summary via native method:`, error);
+			});
 		} catch (error) {
 			console.error(`[COMPACTING] Error adding summary to chat for thread ${threadId}:`, error);
 		}
