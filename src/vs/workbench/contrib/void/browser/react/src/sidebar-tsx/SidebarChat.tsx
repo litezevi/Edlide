@@ -66,7 +66,7 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			(window as any).__voidChatThreadService = chatThreadService;
 		}
 		(globalThis as any).__voidChatThreadService = chatThreadService;
-		
+
 		// Also set it directly on compacting service
 		compactingService.setChatThreadService(chatThreadService);
 	}, [chatThreadService, compactingService]);
@@ -143,24 +143,24 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		// Model-specific context limits
 		const getModelContextLimit = (modelName: string): number => {
 			if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-				return 20000; // kimi-k2: 256k tokens
+				return 262144; // kimi-k2: 256k tokens
 			}
 			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
-				return 20000; // glm-4.6: 200k tokens
+				return 202752; // glm-4.6: 200k tokens
 			}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
-			return 20000; // deepseek v3.1 terminus: 162k tokens
+			return 163840; // deepseek v3.1 terminus: 162k tokens
 		}
 		if (modelName.includes('deepseek-v3.2') || modelName.includes('deepseek-ai/DeepSeek-V3.2')) {
-			return 20000; // deepseek v3.1 terminus: 162k tokens (exact match)
+			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
-			return 20000; // Minimax M2: 200k tokens
+			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
-			return 20000; // deepseek v3.1 variants: 162k tokens
+			return 163840; // deepseek v3.1 variants: 162k tokens
 		}
-		return 20000; // Default fallback
+		return 128000; // Default fallback
 		};
 
   	const maxContextTokens = getModelContextLimit(modelName);
@@ -360,22 +360,22 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	useEffect(() => {
 		// Check if this specific thread has already been compacted (has completed compacting state)
 		const hasThisThreadBeenCompacted = compactingState?.isActive === false && compactingState?.summaryText;
-		
+
 		// Check if thread is marked as compacted in thread state
 		const currentThread = chatThreadService.getCurrentThread();
 		const isThreadMarkedAsCompacted = currentThread?.state.isCompacted;
-		
-		const shouldStartCompacting = 
-			isEdlideProvider() && 
-			contextPercentage >= 80 && 
-			!compactingState?.isActive && 
+
+		const shouldStartCompacting =
+			isEdlideProvider() &&
+			contextPercentage >= 80 &&
+			!compactingState?.isActive &&
 			!compactingService.isCompacting(threadId) &&
 			!hasThisThreadBeenCompacted && // Only prevent re-compacting for this specific thread
 			!isThreadMarkedAsCompacted; // Prevent compacting for threads marked as compacted
 
 		if (shouldStartCompacting) {
 			console.log(`[COMPACTING] Context at ${contextPercentage}%, stopping chat and starting compacting for thread ${threadId}`);
-			
+
 			// 1. СНАЧАЛА ОСТАНАВЛИВАЕМ ЧАТ
 			try {
 				chatThreadService.abortRunning(threadId).then(() => {
@@ -3403,24 +3403,24 @@ export const SidebarChat = () => {
 
 	const getModelContextLimit = (modelName: string): number => {
 		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-			return 20000; // kimi-k2: 256k tokens
+			return 262144; // kimi-k2: 256k tokens
 		}
 		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
-			return 20000; // glm-4.6: 200k tokens
+			return 202752; // glm-4.6: 200k tokens
 		}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
-			return 20000; // deepseek v3.1 terminus: 162k tokens
+			return 163840; // deepseek v3.1 terminus: 162k tokens
 		}
 		if (modelName.includes('deepseek-v3.2') || modelName.includes('deepseek-ai/DeepSeek-V3.2')) {
-			return 20000; // deepseek v3.1 terminus: 162k tokens (exact match)
+			return 163840; // deepseek v3.1 terminus: 162k tokens (exact match)
 		}
 		if (modelName.includes('MiniMax-M2') || modelName.includes('MiniMaxAI/MiniMax-M2:THINKING')) {
-			return 20000; // Minimax M2: 200k tokens
+			return 196608; // Minimax M2: 200k tokens
 		}
-		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
-			return 20000; // deepseek v3.1 variants: 162k tokens
+		if (modelName.includes('deepseek') && (modelName.includes('v3.2') || modelName.includes('V3.2'))) {
+			return 163840; // deepseek v3.1 variants: 162k tokens
 		}
-		return 20000; // Default fallback
+		return 128000; // Default fallback
 	};
 
   	const maxTokens = getModelContextLimit(modelName);
