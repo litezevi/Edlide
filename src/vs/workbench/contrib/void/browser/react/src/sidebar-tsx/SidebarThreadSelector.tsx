@@ -226,7 +226,7 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	>
 		{pastThread.state.isCompacted && (
 			<>
-				<span className='text-void-warning opacity-80 font-medium'>Compacted</span>
+				<span className='text-void-fg-3 opacity-60 font-medium'>Compacted</span>
 				{` • `}
 			</>
 		)}
