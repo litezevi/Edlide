@@ -1261,6 +1261,13 @@ We only need to do it for files that were edited since `from`, ie files between 
 		const thread = this.state.allThreads[threadId]
 		if (!thread) return // should never happen
 
+		// Prevent sending messages in compacted threads
+		if (thread.state.isCompacted) {
+			console.log(`[COMPACTING] Cannot send message to compacted thread ${threadId}`)
+			this._notificationService.info('This conversation has been compacted. Please start a new chat to continue.')
+			return
+		}
+
 		// interrupt existing stream
 		if (this.streamState[threadId]?.isRunning) {
 			await this.abortRunning(threadId)

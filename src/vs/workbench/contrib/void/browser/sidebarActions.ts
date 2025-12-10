@@ -170,7 +170,16 @@ registerAction2(class extends Action2 {
 		
 		// Check if current thread is compacting - prevent new chat creation during compacting
 		const currentThreadId = chatThreadsService.state.currentThreadId
-		if (compactingService.isCompacting(currentThreadId)) {
+		const isCurrentlyCompacting = compactingService.isCompacting(currentThreadId)
+		const compactingState = compactingService.getCompactingState(currentThreadId)
+		
+		console.log('[COMPACTING] New Chat action check:', {
+			threadId: currentThreadId,
+			isCompacting: isCurrentlyCompacting,
+			compactingState: compactingState
+		})
+		
+		if (isCurrentlyCompacting) {
 			console.log('[COMPACTING] New Chat action blocked - compacting in progress for thread:', currentThreadId)
 			notificationService.info('Please wait: Compacting conversation context... Cannot create new chat during this process.')
 			return // Block the action during compacting with user feedback
@@ -234,9 +243,18 @@ registerAction2(class extends Action2 {
 		const compactingService = accessor.get(ICompactingService)
 		const notificationService = accessor.get(INotificationService)
 		
-		// Check if current thread is compacting - prevent history action during compacting
+// Check if current thread is compacting - prevent history action during compacting
 		const currentThreadId = chatThreadsService.state.currentThreadId
-		if (compactingService.isCompacting(currentThreadId)) {
+		const isCurrentlyCompacting = compactingService.isCompacting(currentThreadId)
+		const compactingState = compactingService.getCompactingState(currentThreadId)
+		
+		console.log('[COMPACTING] View Past Chats action check:', {
+			threadId: currentThreadId,
+			isCompacting: isCurrentlyCompacting,
+			compactingState: compactingState
+		})
+		
+		if (isCurrentlyCompacting) {
 			console.log('[COMPACTING] View Past Chats action blocked - compacting in progress for thread:', currentThreadId)
 			notificationService.info('Please wait: Compacting conversation context... Cannot view past chats during this process.')
 			return // Block the action during compacting with user feedback

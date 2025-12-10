@@ -99,6 +99,13 @@ export class CompactingService extends Disposable implements ICompactingService 
 			return;
 		}
 
+		// Проверяем, не помечен ли чат как compacted
+		const currentThread = this.chatThreadService.getCurrentThread();
+		if (currentThread?.state.isCompacted) {
+			console.log(`[COMPACTING] Thread ${threadId} is already marked as compacted, skipping compacting`);
+			return;
+		}
+
 		// Создаем токен отмены
 		const cancellationTokenSource = new CancellationTokenSource();
 		this.compactingCancellations.set(threadId, cancellationTokenSource);

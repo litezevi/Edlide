@@ -361,12 +361,17 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		// Check if this specific thread has already been compacted (has completed compacting state)
 		const hasThisThreadBeenCompacted = compactingState?.isActive === false && compactingState?.summaryText;
 		
+		// Check if thread is marked as compacted in thread state
+		const currentThread = chatThreadService.getCurrentThread();
+		const isThreadMarkedAsCompacted = currentThread?.state.isCompacted;
+		
 		const shouldStartCompacting = 
 			isEdlideProvider() && 
 			contextPercentage >= 80 && 
 			!compactingState?.isActive && 
 			!compactingService.isCompacting(threadId) &&
-			!hasThisThreadBeenCompacted; // Only prevent re-compacting for this specific thread
+			!hasThisThreadBeenCompacted && // Only prevent re-compacting for this specific thread
+			!isThreadMarkedAsCompacted; // Prevent compacting for threads marked as compacted
 
 		if (shouldStartCompacting) {
 			console.log(`[COMPACTING] Context at ${contextPercentage}%, stopping chat and starting compacting for thread ${threadId}`);
