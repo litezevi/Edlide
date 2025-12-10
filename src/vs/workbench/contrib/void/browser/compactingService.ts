@@ -92,7 +92,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 	async startCompacting(threadId: string): Promise<void> {
 		console.log(`[COMPACTING] startCompacting called for thread ${threadId}`);
-		
+
 		// Если уже в процессе compacting, ничего не делаем
 		if (this.isCompacting(threadId)) {
 			console.log(`[COMPACTING] Already compacting thread ${threadId}`);
@@ -124,7 +124,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 			// Новый запрос автоматически остановит предыдущий
 			console.log('[COMPACTING] Sending summarization request (will stop any active requests)...');
 			const summary = await this.sendSummarizationRequest(threadId, cancellationTokenSource.token);
-			
+
 			console.log(`[COMPACTING] Received summary: ${summary.substring(0, 100)}...`);
 
 			// 4. Обновляем состояние compacting как завершенное
@@ -154,10 +154,10 @@ export class CompactingService extends Disposable implements ICompactingService 
 			try {
 				// Принудительно очищаем состояние стрима
 				(this.chatThreadService as any)._setStreamState(threadId, undefined);
-				
+
 				// Запускаем событие что чат обновился
 				this.chatThreadService._onDidChangeCurrentThread.fire();
-				
+
 				console.log('[COMPACTING] Chat reactivated - ready for new messages');
 			} catch (error) {
 				console.warn('[COMPACTING] Error reactivating chat:', error);
@@ -239,7 +239,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 	}
 
 	private async sendSummarizationRequest(
-		threadId: string, 
+		threadId: string,
 		cancellationToken: CancellationToken
 	): Promise<string> {
 		return new Promise((resolve, reject) => {
@@ -251,8 +251,8 @@ export class CompactingService extends Disposable implements ICompactingService 
 			let accumulatedText = '';
 			let isCompleted = false;
 
-			const prompt = "Сделай саммари того что ты сделал и что нужно сделать";
-			
+			const prompt = "Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions. This summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing development work without losing context.\n\n1. Chronologically analyze each message and section of the conversation. For each section thoroughly identify:\n   - The user's explicit requests and intents\n   - Your approach to addressing the user's requests\n   - Key decisions, technical concepts and code patterns\n   - Specific details like file names, full code snippets, function signatures, file edits, etc\n2. Double-check for technical accuracy and completeness, addressing each required element thoroughly.\n\nYour summary should include the following sections:\n\n1. Primary Request and Intent: Capture all of the user's explicit requests and intents in detail\n2. Key Technical Concepts: List all important technical concepts, technologies, and frameworks discussed.\n3. Files and Code Sections: Enumerate specific files and code sections examined, modified, or created. Pay special attention to the most recent messages and include full code snippets where applicable and include a summary of why this file read or edit is important.\n4. Problem Solving: Document problems solved and any ongoing troubleshooting efforts.\n5. Pending Tasks: Outline any pending tasks that you have explicitly been asked to work on.\n6. Current Work: Describe in detail precisely what was being worked on immediately before this summary request, paying special attention to the most recent messages from both user and assistant. Include file names and code snippets where applicable.\n7. Optional Next Step: List the next step that you will take that is related to the most recent work you were doing. IMPORTANT: ensure that this step is DIRECTLY in line with the user's explicit requests, and the task you were working on immediately before this summary request. If your last task was concluded, then only list next steps if they are explicitly in line with the users request. Do not start on tangential requests without confirming with the user first.\n8. If there is a next step, include direct quotes from the most recent conversation showing exactly what task you were working on and where you left off. This should be verbatim to ensure there's no drift in task interpretation.\n\nPlease provide your summary based on the conversation so far, following this structure and ensuring precision and thoroughness in your response. IMPORTANT: Do not use any markdown formatting, **bold** text, or any other formatting. Provide your response as plain text only.";
+
 			// Получаем настройки модели для Chat фичи
 			const modelSelection = this.voidSettingsService.state.modelSelectionOfFeature['Chat'];
 			if (!modelSelection) {
@@ -278,8 +278,8 @@ export class CompactingService extends Disposable implements ICompactingService 
 			}
 
 			// Добавляем наш prompt в конец
-			messagesToSend.push({ 
-				role: 'user', 
+			messagesToSend.push({
+				role: 'user',
 				content: prompt
 			});
 
@@ -293,11 +293,11 @@ export class CompactingService extends Disposable implements ICompactingService 
 				modelSelection,
 				modelSelectionOptions: this.voidSettingsService.state.optionsOfModelSelection['Chat']?.[modelSelection.providerName as keyof typeof this.voidSettingsService.state.optionsOfModelSelection['Chat']]?.[modelSelection.modelName],
 				overridesOfModel: this.voidSettingsService.state.overridesOfModel,
-				logging: { 
-					loggingName: `Compacting - ${threadId}`, 
-					loggingExtras: { threadId, compacting: true } 
+				logging: {
+					loggingName: `Compacting - ${threadId}`,
+					loggingExtras: { threadId, compacting: true }
 				},
-				separateSystemMessage: "You are summarizing our conversation. Based on the messages above, provide a concise summary of what we've accomplished and what needs to be done next. Keep it brief and focused.",
+				separateSystemMessage: "Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions. This summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing development work without losing context.\n\n1. Chronologically analyze each message and section of the conversation. For each section thoroughly identify:\n   - The user's explicit requests and intents\n   - Your approach to addressing the user's requests\n   - Key decisions, technical concepts and code patterns\n   - Specific details like file names, full code snippets, function signatures, file edits, etc\n2. Double-check for technical accuracy and completeness, addressing each required element thoroughly.\n\nYour summary should include the following sections:\n\n1. Primary Request and Intent: Capture all of the user's explicit requests and intents in detail\n2. Key Technical Concepts: List all important technical concepts, technologies, and frameworks discussed.\n3. Files and Code Sections: Enumerate specific files and code sections examined, modified, or created. Pay special attention to the most recent messages and include full code snippets where applicable and include a summary of why this file read or edit is important.\n4. Problem Solving: Document problems solved and any ongoing troubleshooting efforts.\n5. Pending Tasks: Outline any pending tasks that you have explicitly been asked to work on.\n6. Current Work: Describe in detail precisely what was being worked on immediately before this summary request, paying special attention to the most recent messages from both user and assistant. Include file names and code snippets where applicable.\n7. Optional Next Step: List the next step that you will take that is related to the most recent work you were doing. IMPORTANT: ensure that this step is DIRECTLY in line with the user's explicit requests, and the task you were working on immediately before this summary request. If your last task was concluded, then only list next steps if they are explicitly in line with the users request. Do not start on tangential requests without confirming with the user first.\n8. If there is a next step, include direct quotes from the most recent conversation showing exactly what task you were working on and where you left off. This should be verbatim to ensure there's no drift in task interpretation.\n\nPlease provide your summary based on the conversation so far, following this structure and ensuring precision and thoroughness in your response. IMPORTANT: Do not use any markdown formatting, **bold** text, or any other formatting. Provide your response as plain text only.",
 				onText: ({ fullText, totalTokens }) => {
 					if (cancellationToken.isCancellationRequested && llmCancelToken) {
 						this.llmMessageService.abort(llmCancelToken);
@@ -305,10 +305,10 @@ export class CompactingService extends Disposable implements ICompactingService 
 					}
 
 					accumulatedText = fullText;
-					
+
 					// Обновляем прогресс (оценка по длине текста)
 					const progress = Math.min(99, Math.floor((accumulatedText.length / 500) * 100));
-					
+
 					const currentState = this.compactingStates.get(threadId);
 					if (currentState) {
 						const updatedState: CompactingState = {
@@ -357,7 +357,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 		// Сбрасываем сохраненные токены в persistent storage
 		try {
 			const CHAT_TOKENS_STORAGE_KEY = 'void.chatTokens';
-			
+
 			// 1. Сбрасываем в persistent storage
 			const storedTokens = this.storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION);
 			if (storedTokens) {
@@ -395,34 +395,34 @@ export class CompactingService extends Disposable implements ICompactingService 
 		}
 	}
 
-private async createSummaryInNewThread(oldThreadId: string, summary: string): Promise<void> {
+	private async createSummaryInNewThread(oldThreadId: string, summary: string): Promise<void> {
 		try {
 			console.log(`[COMPACTING] Creating summary in new thread from old thread: ${oldThreadId}`);
-			
+
 			// 1. Создать новый thread (метод автоматически делает его текущим)
 			this.chatThreadService.openNewThread();
-			
+
 			// 2. Получить ID нового thread (он должен быть текущим)
 			const newThreadId = this.chatThreadService.state.currentThreadId;
 			if (!newThreadId) {
 				throw new Error('Failed to get new thread ID after opening new thread');
 			}
-			
+
 			console.log(`[COMPACTING] New thread created: ${newThreadId}`);
-			
+
 			// 3. УБЕДИТЬСЯ ЧТО НОВЫЙ THREAD НАЧИНАЕТ С ЧИСТОГО СОСТОЯНИЯ COMPACTING
 			// Очищаем любое compacting состояние для нового thread
 			if (this.compactingStates.has(newThreadId)) {
 				this.compactingStates.delete(newThreadId);
 				console.log(`[COMPACTING] Cleared any existing compacting state for new thread: ${newThreadId}`);
 			}
-			
+
 			// 4. Добавить summary как первое сообщение в новый thread
 			await this.chatThreadService.addUserMessageAndStreamResponse({
-				userMessage: `📝 **Previous conversation summary:**\n\n${summary}`,
+				userMessage: `${summary}`,
 				threadId: newThreadId
 			});
-			
+
 			console.log(`[COMPACTING] Summary successfully added to new thread: ${newThreadId} (from old: ${oldThreadId})`);
 			console.log(`[COMPACTING] New thread ${newThreadId} is now ready for compacting when it reaches 80% context`);
 		} catch (error) {
@@ -435,9 +435,9 @@ private async createSummaryInNewThread(oldThreadId: string, summary: string): Pr
 	private addSummaryToChatFallback(threadId: string, summary: string): void {
 		console.warn(`[COMPACTING] Using fallback: adding summary to old thread ${threadId}`);
 		try {
-			this.chatThreadService.addUserMessageAndStreamResponse({ 
-				userMessage: `📝 **Previous conversation summary:**\n\n${summary}`,
-				threadId: threadId 
+			this.chatThreadService.addUserMessageAndStreamResponse({
+				userMessage: `${summary}`,
+				threadId: threadId
 			}).then(() => {
 				console.log(`[COMPACTING] Fallback summary added successfully`);
 			}).catch((error: any) => {

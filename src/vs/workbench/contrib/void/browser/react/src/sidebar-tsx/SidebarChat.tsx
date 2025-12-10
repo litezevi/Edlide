@@ -577,7 +577,6 @@ const CompactingSystemMessage = ({ compactingState }: { compactingState?: Compac
 				<div className='!select-text cursor-auto text-void-fg-4 text-xs'>
 					{isCompacting ? (
 						<>
-							<div className="mb-1">Summarizing conversation...</div>
 							{compactingState.summaryText && (
 								<div className="mt-1 text-void-fg-3 text-xs italic">
 									"{compactingState.summaryText}"
