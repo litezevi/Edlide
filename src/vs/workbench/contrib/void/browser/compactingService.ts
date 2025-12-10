@@ -13,43 +13,8 @@ import { CompactingState } from '../common/chatThreadServiceTypes.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 
-// Use interface without importing implementation to avoid circular dependency
-export interface IChatThreadService {
-	readonly _serviceBrand: undefined;
-	readonly state: any;
-	readonly streamState: any;
-	onDidChangeCurrentThread: Event<void>;
-	onDidChangeStreamState: Event<{ threadId: string }>;
-	getCurrentThread(): any;
-	openNewThread(): void;
-	switchToThread(threadId: string): void;
-	deleteThread(threadId: string): void;
-	duplicateThread(threadId: string): void;
-	getCurrentMessageState(messageIdx: number): any;
-	setCurrentMessageState(messageIdx: number, newState: any): void;
-	getCurrentThreadState(): any;
-	setCurrentThreadState(newState: any): void;
-	getCurrentFocusedMessageIdx(): number | undefined;
-	isCurrentlyFocusingMessage(): boolean;
-	setCurrentlyFocusedMessageIdx(messageIdx: number | undefined): void;
-	popStagingSelections(numPops?: number): void;
-	addNewStagingSelection(newSelection: any): void;
-	dangerousSetState(newState: any): void;
-	resetState(): void;
-	getCodespanLink(opts: { codespanStr: string, messageIdx: number, threadId: string }): any | undefined;
-	addCodespanLink(opts: { newLinkText: string, newLinkLocation: any, messageIdx: number, threadId: string }): void;
-	generateCodespanLink(opts: { codespanStr: string, threadId: string }): Promise<any>;
-	getRelativeStr(uri: any): string | undefined;
-	abortRunning(threadId: string): Promise<void>;
-	dismissStreamError(threadId: string): void;
-	editUserMessageAndStreamResponse({ userMessage, messageIdx, threadId }: { userMessage: string, messageIdx: number, threadId: string }): Promise<void>;
-	addUserMessageAndStreamResponse({ userMessage, threadId }: { userMessage: string, threadId: string }): Promise<void>;
-	approveLatestToolRequest(threadId: string): void;
-	rejectLatestToolRequest(threadId: string): void;
-	jumpToCheckpointBeforeMessageIdx(opts: { threadId: string, messageIdx: number, jumpToUserModified: boolean }): void;
-	focusCurrentChat(): Promise<void>;
-	blurCurrentChat(): Promise<void>;
-}
+// Use any type to avoid circular dependency
+type ChatThreadServiceType = any;
 
 export interface ICompactingService {
 	readonly _serviceBrand: undefined;
@@ -61,6 +26,7 @@ export interface ICompactingService {
 	startCompacting(threadId: string): Promise<void>;
 	cancelCompacting(threadId: string): void;
 	getSummary(threadId: string): string;
+	setChatThreadService(chatThreadService: any): void;
 }
 
 export const ICompactingService = createDecorator<ICompactingService>('voidCompactingService');
@@ -73,6 +39,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 	private compactingStates = new Map<string, CompactingState>();
 	private compactingCancellations = new Map<string, CancellationTokenSource>();
+	private _chatThreadService: ChatThreadServiceType | null = null;
 
 	constructor(
 		@ILLMMessageService private readonly llmMessageService: ILLMMessageService,
@@ -82,20 +49,31 @@ export class CompactingService extends Disposable implements ICompactingService 
 		super();
 	}
 
-	// Lazy getter for chatThreadService to avoid circular dependency
-	private _chatThreadService: IChatThreadService | null = null;
-	private get chatThreadService(): IChatThreadService {
+	setChatThreadService(chatThreadService: ChatThreadServiceType): void {
+		this._chatThreadService = chatThreadService;
+	}
+
+	private get chatThreadService(): ChatThreadServiceType {
 		if (!this._chatThreadService) {
-			// Get service from instantiation service
-			const instantiationService = (this as any)._instantiationService;
-			if (!instantiationService) {
-				throw new Error('Instantiation service not available');
+			// Try to get from global window object (set by React components)
+			if (typeof window !== 'undefined') {
+				const globalService = (window as any).__voidChatThreadService;
+				if (globalService) {
+					this._chatThreadService = globalService;
+					return this._chatThreadService;
+				}
 			}
-			this._chatThreadService = instantiationService.invokeFunction((accessor: any) => {
-				return accessor.get(createDecorator<IChatThreadService>('voidChatThreadService'));
-			});
+
+			// Try from globalThis
+			const globalService = (globalThis as any).__voidChatThreadService;
+			if (globalService) {
+				this._chatThreadService = globalService;
+				return this._chatThreadService;
+			}
+
+			throw new Error('ChatThreadService not available - compacting cannot work without it');
 		}
-		return this._chatThreadService!;
+		return this._chatThreadService;
 	}
 
 	isCompacting(threadId: string): boolean {
@@ -113,6 +91,8 @@ export class CompactingService extends Disposable implements ICompactingService 
 	}
 
 	async startCompacting(threadId: string): Promise<void> {
+		console.log(`[COMPACTING] startCompacting called for thread ${threadId}`);
+		
 		// Если уже в процессе compacting, ничего не делаем
 		if (this.isCompacting(threadId)) {
 			console.log(`[COMPACTING] Already compacting thread ${threadId}`);
@@ -140,10 +120,9 @@ export class CompactingService extends Disposable implements ICompactingService 
 		console.log(`[COMPACTING] Starting compacting for thread ${threadId}`);
 
 		try {
-			// 1. Останавливаем текущий streaming если есть
-			await this.chatThreadService.abortRunning(threadId);
-
-			// 2. Отправляем запрос на summarization (AI уже имеет контекст)
+			// 1. Отправляем запрос на summarization (AI уже имеет контекст)
+			// Новый запрос автоматически остановит предыдущий
+			console.log('[COMPACTING] Sending summarization request (will stop any active requests)...');
 			const summary = await this.sendSummarizationRequest(threadId, cancellationTokenSource.token);
 			
 			// 4. Обновляем состояние compacting как завершенное
@@ -370,9 +349,42 @@ export class CompactingService extends Disposable implements ICompactingService 
 			// Получаем текущий thread
 			const thread = this.chatThreadService.state.allThreads[threadId];
 			if (thread) {
-				// TODO: Добавить compacting сообщение через chatThreadService
-				// Пока просто логируем
-				console.log(`[COMPACTING] Would add summary to thread ${threadId}, length: ${summary.length}`);
+				// Создаем compacting сообщение
+				const compactingMessage = {
+					role: 'compacting' as const,
+					content: summary,
+					displayContent: `📝 Context Summary: ${summary}`,
+					state: {
+						isActive: false,
+						summaryText: summary,
+						progress: 100,
+						error: null,
+						retryCount: 0,
+						threadId,
+						startedAt: Date.now()
+					}
+				};
+
+				// Получаем текущее состояние
+				const currentState = this.chatThreadService.state;
+				
+				// Добавляем сообщение в thread
+				const updatedThread = {
+					...thread,
+					messages: [...thread.messages, compactingMessage]
+				};
+
+				// Обновляем состояние
+				const newState = {
+					...currentState,
+					allThreads: {
+						...currentState.allThreads,
+						[threadId]: updatedThread
+					}
+				};
+
+				this.chatThreadService.dangerousSetState(newState);
+				console.log(`[COMPACTING] Added summary to thread ${threadId}, length: ${summary.length}`);
 			}
 		} catch (error) {
 			console.error(`[COMPACTING] Error adding summary to chat for thread ${threadId}:`, error);

@@ -60,6 +60,17 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	const storageService = accessor.get('IStorageService');
 	const compactingService = accessor.get('ICompactingService');
 
+	// Make chatThreadService globally available for compacting service
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			(window as any).__voidChatThreadService = chatThreadService;
+		}
+		(globalThis as any).__voidChatThreadService = chatThreadService;
+		
+		// Also set it directly on compacting service
+		compactingService.setChatThreadService(chatThreadService);
+	}, [chatThreadService, compactingService]);
+
 	const [contextPercentage, setContextPercentage] = useState(0);
 	const [showContextBar, setShowContextBar] = useState(false);
 	const [actualTotalTokens, setActualTotalTokens] = useState<number | null>(null);
@@ -340,12 +351,25 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			!compactingService.isCompacting(threadId);
 
 		if (shouldStartCompacting) {
-			console.log(`[COMPACTING] Context at ${contextPercentage}%, starting compacting for thread ${threadId}`);
+			console.log(`[COMPACTING] Context at ${contextPercentage}%, stopping chat and starting compacting for thread ${threadId}`);
+			
+			// 1. СНАЧАЛА ОСТАНАВЛИВАЕМ ЧАТ
+			try {
+				chatThreadService.abortRunning(threadId).then(() => {
+					console.log('[COMPACTING] Chat stopped successfully');
+				}).catch(error => {
+					console.warn('[COMPACTING] Could not stop chat:', error);
+				});
+			} catch (error) {
+				console.warn('[COMPACTING] Error stopping chat:', error);
+			}
+
+			// 2. ЗАТЕМ НАЧИНАЕМ COMPACTING
 			compactingService.startCompacting(threadId).catch(error => {
 				console.error(`[COMPACTING] Failed to start compacting:`, error);
 			});
 		}
-	}, [contextPercentage, threadId, isEdlideProvider, compactingState, compactingService]);
+	}, [contextPercentage, threadId, isEdlideProvider, compactingState, compactingService, chatThreadService]);
 
 	// Check if context is 80% or more full
 	const isContextHigh = contextPercentage >= 80;
@@ -3325,6 +3349,7 @@ export const SidebarChat = () => {
 	const commandService = accessor.get('ICommandService')
 	const chatThreadsService = accessor.get('IChatThreadService')
 	const voidSettingsService = accessor.get('IVoidSettingsService')
+	const compactingService = accessor.get('ICompactingService')
 
 	const settingsState = useSettingsState()
 	// ----- HIGHER STATE -----
@@ -3348,7 +3373,7 @@ export const SidebarChat = () => {
 	const toolIsGenerating = toolCallSoFar && !toolCallSoFar.isDone // show loading for slow tools (right now just edit)
 
 	// Context tracking for Edlide provider
-    const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified, isContextHigh } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
+    const { contextPercentage, showContextBar, isEdlideProvider, actualTotalTokens, isApiVerified, isContextHigh, compactingState } = useContextTracker(chatThreadsState.currentThreadId, 'Chat');
 
 	// Get current model and calculate exact token count for tooltip
 	const modelSelection = voidSettingsService.state.modelSelectionOfFeature['Chat'];
@@ -3504,7 +3529,7 @@ export const SidebarChat = () => {
 
 		{/* Compacting system message - shows when context is 80%+ full */}
 		{showContextBar && isContextHigh && (
-			<CompactingSystemMessage />
+			<CompactingSystemMessage compactingState={compactingState} />
 		)}
 
 		{/* loading indicator */}

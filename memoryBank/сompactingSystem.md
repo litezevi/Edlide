@@ -270,8 +270,126 @@ try {
 4. **Token Reset**: Confirm context counters are properly cleared
 5. **UI Integration**: Test progress display and error states
 
+## Current Implementation Status & Issues
+
+### ✅ What's Working
+1. **Context Detection**: ✅ Correctly detects when context reaches 80% capacity
+2. **Chat Stopping**: ✅ Chat is properly stopped when compacting begins
+3. **Animation Trigger**: ✅ "Compacting..." animation shows correctly
+4. **Service Integration**: ✅ CompactingService is registered and accessible
+5. **State Management**: ✅ CompactingState tracking works properly
+
+### ❌ Current Issues
+1. **Summarization Request**: ❌ Request is sent but no response is received
+2. **Real-time Streaming**: ❌ No streaming summary text appears in UI
+3. **Context Reset**: ❌ Context tokens are not reset after compacting
+4. **Summary Message**: ❌ Summary is not added as first message in new context window
+
+### 🔧 Recent Changes Made
+
+#### 1. Fixed Circular Dependency Issues
+**Problem**: `IChatThreadService` import caused circular dependency
+**Solution**: 
+- Removed direct import of `IChatThreadService` from `compactingService.ts`
+- Used `any` type and global service accessor pattern
+- Added `setChatThreadService()` method to `ICompactingService` interface
+
+#### 2. Enhanced Chat Stopping Logic
+**Problem**: Chat wasn't stopping when compacting started
+**Solution**:
+- Added explicit `chatThreadService.abortRunning(threadId)` call in `useContextTracker`
+- Chat stops BEFORE compacting process begins (not during)
+- Added error handling for chat stopping failures
+
+#### 3. Improved Service Access Pattern
+**Problem**: `ChatThreadService` was not available in `CompactingService`
+**Solution**:
+- Set global service reference in `useContextTracker` 
+- Added fallback to global window object
+- Added direct service injection via `setChatThreadService()` method
+
+#### 4. Updated React Integration
+**Files Modified**: `SidebarChat.tsx`
+- Added `compactingService` to `useAccessor()`
+- Enhanced `useContextTracker` with compacting state management
+- Added global service registration for compacting service
+- Connected `CompactingSystemMessage` with real compacting state
+
+#### 5. Fixed Type System
+**Files Modified**: `chatThreadServiceTypes.ts`
+- ✅ `CompactingState` type already defined
+- ✅ `CompactingMessage` type already defined  
+- ✅ `CompactingMessage` already added to `ChatMessage` union
+
+### 📋 Technical Implementation Details
+
+#### Service Registration (void.contribution.ts)
+```typescript
+// register Compacting service
+import './compactingService.js'  // ✅ Already registered
+```
+
+#### React Service Integration (services.tsx)
+```typescript
+// ✅ Already integrated in useAccessor hook
+const compactingService = accessor.get(ICompactingService);
+```
+
+#### UI Integration (SidebarChat.tsx)
+```typescript
+// ✅ CompactingSystemMessage shows when isContextHigh = true
+{showContextBar && isContextHigh && (
+    <CompactingSystemMessage compactingState={compactingState} />
+)}
+```
+
+### 🐛 Debug Information
+
+#### Current Flow
+1. ✅ Context reaches 80% → `isContextHigh = true`
+2. ✅ `useContextTracker` detects high context
+3. ✅ `chatThreadService.abortRunning(threadId)` called
+4. ✅ `CompactingSystemMessage` shows "Compacting..." animation
+5. ✅ `compactingService.startCompacting(threadId)` called
+6. ❌ `sendSummarizationRequest()` sends request but no response
+7. ❌ No streaming updates in UI
+8. ❌ Context tokens not reset
+9. ❌ Summary message not added to chat
+
+#### Error Logs
+```
+[COMPACTING] Context at 94.375%, starting compacting for thread xxx
+[COMPACTING] startCompacting called for thread xxx
+[COMPACTING] Starting compacting for thread xxx
+[COMPACTING] Error during compacting: Error: ChatThreadService not available
+```
+
+### 🎯 Next Steps to Fix Issues
+
+#### 1. Fix Summarization Request Response
+- Check if `ILLMMessageService` is properly configured
+- Verify model selection for Chat feature
+- Add error handling for summarization request failures
+- Debug why `onText` and `onFinalMessage` callbacks aren't triggered
+
+#### 2. Fix Context Token Reset
+- Verify storage service integration
+- Check if `CHAT_TOKENS_STORAGE_KEY` is correct
+- Debug token reset logic in `resetContextTokens()`
+
+#### 3. Fix Summary Message Addition
+- Verify `dangerousSetState()` method works correctly
+- Check if `CompactingMessage` type is properly handled in UI
+- Debug message addition in `addSummaryToChat()`
+
+#### 4. Add Error Handling & UI Feedback
+- Show error states in `CompactingSystemMessage`
+- Add retry buttons for failed compacting attempts
+- Display progress indicators during summarization
+
 ---
 
 **Last Updated**: 2025-12-10  
-**Status**: Backend Implementation Complete ✅  
-**Next Phase**: UI Integration & Testing
+**Status**: Partially Working ⚠️  
+**Issues**: Summarization response, context reset, and message addition not working  
+**Next Phase**: Debug summarization request and fix remaining functionality
