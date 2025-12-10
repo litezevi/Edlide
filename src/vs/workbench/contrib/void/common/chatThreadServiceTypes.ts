@@ -67,6 +67,7 @@ export type ChatMessage =
 	| ToolMessage<ToolName>
 	| DecorativeCanceledTool
 	| CheckpointEntry
+	| CompactingMessage
 
 
 // one of the square items that indicates a selection in a chat bubble
@@ -100,3 +101,21 @@ export type CodespanLocationLink = {
 		endColumn: number,
 	} | undefined
 } | null
+
+// Compacting system types
+export type CompactingState = {
+	isActive: boolean;
+	summaryText: string;
+	progress: number; // 0-100
+	error: string | null;
+	retryCount: number;
+	threadId: string;
+	startedAt: number; // timestamp
+};
+
+export type CompactingMessage = {
+	role: 'compacting';
+	content: string;
+	displayContent: string;
+	state: CompactingState;
+};

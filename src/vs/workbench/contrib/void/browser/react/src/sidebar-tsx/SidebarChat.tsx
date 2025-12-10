@@ -9,6 +9,7 @@ import React, { ButtonHTMLAttributes, FormEvent, FormHTMLAttributes, Fragment, K
 import { useAccessor, useChatThreadsState, useChatThreadsStreamState, useSettingsState, useActiveURI, useCommandBarState, useFullChatThreadsStreamState } from '../util/services.js';
 import { ScrollType } from '../../../../../../../editor/common/editorCommon.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../../../platform/storage/common/storage.js';
+import { CompactingState } from '../../../../common/chatThreadServiceTypes.js';
 
 import { ChatMarkdownRender, ChatMessageLocation, getApplyBoxId } from '../markdown/ChatMarkdownRender.js';
 import { URI } from '../../../../../../../base/common/uri.js';
@@ -57,11 +58,13 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 	const voidSettingsService = accessor.get('IVoidSettingsService');
 	const chatThreadService = accessor.get('IChatThreadService');
 	const storageService = accessor.get('IStorageService');
+	const compactingService = accessor.get('ICompactingService');
 
 	const [contextPercentage, setContextPercentage] = useState(0);
 	const [showContextBar, setShowContextBar] = useState(false);
 	const [actualTotalTokens, setActualTotalTokens] = useState<number | null>(null);
 	const [isApiVerified, setIsApiVerified] = useState(false);
+	const [compactingState, setCompactingState] = useState<CompactingState | null>(null);
 
 	// Check if current model is from Edlide provider
 	const isEdlideProvider = () => {

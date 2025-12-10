@@ -54,6 +54,7 @@ import { IExtensionManagementService } from '../../../../../../../platform/exten
 import { IMCPService } from '../../../../common/mcpService.js';
 import { IStorageService, StorageScope } from '../../../../../../../platform/storage/common/storage.js'
 import { OPT_OUT_KEY } from '../../../../common/storageKeys.js'
+import { ICompactingService } from '../../../compactingService.js';
 
 
 // normally to do this you'd use a useEffect that calls .onDidChangeState(), but useEffect mounts too late and misses initial state changes
@@ -101,9 +102,10 @@ export const _registerServices = (accessor: ServicesAccessor) => {
 		voidCommandBarService: accessor.get(IVoidCommandBarService),
 		modelService: accessor.get(IModelService),
 		mcpService: accessor.get(IMCPService),
+		compactingService: accessor.get(ICompactingService),
 	}
 
-	const { settingsStateService, chatThreadsStateService, refreshModelService, themeService, editCodeService, voidCommandBarService, modelService, mcpService } = stateServices
+	const { settingsStateService, chatThreadsStateService, refreshModelService, themeService, editCodeService, voidCommandBarService, modelService, mcpService, compactingService } = stateServices
 
 
 
@@ -227,6 +229,7 @@ const getReactAccessor = (accessor: ServicesAccessor) => {
 		IExtensionManagementService: accessor.get(IExtensionManagementService),
 		IExtensionTransferService: accessor.get(IExtensionTransferService),
 		IMCPService: accessor.get(IMCPService),
+		ICompactingService: accessor.get(ICompactingService),
 
 		IStorageService: accessor.get(IStorageService),
 

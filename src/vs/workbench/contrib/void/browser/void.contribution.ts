@@ -40,6 +40,9 @@ import './terminalToolService.js'
 // register Thread History
 import './chatThreadService.js'
 
+// register Compacting service
+import './compactingService.js'
+
 // ping
 import './metricsPollService.js'
 
