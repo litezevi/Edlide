@@ -22,6 +22,8 @@ import { VOID_CTRL_L_ACTION_ID } from './actionIDs.js';
 import { localize2 } from '../../../../nls.js';
 import { IChatThreadService } from './chatThreadService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { ICompactingService } from './compactingService.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 
 // ---------- Register commands and keybindings ----------
 
@@ -163,6 +165,17 @@ registerAction2(class extends Action2 {
 		const metricsService = accessor.get(IMetricsService)
 		const chatThreadsService = accessor.get(IChatThreadService)
 		const editorService = accessor.get(ICodeEditorService)
+		const compactingService = accessor.get(ICompactingService)
+		const notificationService = accessor.get(INotificationService)
+		
+		// Check if current thread is compacting - prevent new chat creation during compacting
+		const currentThreadId = chatThreadsService.state.currentThreadId
+		if (compactingService.isCompacting(currentThreadId)) {
+			console.log('[COMPACTING] New Chat action blocked - compacting in progress for thread:', currentThreadId)
+			notificationService.info('Please wait: Compacting conversation context... Cannot create new chat during this process.')
+			return // Block the action during compacting with user feedback
+		}
+		
 		metricsService.capture('Chat Navigation', { type: 'Start New Chat' })
 
 		// get current selections and value to transfer
@@ -217,9 +230,21 @@ registerAction2(class extends Action2 {
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
 
+		const chatThreadsService = accessor.get(IChatThreadService)
+		const compactingService = accessor.get(ICompactingService)
+		const notificationService = accessor.get(INotificationService)
+		
+		// Check if current thread is compacting - prevent history action during compacting
+		const currentThreadId = chatThreadsService.state.currentThreadId
+		if (compactingService.isCompacting(currentThreadId)) {
+			console.log('[COMPACTING] View Past Chats action blocked - compacting in progress for thread:', currentThreadId)
+			notificationService.info('Please wait: Compacting conversation context... Cannot view past chats during this process.')
+			return // Block the action during compacting with user feedback
+		}
+
 		// do not do anything if there are no messages (without this it clears all of the user's selections if the button is pressed)
 		// TODO the history button should be disabled in this case so we can remove this logic
-		const thread = accessor.get(IChatThreadService).getCurrentThread()
+		const thread = chatThreadsService.getCurrentThread()
 		if (thread.messages.length === 0) {
 			return;
 		}
