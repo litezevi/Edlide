@@ -125,6 +125,8 @@ export class CompactingService extends Disposable implements ICompactingService 
 			console.log('[COMPACTING] Sending summarization request (will stop any active requests)...');
 			const summary = await this.sendSummarizationRequest(threadId, cancellationTokenSource.token);
 			
+			console.log(`[COMPACTING] Received summary: ${summary.substring(0, 100)}...`);
+
 			// 4. Обновляем состояние compacting как завершенное
 			const completedState: CompactingState = {
 				...initialState,
@@ -139,11 +141,11 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 			console.log(`[COMPACTING] Compacting completed for thread ${threadId}, summary length: ${summary.length}`);
 
-			// 5. Сбрасываем контекстные токены
-			this.resetContextTokens(threadId);
-
-			// 6. Добавляем summarized сообщение в чат
+			// 5. Добавляем summarized сообщение в чат ПЕРЕД сбросом контекста
 			this.addSummaryToChat(threadId, summary);
+
+			// 6. Сбрасываем контекстные токены ПОСЛЕ добавления сообщения
+			this.resetContextTokens(threadId);
 
 		} catch (error) {
 			console.error(`[COMPACTING] Error during compacting for thread ${threadId}:`, error);
@@ -241,17 +243,37 @@ export class CompactingService extends Disposable implements ICompactingService 
 				throw new Error('No model selection found for Chat feature');
 			}
 
-			// Отправляем ТОЛЬКО prompt для summarization
-			// AI уже имеет весь контекст в своем окне
+			// Получаем текущие сообщения из чата для контекста
+			let messagesToSend = [];
+			try {
+				const thread = this.chatThreadService.state.allThreads[threadId];
+				if (thread && thread.messages) {
+					// Конвертируем сообщения в формат для LLM
+					messagesToSend = thread.messages
+						.filter((msg: any) => msg.role === 'user' || msg.role === 'assistant') // Только user/assistant сообщения
+						.map((msg: any) => ({
+							role: msg.role,
+							content: msg.role === 'user' ? msg.content : msg.displayContent
+						}))
+						.slice(-10); // Берем последние 10 сообщений для контекста
+				}
+			} catch (error) {
+				console.warn('[COMPACTING] Could not get chat messages for context:', error);
+			}
+
+			// Добавляем наш prompt в конец
+			messagesToSend.push({ 
+				role: 'user', 
+				content: prompt
+			});
+
+			console.log(`[COMPACTING] Sending ${messagesToSend.length} messages for context`);
+
+			// Отправляем сообщения с контекстом
 			const llmCancelToken = this.llmMessageService.sendLLMMessage({
 				messagesType: 'chatMessages',
 				chatMode: null,
-				messages: [
-					{ 
-						role: 'user', 
-						content: prompt
-					}
-				],
+				messages: messagesToSend,
 				modelSelection,
 				modelSelectionOptions: this.voidSettingsService.state.optionsOfModelSelection['Chat']?.[modelSelection.providerName as keyof typeof this.voidSettingsService.state.optionsOfModelSelection['Chat']]?.[modelSelection.modelName],
 				overridesOfModel: this.voidSettingsService.state.overridesOfModel,
@@ -259,7 +281,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 					loggingName: `Compacting - ${threadId}`, 
 					loggingExtras: { threadId, compacting: true } 
 				},
-				separateSystemMessage: "You are summarizing a conversation. Provide a concise summary of what was done and what needs to be done next. Keep it brief and focused.",
+				separateSystemMessage: "You are summarizing our conversation. Based on the messages above, provide a concise summary of what we've accomplished and what needs to be done next. Keep it brief and focused.",
 				onText: ({ fullText, totalTokens }) => {
 					if (cancellationToken.isCancellationRequested && llmCancelToken) {
 						this.llmMessageService.abort(llmCancelToken);
@@ -320,25 +342,38 @@ export class CompactingService extends Disposable implements ICompactingService 
 		try {
 			const CHAT_TOKENS_STORAGE_KEY = 'void.chatTokens';
 			
+			// 1. Сбрасываем в persistent storage
 			const storedTokens = this.storageService.get(CHAT_TOKENS_STORAGE_KEY, StorageScope.APPLICATION);
 			if (storedTokens) {
 				const chatTokens = JSON.parse(storedTokens);
 				if (chatTokens[threadId]) {
+					console.log(`[COMPACTING] Before reset - tokens: ${chatTokens[threadId].actualTotalTokens}`);
 					chatTokens[threadId].actualTotalTokens = 0;
 					chatTokens[threadId].isApiVerified = false;
 					this.storageService.store(CHAT_TOKENS_STORAGE_KEY, JSON.stringify(chatTokens), StorageScope.APPLICATION, StorageTarget.USER);
+					console.log(`[COMPACTING] After reset - tokens: ${chatTokens[threadId].actualTotalTokens}`);
 				}
 			}
 
-			// Сбрасываем window storage
+			// 2. Сбрасываем window storage
 			if (typeof window !== 'undefined' && (window as any).__chatTokens) {
 				if ((window as any).__chatTokens[threadId]) {
+					console.log(`[COMPACTING] Before reset window - tokens: ${(window as any).__chatTokens[threadId].actualTotalTokens}`);
 					(window as any).__chatTokens[threadId].actualTotalTokens = 0;
 					(window as any).__chatTokens[threadId].isApiVerified = false;
+					console.log(`[COMPACTING] After reset window - tokens: ${(window as any).__chatTokens[threadId].actualTotalTokens}`);
 				}
 			}
 
-			console.log(`[COMPACTING] Reset context tokens for thread ${threadId}`);
+			// 3. Принудительно обновляем UI через storage event
+			if (typeof window !== 'undefined') {
+				window.dispatchEvent(new StorageEvent('storage', {
+					key: CHAT_TOKENS_STORAGE_KEY,
+					newValue: JSON.stringify({ [threadId]: { actualTotalTokens: 0, isApiVerified: false } })
+				}));
+			}
+
+			console.log(`[COMPACTING] Successfully reset context tokens for thread ${threadId}`);
 		} catch (error) {
 			console.error(`[COMPACTING] Error resetting context tokens for thread ${threadId}:`, error);
 		}
@@ -349,29 +384,25 @@ export class CompactingService extends Disposable implements ICompactingService 
 			// Получаем текущий thread
 			const thread = this.chatThreadService.state.allThreads[threadId];
 			if (thread) {
-				// Создаем compacting сообщение
-				const compactingMessage = {
-					role: 'compacting' as const,
+				// Создаем сообщение от пользователя с саммари от AI
+				const userMessageWithSummary = {
+					role: 'user' as const,
 					content: summary,
-					displayContent: `📝 Context Summary: ${summary}`,
+					displayContent: summary,
+					selections: null as any,
 					state: {
-						isActive: false,
-						summaryText: summary,
-						progress: 100,
-						error: null,
-						retryCount: 0,
-						threadId,
-						startedAt: Date.now()
+						stagingSelections: [] as any[],
+						isBeingEdited: false
 					}
 				};
 
 				// Получаем текущее состояние
 				const currentState = this.chatThreadService.state;
 				
-				// Добавляем сообщение в thread
+				// Добавляем сообщение в thread как первое сообщение в новом контексте
 				const updatedThread = {
 					...thread,
-					messages: [...thread.messages, compactingMessage]
+					messages: [...thread.messages, userMessageWithSummary]
 				};
 
 				// Обновляем состояние
@@ -384,7 +415,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 				};
 
 				this.chatThreadService.dangerousSetState(newState);
-				console.log(`[COMPACTING] Added summary to thread ${threadId}, length: ${summary.length}`);
+				console.log(`[COMPACTING] Added summary as user message to thread ${threadId}, length: ${summary.length}`);
 			}
 		} catch (error) {
 			console.error(`[COMPACTING] Error adding summary to chat for thread ${threadId}:`, error);

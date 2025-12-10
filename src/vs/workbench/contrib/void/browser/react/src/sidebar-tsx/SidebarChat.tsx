@@ -348,7 +348,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			isEdlideProvider() && 
 			contextPercentage >= 80 && 
 			!compactingState?.isActive && 
-			!compactingService.isCompacting(threadId);
+			!compactingService.isCompacting(threadId) &&
+			!compactingState?.summaryText; // Prevent re-starting after completion
 
 		if (shouldStartCompacting) {
 			console.log(`[COMPACTING] Context at ${contextPercentage}%, stopping chat and starting compacting for thread ${threadId}`);
@@ -3527,8 +3528,8 @@ export const SidebarChat = () => {
 		{/* Generating tool */}
 		{generatingTool}
 
-		{/* Compacting system message - shows when context is 80%+ full */}
-		{showContextBar && isContextHigh && (
+		{/* Compacting system message - shows when context is 80%+ full and not yet compacted */}
+		{showContextBar && isContextHigh && compactingState?.isActive !== false && (
 			<CompactingSystemMessage compactingState={compactingState} />
 		)}
 
