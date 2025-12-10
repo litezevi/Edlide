@@ -3528,6 +3528,16 @@ export const SidebarChat = () => {
 		{/* Generating tool */}
 		{generatingTool}
 
+		{/* Compacted indicator - shows when this thread was compacted */}
+		{currentThread.state.isCompacted && (
+			<div className="sticky top-0 z-10 bg-void-bg-1 border-b border-void-border-1 px-4 py-2 mb-4">
+				<div className="flex items-center gap-2 text-void-fg-3 text-sm">
+					<Info size={16} />
+					<span>This chat was compacted</span>
+				</div>
+			</div>
+		)}
+
 		{/* Compacting system message - shows when context is 80%+ full and not yet compacted */}
 		{showContextBar && isContextHigh && compactingState?.isActive !== false && (
 			<CompactingSystemMessage compactingState={compactingState} />

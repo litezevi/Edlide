@@ -28,7 +28,7 @@ Usage Analytics → Privacy Mode с правильным описанием
 5. Финальная структура меню:
 
 **Branch**: `main`
-**Primary Feature**: ✅ **FULLY IMPLEMENTED** - Critical AI Code Editing System Fixed - Files now save after AI modifications with visible diff UI
+**Primary Feature**: ✅ **FULLY IMPLEMENTED** - Complete Compacting System with Visual Indicators - Summary messages create new threads + "this chat was compacted" indicators + "Compacted" labels in thread list
 
 ### 🎯 LATEST ACCOMPLISHMENT - Critical AI Code Editing System Fixed (2025-11-22)
 

@@ -144,7 +144,10 @@ export class CompactingService extends Disposable implements ICompactingService 
 			// 5. Создаем summary в НОВОМ thread ПЕРЕД сбросом контекста старого thread
 			await this.createSummaryInNewThread(threadId, summary);
 
-			// 6. Сбрасываем контекстные токены старого thread ПОСЛЕ создания нового
+			// 6. Помечаем старый thread как compacted
+			this.chatThreadService.markThreadAsCompacted(threadId);
+
+			// 7. Сбрасываем контекстные токены старого thread ПОСЛЕ пометки как compacted
 			this.resetContextTokens(threadId);
 
 			// 7. ВОССТАНАВЛИВАЕМ СОСТОЯНИЕ ЧАТА - просто очищаем стрим состояние

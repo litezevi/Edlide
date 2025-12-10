@@ -224,6 +224,12 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	// data-tooltip-content={`Last modified ${formatTime(new Date(pastThread.lastModified))}`}
 	// data-tooltip-place='top'
 	>
+		{pastThread.state.isCompacted && (
+			<>
+				<span className='text-void-warning opacity-80 font-medium'>Compacted</span>
+				{` • `}
+			</>
+		)}
 		<span className='opacity-60'>{numMessages}</span>
 		{` `}
 		{formatDate(new Date(pastThread.lastModified))}

@@ -132,6 +132,7 @@ export type ThreadType = {
 			}
 		}
 
+		isCompacted?: boolean; // indicates if this thread was compacted and a new thread was created with summary
 
 		mountedInfo?: {
 			whenMounted: Promise<WhenMounted>
@@ -244,6 +245,7 @@ export interface IChatThreadService {
 	// thread selector
 	deleteThread(threadId: string): void;
 	duplicateThread(threadId: string): void;
+	markThreadAsCompacted(threadId: string): void;
 
 	// exposed getters/setters
 	// these all apply to current thread
@@ -1696,6 +1698,29 @@ We only need to do it for files that were edited since `from`, ie files between 
 			...currentThreads,
 			[newThread.id]: newThread,
 		}
+		this._storeAllThreads(newThreads)
+		this._setState({ allThreads: newThreads })
+	}
+
+	markThreadAsCompacted(threadId: string) {
+		const { allThreads: currentThreads } = this.state
+		const threadToMark = currentThreads[threadId]
+		if (!threadToMark) return
+		
+		const updatedThread = {
+			...threadToMark,
+			state: {
+				...threadToMark.state,
+				isCompacted: true
+			},
+			lastModified: new Date().toISOString()
+		}
+		
+		const newThreads = {
+			...currentThreads,
+			[threadId]: updatedThread
+		}
+		
 		this._storeAllThreads(newThreads)
 		this._setState({ allThreads: newThreads })
 	}
