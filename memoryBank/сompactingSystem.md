@@ -481,7 +481,7 @@ try {
 - Per-thread detection working
 
 #### **Stage 2: Summary Request** ✅  
-- AI receives proper chat context (last 10 messages)
+- AI receives proper chat context (ALL messages from thread)
 - Summarization prompt: "Сделай саммари того что ты сделал и что нужно сделать"
 - Request uses existing chat context - no context loss
 - AI responds with accurate summaries based on real conversation
@@ -663,14 +663,13 @@ private async createSummaryInNewThread(oldThreadId: string, summary: string): Pr
 
 #### **Context Retrieval**
 ```typescript
-// Get last 10 messages for AI context
+// Get ALL messages for AI context
 const messagesToSend = thread.messages
     .filter((msg: any) => msg.role === 'user' || msg.role === 'assistant')
     .map((msg: any) => ({
         role: msg.role,
         content: msg.role === 'user' ? msg.content : msg.displayContent
-    }))
-    .slice(-10);
+    })); // Отправляем ВСЕ сообщения для саммари
 ```
 
 ### 🏆 **Success Metrics**

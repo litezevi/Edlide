@@ -277,8 +277,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 						.map((msg: any) => ({
 							role: msg.role,
 							content: msg.role === 'user' ? msg.content : msg.displayContent
-						}))
-						.slice(-10); // Берем последние 10 сообщений для контекста
+						})); // Отправляем ВСЕ сообщения для саммари
 				}
 			} catch (error) {
 				console.warn('[COMPACTING] Could not get chat messages for context:', error);
