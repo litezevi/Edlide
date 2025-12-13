@@ -172,17 +172,25 @@ registerAction2(class extends Action2 {
 		const currentThreadId = chatThreadsService.state.currentThreadId
 		const isCurrentlyCompacting = compactingService.isCompacting(currentThreadId)
 		const compactingState = compactingService.getCompactingState(currentThreadId)
+		const hasActiveAIStreams = chatThreadsService.hasAnyActiveAIStreams()
 		
 		console.log('[COMPACTING] New Chat action check:', {
 			threadId: currentThreadId,
 			isCompacting: isCurrentlyCompacting,
-			compactingState: compactingState
+			compactingState: compactingState,
+			hasActiveAIStreams: hasActiveAIStreams
 		})
 		
 		if (isCurrentlyCompacting) {
 			console.log('[COMPACTING] New Chat action blocked - compacting in progress for thread:', currentThreadId)
 			notificationService.info('Please wait: Compacting conversation context... Cannot create new chat during this process.')
 			return // Block the action during compacting with user feedback
+		}
+
+		if (hasActiveAIStreams) {
+			console.log('[AI STREAMS] New Chat action blocked - AI is working in another chat')
+			notificationService.info('Cannot create new chat while AI is working. Please wait for the current task to complete.')
+			return // Block the action during AI streams with user feedback
 		}
 		
 		metricsService.capture('Chat Navigation', { type: 'Start New Chat' })
@@ -247,17 +255,25 @@ registerAction2(class extends Action2 {
 		const currentThreadId = chatThreadsService.state.currentThreadId
 		const isCurrentlyCompacting = compactingService.isCompacting(currentThreadId)
 		const compactingState = compactingService.getCompactingState(currentThreadId)
+		const hasActiveAIStreams = chatThreadsService.hasAnyActiveAIStreams()
 		
 		console.log('[COMPACTING] View Past Chats action check:', {
 			threadId: currentThreadId,
 			isCompacting: isCurrentlyCompacting,
-			compactingState: compactingState
+			compactingState: compactingState,
+			hasActiveAIStreams: hasActiveAIStreams
 		})
 		
 		if (isCurrentlyCompacting) {
 			console.log('[COMPACTING] View Past Chats action blocked - compacting in progress for thread:', currentThreadId)
 			notificationService.info('Please wait: Compacting conversation context... Cannot view past chats during this process.')
 			return // Block the action during compacting with user feedback
+		}
+
+		if (hasActiveAIStreams) {
+			console.log('[AI STREAMS] View Past Chats action blocked - AI is working in another chat')
+			notificationService.info('Cannot view past chats while AI is working. Please wait for the current task to complete.')
+			return // Block the action during AI streams with user feedback
 		}
 
 		// do not do anything if there are no messages (without this it clears all of the user's selections if the button is pressed)

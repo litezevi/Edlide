@@ -181,6 +181,15 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 
 	const accessor = useAccessor()
 	const chatThreadsService = accessor.get('IChatThreadService')
+	const streamState = useFullChatThreadsStreamState()
+
+	const canSwitchToThread = (threadId: string) => {
+		const hasActiveStreamsInOtherThreads = Object.entries(streamState).some(([tid, state]) => 
+			tid !== threadId && (state?.isRunning === 'LLM' || state?.isRunning === 'tool' || state?.isRunning === 'idle')
+		);
+		const isThisThreadActive = streamState[threadId]?.isRunning !== undefined;
+		return !hasActiveStreamsInOtherThreads || isThisThreadActive;
+	}
 
 	// const settingsState = useSettingsState()
 	// const convertService = accessor.get('IConvertToLLMMessageService')
@@ -239,10 +248,19 @@ const PastThreadElement = ({ pastThread, idx, hoveredIdx, setHoveredIdx, isRunni
 	return <div
 		key={pastThread.id}
 		className={`
-			py-1 px-2 rounded text-sm bg-zinc-700/5 hover:bg-zinc-700/10 dark:bg-zinc-300/5 dark:hover:bg-zinc-300/10 cursor-pointer opacity-80 hover:opacity-100
+			py-1 px-2 rounded text-sm 
+			${!canSwitchToThread(pastThread.id) 
+				? 'bg-zinc-700/5 opacity-50 cursor-not-allowed' 
+				: 'bg-zinc-700/5 hover:bg-zinc-700/10 dark:bg-zinc-300/5 dark:hover:bg-zinc-300/10 cursor-pointer opacity-80 hover:opacity-100'
+			}
 		`}
 		onClick={() => {
-			chatThreadsService.switchToThread(pastThread.id);
+			if (canSwitchToThread(pastThread.id)) {
+				chatThreadsService.switchToThread(pastThread.id);
+			} else {
+				// Attempt to switch will trigger the notification from the service
+				chatThreadsService.switchToThread(pastThread.id);
+			}
 		}}
 		onMouseEnter={() => setHoveredIdx(idx)}
 		onMouseLeave={() => setHoveredIdx(null)}

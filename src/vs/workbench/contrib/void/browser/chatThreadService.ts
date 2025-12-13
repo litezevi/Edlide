@@ -279,6 +279,9 @@ export interface IChatThreadService {
 	abortRunning(threadId: string): Promise<void>;
 	dismissStreamError(threadId: string): void;
 
+	// Check if any AI streams are active across all threads (optionally excluding a specific thread)
+	hasAnyActiveAIStreams(excludeThreadId?: string): boolean;
+
 	// call to edit a message
 	editUserMessageAndStreamResponse({ userMessage, messageIdx, threadId }: { userMessage: string, messageIdx: number, threadId: string }): Promise<void>;
 
@@ -1247,6 +1250,18 @@ We only need to do it for files that were edited since `from`, ie files between 
 		this._setStreamState(threadId, undefined)
 	}
 
+	hasAnyActiveAIStreams(excludeThreadId?: string): boolean {
+		for (const threadId in this.streamState) {
+			if (excludeThreadId && threadId === excludeThreadId) continue;
+			
+			const state = this.streamState[threadId];
+			if (state?.isRunning === 'LLM' || state?.isRunning === 'tool' || state?.isRunning === 'idle') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private _notifyError(threadId: string, errorMessage: string): void {
 		this._notificationService.notify({
 			severity: Severity.Error,
@@ -1266,6 +1281,12 @@ We only need to do it for files that were edited since `from`, ie files between 
 			console.log(`[COMPACTING] Cannot send message to compacted thread ${threadId}`)
 			this._notificationService.info('This conversation has been compacted. Please start a new chat to continue.')
 			return
+		}
+
+		// Block sending message if there are active AI streams in other threads
+		if (this.hasAnyActiveAIStreams(threadId)) {
+			this._notificationService.info('Cannot send message while AI is working in another chat. Please wait for the current task to complete.');
+			return;
 		}
 
 		// interrupt existing stream
@@ -1654,11 +1675,23 @@ We only need to do it for files that were edited since `from`, ie files between 
 	}
 
 	switchToThread(threadId: string) {
+		// Block switching if there are active AI streams in other threads
+		if (this.hasAnyActiveAIStreams(threadId)) {
+			this._notificationService.info('Cannot switch chats while AI is working in another chat. Please wait for the current task to complete.');
+			return;
+		}
+		
 		this._setState({ currentThreadId: threadId })
 	}
 
 
 	openNewThread() {
+		// Block creating new chat if there are active AI streams in any threads
+		if (this.hasAnyActiveAIStreams()) {
+			this._notificationService.info('Cannot create new chat while AI is working. Please wait for the current task to complete.');
+			return;
+		}
+
 		// if a thread with 0 messages already exists, switch to it
 		const { allThreads: currentThreads } = this.state
 		for (const threadId in currentThreads) {
