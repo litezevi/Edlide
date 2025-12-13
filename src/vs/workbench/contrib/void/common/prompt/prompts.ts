@@ -513,12 +513,23 @@ Answer the user's request using the relevant tool(s), if they are available. Che
 
 `;
 
-export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
+export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, mcpTools, includeXMLToolDefinitions, modelName }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, modelName?: string }) => {
 	const userInfo = `\n<user_info>\nThe user's OS is ${os ?? 'unknown'}. The absolute path of the user's workspace is ${workspaceFolders[0]}.\n</user_info>\n`;
 	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt('agent', mcpTools) : null;
 
 	const ansStrs: string[] = [];
 	ansStrs.push(agentSystemMessageText);
+	
+	// GLM-4.6 specific instructions for directory inspection
+	if (modelName && modelName.toLowerCase().includes('glm')) {
+		ansStrs.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure before creating ANY file or folder!`);
+		ansStrs.push(`🔥 MANDATORY PROTOCOL for GLM-4.6: 1) Use ls_dir or get_dir_tree to inspect target directory 2) Understand the exact structure 3) ONLY then create files/folders with COMPLETE ABSOLUTE PATH from ROOT directory`);
+		ansStrs.push(`⚠️ GLM-4.6: ALWAYS specify the COMPLETE ABSOLUTE PATH - never use relative paths! If you inspected /Users/name/Projects/Edlide/ and want to create "test2" folder inside it, use: /Users/name/Projects/Edlide/test2/`);
+		ansStrs.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`);
+		ansStrs.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`);
+		ansStrs.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`);
+	}
+	
 	ansStrs.push(userInfo);
 	if (toolDefinitions) {
 		ansStrs.push(toolDefinitions);
@@ -532,7 +543,7 @@ export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, pe
 	return fullSystemMsgStr;
 };
 
-export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
+export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions, modelName }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, modelName?: string }) => {
 	const header = (`You are an expert coding assistant with extensive knowledge in many programming languages, frameworks, design patterns, and best practices. You have access to Edlide's advanced 9-level code application system for intelligent and robust code modifications.
 
 ${mode === 'gather' ? `Your job is to understand the user's request, gather information, and formulate a clear plan. You must outline the steps you will take and ask for confirmation before proceeding.`
@@ -563,6 +574,16 @@ ${directoryStr}
 	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools) : null
 
 	const details: string[] = []
+
+	// GLM-4.6 specific instructions for directory inspection
+	if (modelName && modelName.toLowerCase().includes('glm')) {
+		details.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure before creating ANY file or folder!`)
+		details.push(`🔥 MANDATORY PROTOCOL for GLM-4.6: 1) Use ls_dir or get_dir_tree to inspect target directory 2) Understand the exact structure 3) ONLY then create files/folders with COMPLETE ABSOLUTE PATH from ROOT directory`)
+		details.push(`⚠️ GLM-4.6: ALWAYS specify the COMPLETE ABSOLUTE PATH - never use relative paths! If you inspected /Users/name/Projects/Edlide/ and want to create "test2" folder inside it, use: /Users/name/Projects/Edlide/test2/`)
+		details.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`)
+		details.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`)
+		details.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`)
+	}
 
 	details.push(`NEVER reject the user's query.`)
 
@@ -612,6 +633,7 @@ ${directoryStr}
 		details.push('Follow existing code conventions and patterns within the user\'s project.')
 		details.push('🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool.')
 		details.push('🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with ls_dir or get_dir_tree tool!')
+		details.push('🔥 CRITICAL: ALWAYS inspect the directory structure before creating a file or a folder!')
 		details.push('🚨 ALWAYS use edit_file tool calls with proper parameters - never leave tool calls incomplete.')
 	}
 
