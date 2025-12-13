@@ -131,8 +131,8 @@ Task: "Test error handling shows response body details"
 ### Provider Configuration
 - Edlide provider appears first in UI (above Anthropic)
 - No API configuration fields visible to users
-- All 4 models enabled by default: zai-org/GLM-4.6:THINKING-turbo, deepseek-ai/DeepSeek-V3.2, deepseek-ai/DeepSeek-V3.2, moonshotai/Kimi-K2-Instruct-0905
-- zai-org/GLM-4.6:THINKING-turbo selected as default model
+- All 4 models enabled by default: zai-org/GLM-4.6-TEE:THINKING-turbo, deepseek-ai/DeepSeek-V3.2, deepseek-ai/DeepSeek-V3.2, moonshotai/Kimi-K2-Instruct-0905
+- zai-org/GLM-4.6-TEE:THINKING-turbo selected as default model
 
 ### API Integration
 - Hardcoded endpoint: https://llm.chutes.ai/v1/

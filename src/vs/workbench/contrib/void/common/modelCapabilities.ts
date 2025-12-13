@@ -76,7 +76,7 @@ export const defaultProviderSettings = {
 
 export const defaultModelsOfProvider = {
 	edlide: [
-		'zai-org/GLM-4.6:THINKING',
+		'zai-org/GLM-4.6-TEE:THINKING',
 		//'moonshotai/Kimi-K2-Instruct-0905',
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.2',
@@ -1129,7 +1129,7 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
-	'zai-org/GLM-4.6:THINKING': {
+	'zai-org/GLM-4.6-TEE:THINKING': {
 		contextWindow: 202_752,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },

@@ -23,7 +23,7 @@ type EdlideModel = {
 
 // Required models
 const EDLIDE_MODELS = [
-  'zai-org/GLM-4.6:THINKING-turbo',           // Default model
+  'zai-org/GLM-4.6-TEE:THINKING-turbo',           // Default model
   'deepseek-ai/DeepSeek-V3.2',
   'deepseek-ai/DeepSeek-V3.2',
   'moonshotai/Kimi-K2-Instruct-0905'
@@ -81,7 +81,7 @@ const EDLIDE_CONFIG = {
 
 ### Default Model Selection
 ```typescript
-const DEFAULT_EDLIDE_MODEL = 'zai-org/GLM-4.6:THINKING-turbo' as const;
+const DEFAULT_EDLIDE_MODEL = 'zai-org/GLM-4.6-TEE:THINKING-turbo' as const;
 ```
 
 ## Integration Points
@@ -125,7 +125,7 @@ const DEFAULT_EDLIDE_MODEL = 'zai-org/GLM-4.6:THINKING-turbo' as const;
 ```
 Provider: edlide (enabled, configured)
 Models:
-  - zai-org/GLM-4.6:THINKING-turbo (enabled, selected)
+  - zai-org/GLM-4.6-TEE:THINKING-turbo (enabled, selected)
   - deepseek-ai/DeepSeek-V3.2 (enabled)
   - deepseek-ai/DeepSeek-V3.2 (enabled)
   - moonshotai/Kimi-K2-Instruct-0905 (enabled)

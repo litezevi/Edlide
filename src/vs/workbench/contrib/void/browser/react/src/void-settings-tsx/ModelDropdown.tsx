@@ -25,7 +25,7 @@ const optionsEqual = (m1: ModelOption[], m2: ModelOption[]) => {
 // Helper function to get display name for models (removes provider prefixes)
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
-		if (modelName === 'zai-org/GLM-4.6:THINKING') return 'glm-4.6'
+		if (modelName === 'zai-org/GLM-4.6-TEE:THINKING') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'

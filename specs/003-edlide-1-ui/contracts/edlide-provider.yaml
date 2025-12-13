@@ -62,7 +62,7 @@ components:
         model:
           type: string
           enum:
-            - zai-org/GLM-4.6:THINKING-turbo
+            - zai-org/GLM-4.6-TEE:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.2
             - deepseek-ai/DeepSeek-V3.2
             - moonshotai/Kimi-K2-Instruct-0905
@@ -161,7 +161,7 @@ components:
         id:
           type: string
           enum:
-            - zai-org/GLM-4.6:THINKING-turbo
+            - zai-org/GLM-4.6-TEE:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.2
             - deepseek-ai/DeepSeek-V3.2
             - moonshotai/Kimi-K2-Instruct-0905
@@ -208,10 +208,10 @@ x-edlide-config:
   hardcoded-credentials:
     api-key: "API_KEY"
     endpoint: "https://llm.chutes.ai/v1/"
-  default-model: "zai-org/GLM-4.6:THINKING-turbo"
+  default-model: "zai-org/GLM-4.6-TEE:THINKING-turbo"
   user-configurable: false
   models:
-    - id: "zai-org/GLM-4.6:THINKING-turbo"
+    - id: "zai-org/GLM-4.6-TEE:THINKING-turbo"
       enabled-by-default: true
       recommended: true
     - id: "deepseek-ai/DeepSeek-V3.2"

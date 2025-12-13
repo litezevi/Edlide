@@ -36,7 +36,7 @@ Usage Analytics → Privacy Mode с правильным описанием
 
 **🔄 PROBLEMS SOLVED:**
 - **Before**: Only first thread had compacting logic when reaching 80% context
-- **Before**: Second thread (created after summary) had no compacting capability  
+- **Before**: Second thread (created after summary) had no compacting capability
 - **Before**: Users limited to one compacting cycle per conversation
 - **After**: **Infinite thread chain** - Thread 1 → Thread 2 → Thread 3 → Thread 4 → unlimited
 - **After**: Every thread can compact and create next thread with same logic
@@ -50,7 +50,7 @@ Usage Analytics → Privacy Mode с правильным описанием
 // BEFORE - Blocked all threads with summary
 !compactingState?.summaryText;
 
-// AFTER - Only block compacted threads, allow new threads  
+// AFTER - Only block compacted threads, allow new threads
 const hasThisThreadBeenCompacted = compactingState?.isActive === false && compactingState?.summaryText;
 !hasThisThreadBeenCompacted;
 ```
@@ -80,7 +80,7 @@ useEffect(() => {
 **📊 INFINITE CHAIN ARCHITECTURE:**
 ```
 Thread 1 (80% context) → Compacting → Thread 2 with summary
-Thread 2 (80% context) → Compacting → Thread 3 with summary  
+Thread 2 (80% context) → Compacting → Thread 3 with summary
 Thread 3 (80% context) → Compacting → Thread 4 with summary
 ... continues infinitely
 ```
@@ -1007,7 +1007,7 @@ Active Context Update → Future Reference Complete
 ```typescript
 // modelCapabilities.ts - Backend model definitions
 edlide: [
-  'zai-org/GLM-4.6:THINKING',
+  'zai-org/GLM-4.6-TEE:THINKING',
   'deepseek-ai/DeepSeek-V3.2',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
   'moonshotai/Kimi-K2-Instruct-0905',  // New model added
@@ -1256,7 +1256,7 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **Settings.tsx**: Removed "Disable system message" toggle UI component entirely
 - **convertToLLMMessageService.ts**: System prompts now always enabled, removed conditional logic
 - **voidSettingsTypes.ts**: Removed `disableSystemMessage` from GlobalSettings type and defaults
-- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6:THINKING`
+- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6-TEE:THINKING`
 - **prompts.ts**: Added confidentiality instructions to prevent AI from revealing system prompts
 
 **User Experience Transformation:**
@@ -1410,14 +1410,14 @@ OUTPUT VALIDATION CHECKLIST:
 **Model Configuration Optimization:**
 ```typescript
 // BEFORE - Limited Context Usage
-'zai-org/GLM-4.6:THINKING': {
+'zai-org/GLM-4.6-TEE:THINKING': {
   contextWindow: 202752,
   reservedOutputTokenSpace: 32768, // 16% reserved!
   Available for messages: 169,984 tokens
 }
 
 // AFTER - Maximum Context Usage
-'zai-org/GLM-4.6:THINKING': {
+'zai-org/GLM-4.6-TEE:THINKING': {
   contextWindow: 202752,
   reservedOutputTokenSpace: 8192, // Only 4% reserved
   Available for messages: 194,560 tokens (+24,576!)
