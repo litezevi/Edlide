@@ -384,7 +384,7 @@ export class MovePanelToSecondarySideBarAction extends MoveViewsBetweenPanelsAct
 registerAction2(MovePanelToSidePanelAction);
 registerAction2(MovePanelToSecondarySideBarAction);
 
-// --- Move Void Side Bar Views To Panel
+// --- Move Edlide Side Bar Views To Panel
 
 class MoveSidePanelToPanelAction extends MoveViewsBetweenPanelsAction {
 	static readonly ID = 'workbench.action.moveSidePanelToPanel';
