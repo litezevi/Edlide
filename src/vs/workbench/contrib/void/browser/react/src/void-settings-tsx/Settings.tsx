@@ -1628,8 +1628,8 @@ export const Settings = () => {
 									</ErrorBoundary>
 								</div>
 
-								{/* Import/Export section */}
-								<div>
+								{/* Import/Export section - HIDDEN */}
+								<div className='hidden'>
 									<h2 className='text-3xl mb-2'>Import/Export</h2>
 									<h4 className='text-void-fg-3 mb-4'>{`Transfer Edlide's settings and chats in and out of Edlide.`}</h4>
 									<div className='flex flex-col gap-8'>
