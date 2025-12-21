@@ -1,6 +1,7 @@
 import { CancellationToken } from '../../../../base/common/cancellation.js'
 import { URI } from '../../../../base/common/uri.js'
 import { IFileService } from '../../../../platform/files/common/files.js'
+import * as resources from '../../../../base/common/resources.js'
 import { registerSingleton, InstantiationType } from '../../../../platform/instantiation/common/extensions.js'
 import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js'
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js'
@@ -77,6 +78,29 @@ const validateOptionalStr = (argName: string, str: unknown) => {
 	return validateStr(argName, str)
 }
 
+const validateNewContent = (value: unknown): string => {
+	if (value === null || value === undefined) {
+		throw new Error(`Invalid LLM output: new_content cannot be null or undefined.`)
+	}
+	
+	// If it's already a string, return it
+	if (typeof value === 'string') {
+		return value
+	}
+	
+	// If it's an object or array, convert to JSON string
+	if (typeof value === 'object') {
+		try {
+			return JSON.stringify(value, null, 2)
+		} catch (e) {
+			throw new Error(`Invalid LLM output: new_content is an object but cannot be stringified to JSON. Error: ${e}`)
+		}
+	}
+	
+	// For other types (number, boolean, etc.), convert to string
+	return String(value)
+}
+
 
 const validatePageNum = (pageNumberUnknown: unknown) => {
 	if (!pageNumberUnknown) return 1
@@ -122,6 +146,40 @@ const checkIfIsFolder = (uriStr: string) => {
 	uriStr = uriStr.trim()
 	if (uriStr.endsWith('/') || uriStr.endsWith('\\')) return true
 	return false
+}
+
+const validatePathAndExtension = (uriStr: string, isFolder: boolean) => {
+	uriStr = uriStr.trim()
+	
+	// Check for empty path
+	if (!uriStr) {
+		throw new Error(`Invalid path: Path cannot be empty.`)
+	}
+	
+	// Check for folder path ending
+	if (isFolder && !uriStr.endsWith('/') && !uriStr.endsWith('\\')) {
+		throw new Error(`Invalid folder path: Folder paths MUST end with '/' or '\\'. Example: /path/to/folder/ or C:\\path\\to\\folder\\`)
+	}
+	
+	// Check for file extension (basic check)
+	if (!isFolder) {
+		const lastDotIndex = uriStr.lastIndexOf('.')
+		const lastSlashIndex = Math.max(uriStr.lastIndexOf('/'), uriStr.lastIndexOf('\\'))
+		
+		// If there's a dot after the last slash and it's not the last character
+		if (lastDotIndex > lastSlashIndex && lastDotIndex < uriStr.length - 1) {
+			// Has extension, check if it looks like a valid file extension
+			const extension = uriStr.substring(lastDotIndex + 1)
+			if (!/^[a-zA-Z0-9_\-]+$/.test(extension)) {
+				throw new Error(`Invalid file extension: Extension "${extension}" contains invalid characters. Use standard extensions like .ts, .tsx, .js, .json, .md, etc.`)
+			}
+		} else {
+			// No extension found - warn but don't fail (some files like .env, .gitignore don't have extensions)
+			console.warn(`Warning: File path "${uriStr}" doesn't have a clear extension. Make sure this is intentional.`)
+		}
+	}
+	
+	return uriStr
 }
 
 export interface IToolsService {
@@ -234,9 +292,13 @@ export class ToolsService implements IToolsService {
 
 			create_file_or_folder: (params: RawToolParamsObj) => {
 				const { uri: uriUnknown } = params
-				const uri = validateURI(uriUnknown)
 				const uriStr = validateStr('uri', uriUnknown)
 				const isFolder = checkIfIsFolder(uriStr)
+				
+				// Validate path and extension
+				validatePathAndExtension(uriStr, isFolder)
+				
+				const uri = validateURI(uriStr)
 				return { uri, isFolder }
 			},
 
@@ -252,7 +314,7 @@ export class ToolsService implements IToolsService {
 			rewrite_file: (params: RawToolParamsObj) => {
 				const { uri: uriStr, new_content: newContentUnknown } = params
 				const uri = validateURI(uriStr)
-				const newContent = validateStr('newContent', newContentUnknown)
+				const newContent = validateNewContent(newContentUnknown)
 				return { uri, newContent }
 			},
 
@@ -415,12 +477,56 @@ export class ToolsService implements IToolsService {
 			// ---
 
 			create_file_or_folder: async ({ uri, isFolder }) => {
-				if (isFolder)
-					await fileService.createFolder(uri)
-				else {
-					await fileService.createFile(uri)
+				try {
+					// Check if path already exists
+					const exists = await fileService.exists(uri)
+					if (exists) {
+						// Check what exists at the path
+						const stat = await fileService.resolve(uri)
+						if (isFolder && stat.isFile) {
+							throw new Error(`Cannot create folder at "${uri.fsPath}" because a file already exists at that path.`)
+						} else if (!isFolder && stat.isDirectory) {
+							throw new Error(`Cannot create file at "${uri.fsPath}" because a directory already exists at that path.`)
+						} else {
+							throw new Error(`Path "${uri.fsPath}" already exists.`)
+						}
+					}
+					
+					// Check parent directory exists for files
+					if (!isFolder) {
+						const parentUri = resources.dirname(uri)
+						const parentExists = await fileService.exists(parentUri)
+						if (!parentExists) {
+							throw new Error(`Cannot create file at "${uri.fsPath}" because parent directory does not exist. Create the directory first or use a different path.`)
+						}
+					}
+					
+					if (isFolder)
+						await fileService.createFolder(uri)
+					else {
+						await fileService.createFile(uri)
+					}
+					return { result: {} }
+				} catch (error: any) {
+					// Handle specific file system errors
+					if (error.name === 'FileSystemProviderError') {
+						switch (error.code) {
+							case 'EntryExists':
+								throw new Error(`Path "${uri.fsPath}" already exists.`)
+							case 'EntryNotFound':
+								throw new Error(`Parent directory for "${uri.fsPath}" does not exist.`)
+							case 'EntryNotADirectory':
+								throw new Error(`Cannot create folder at "${uri.fsPath}" because a file already exists at that path.`)
+							case 'EntryIsADirectory':
+								throw new Error(`Cannot create file at "${uri.fsPath}" because a directory already exists at that path.`)
+							case 'NoPermissions':
+								throw new Error(`Permission denied: Cannot create "${uri.fsPath}". Check file permissions.`)
+							default:
+								throw new Error(`File system error: ${error.message}`)
+						}
+					}
+					throw error
 				}
-				return { result: {} }
 			},
 
 			delete_file_or_folder: async ({ uri, isRecursive }) => {

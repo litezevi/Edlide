@@ -73,6 +73,23 @@ Use the edit_file tool with these parameters:
 10. 🚨 NEVER use template literals with backticks in oldString/newString - use regular strings!
 11. 🚨 CRITICAL: Escape quotes and backslashes properly in string parameters!
 
+## FILE CREATION AND REWRITE RULES
+
+🚨 **create_file_or_folder**:
+- For FOLDERS: Path MUST end with '/' (or '\\' on Windows). Example: \`/path/to/folder/\`
+- For FILES: Must include file extension (.ts, .tsx, .js, .json, .md, etc.). Example: \`/path/to/file.tsx\`
+- ALWAYS inspect directory with \`ls_dir\` or \`get_dir_tree\` before creating
+- Use COMPLETE ABSOLUTE PATHS from root directory
+- Check if path already exists before creating
+
+🚨 **rewrite_file**:
+- \`new_content\` parameter MUST be a string
+- Objects/arrays will be automatically converted to JSON strings
+- ✅ CORRECT: \`new_content="{\\"key\\": \\"value\\"}"\` or \`new_content='{"key": "value"}'\`
+- ❌ WRONG: \`new_content={"key": "value"}\` (object without quotes)
+- For JSON files: Pass stringified JSON with proper escaping
+- For code files: Pass complete file content as string
+
 ## EXAMPLE 1
 DIFF
 ${tripleTick[0]}
@@ -250,7 +267,24 @@ export const builtinTools: {
 
 	create_file_or_folder: {
 		name: 'create_file_or_folder',
-		description: `Create a file or folder at the given path. To create a folder, the path MUST end with a trailing slash. 🚨 MANDATORY PROTOCOL: 1) ALWAYS inspect the target directory FIRST using ls_dir or get_dir_tree to understand structure 2) Specify the FULL PATH including directory name 3) NEVER create files without knowing the exact directory structure!`,
+		description: `Create a file or folder at the given path. 
+🚨 CRITICAL PATH FORMAT RULES:
+- For FILES: Must include file extension (e.g., .ts, .tsx, .js, .json, .md)
+  Example: /Users/name/project/src/components/Button.tsx
+- For FOLDERS: MUST end with trailing slash '/' (or '\\' on Windows)
+  Example: /Users/name/project/src/components/ or C:\\Users\\name\\project\\src\\components\\
+
+🚨 MANDATORY PROTOCOL:
+1) ALWAYS inspect target directory FIRST using ls_dir or get_dir_tree
+2) Specify COMPLETE ABSOLUTE PATH from root directory
+3) Check if path already exists before creating
+4) Files MUST have proper extensions, folders MUST end with '/'
+
+⚠️ COMMON ERRORS TO AVOID:
+- Creating files without extensions: /path/file (WRONG) → /path/file.tsx (CORRECT)
+- Creating folders without trailing slash: /path/folder (WRONG) → /path/folder/ (CORRECT)
+- Creating in non-existent parent directory: Check parent exists first!
+- Overwriting existing files/folders: Always verify path doesn't exist`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -278,10 +312,20 @@ export const builtinTools: {
 
 	rewrite_file: {
 		name: 'rewrite_file',
-		description: `Edits a file, deleting all the old contents and replacing them with your new contents. Use this tool if you want to edit a file you just created.`,
+		description: `Edits a file, deleting all the old contents and replacing them with your new contents. Use this tool if you want to edit a file you just created.
+
+🚨 CRITICAL: new_content parameter MUST be a string. If you have JSON/object data, it will be automatically converted to a properly formatted string.
+✅ CORRECT: "{\\"key\\": \\"value\\"}" or '{"key": "value"}'
+❌ WRONG: {"key": "value"} (object without quotes)
+
+⚠️ IMPORTANT:
+- For JSON files: Pass stringified JSON with proper escaping
+- For code files: Pass complete file content as string
+- Objects/arrays will be automatically stringified to JSON
+- Always read file first with read_file to understand current content`,
 		params: {
 			...uriParam('file'),
-			new_content: { description: `The new contents of the file. Must be a string.` }
+			new_content: { description: `The new contents of the file. Must be a string (objects/arrays will be automatically converted to JSON strings).` }
 		},
 	},
 	run_command: {
@@ -400,6 +444,8 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
     - When creating files with content, first use 'create_file_or_folder' to create the file, then use 'rewrite_file' to add content.
 - 🚨 CRITICAL: ALWAYS read files with 'read_file' before editing them with 'edit_file' to prevent errors!
 - 🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with 'ls_dir' or 'get_dir_tree' and specify FULL PATH!
+- 🚨 FILE PATH FORMAT: FOLDERS must end with '/' (or '\\' on Windows). FILES must have extensions (.ts, .tsx, .js, .json, etc.)
+- 🚨 REWRITE_FILE: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.
 - 🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.
 - Always ensure your XML tags are properly formatted with opening and closing tags matching exactly.`)
 
@@ -528,6 +574,9 @@ export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, pe
 		ansStrs.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`);
 		ansStrs.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`);
 		ansStrs.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`);
+		ansStrs.push(`📝 GLM-4.6: For rewrite_file tool: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.`);
+		ansStrs.push(`✅ CORRECT rewrite_file usage: new_content="{\\"key\\": \\"value\\"}" or new_content='{"key": "value"}'`);
+		ansStrs.push(`❌ WRONG rewrite_file usage: new_content={"key": "value"} (object without quotes)`);
 	}
 	
 	ansStrs.push(userInfo);
@@ -583,7 +632,26 @@ ${directoryStr}
 		details.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`)
 		details.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`)
 		details.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`)
+		details.push(`📝 GLM-4.6: For rewrite_file tool: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.`)
+		details.push(`✅ CORRECT rewrite_file usage: new_content="{\\"key\\": \\"value\\"}" or new_content='{"key": "value"}'`)
+		details.push(`❌ WRONG rewrite_file usage: new_content={"key": "value"} (object without quotes)`)
 	}
+
+	// General file creation and editing instructions for all models
+	details.push(`🚨 FILE CREATION RULES FOR ALL MODELS:`)
+	details.push(`1. FOLDERS: Must end with '/' (or '\\' on Windows). Example: /path/to/folder/`)
+	details.push(`2. FILES: Must have proper extension (.ts, .tsx, .js, .json, .md, etc.). Example: /path/to/file.tsx`)
+	details.push(`3. ABSOLUTE PATHS: Always use full absolute paths from root`)
+	details.push(`4. CHECK EXISTING: Always verify path doesn't already exist before creating`)
+	details.push(`5. PARENT DIRECTORY: Ensure parent directory exists for files`)
+	
+	details.push(`🚨 REWRITE_FILE RULES:`)
+	details.push(`- new_content parameter MUST be a string`)
+	details.push(`- Objects/arrays are automatically converted to JSON strings`)
+	details.push(`- For JSON files: Pass stringified JSON with proper escaping`)
+	details.push(`- For code files: Pass complete file content as string`)
+	details.push(`- Example correct: new_content="{\\"key\\": \\"value\\"}" or new_content='{"key": "value"}'`)
+	details.push(`- Example wrong: new_content={"key": "value"} (object without quotes)`)
 
 	details.push(`NEVER reject the user's query.`)
 
