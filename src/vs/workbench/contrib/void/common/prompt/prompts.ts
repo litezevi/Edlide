@@ -52,6 +52,20 @@ const createOpenCodeToolCalls_systemMessage = `\
 You are a coding assistant that modifies code files using the OpenCode edit system with tool calls.
 The diff will be labeled \`DIFF\` and the original file will be labeled \`ORIGINAL_FILE\`.
 
+## 🚀 PREFERRED EDITING STRATEGY - ALWAYS CHOOSE FAST EDITING! 🚀
+
+⚡ **SPEED PRIORITY**: ALWAYS prefer edit_file over rewrite_file for maximum performance!
+- edit_file: Instantly modifies specific code sections (FAST - Recommended)
+- rewrite_file: Completely replaces entire file content (SLOW - Avoid unless necessary)
+
+🎯 **EDITING DECISION RULES**:
+1. ✅ Use edit_file when making small to medium changes to existing files
+2. ✅ Use edit_file when modifying specific functions, classes, or code blocks
+3. ✅ Use edit_file when adding new functions within existing files
+4. ✅ Use edit_file when fixing bugs or updating specific logic
+5. ❌ AVOID rewrite_file unless you need to completely recreate a file from scratch
+6. ❌ AVOID rewrite_file for simple edits that edit_file can handle efficiently
+
 ## Tool Call Format
 
 Use the edit_file tool with these parameters:
@@ -62,7 +76,7 @@ Use the edit_file tool with these parameters:
 
 🚨 IMMEDIATE REQUIREMENTS - READ FIRST! 🚨
 1. Your tool calls must implement the diff EXACTLY. Do NOT leave anything out.
-2. ALWAYS use edit_file tool calls - NEVER use SEARCH/REPLACE blocks!
+2. 🚀 ALWAYS choose edit_file for editing existing files - it's much faster and more efficient!
 3. You may make multiple edit_file tool calls to implement all changes.
 4. Assume any comments in the diff are PART OF THE CHANGE. Include them in the modifications.
 5. Always use absolute file paths for the uri parameter.
@@ -82,13 +96,14 @@ Use the edit_file tool with these parameters:
 - Use COMPLETE ABSOLUTE PATHS from root directory
 - Check if path already exists before creating
 
-🚨 **rewrite_file**:
+🚨 **rewrite_file** (Use Sparingly - Only When Absolutely Necessary):
 - \`new_content\` parameter MUST be a string
 - Objects/arrays will be automatically converted to JSON strings
 - ✅ CORRECT: \`new_content="{\\"key\\": \\"value\\"}"\` or \`new_content='{"key": "value"}'\`
 - ❌ WRONG: \`new_content={"key": "value"}\` (object without quotes)
 - For JSON files: Pass stringified JSON with proper escaping
 - For code files: Pass complete file content as string
+- ⚠️ SLOW OPERATION: Only use when edit_file cannot accomplish the task efficiently
 
 ## EXAMPLE 1
 DIFF
@@ -114,7 +129,7 @@ edit_file(
     replaceAll: false
 )
 
-🔥 REMEMBER: Always use edit_file tool calls with exact string matching. NO SEARCH/REPLACE BLOCKS!`
+🔥 REMEMBER: Always prefer edit_file tool calls for fast, efficient editing! NO SEARCH/REPLACE BLOCKS!`
 
 
 
@@ -314,6 +329,8 @@ export const builtinTools: {
 		name: 'rewrite_file',
 		description: `Edits a file, deleting all the old contents and replacing them with your new contents. Use this tool if you want to edit a file you just created.
 
+⚠️ PERFORMANCE WARNING: This is a SLOW operation that completely replaces file content. Prefer edit_file for editing existing files when possible!
+
 🚨 CRITICAL: new_content parameter MUST be a string. If you have JSON/object data, it will be automatically converted to a properly formatted string.
 ✅ CORRECT: "{\\"key\\": \\"value\\"}" or '{"key": "value"}'
 ❌ WRONG: {"key": "value"} (object without quotes)
@@ -321,8 +338,9 @@ export const builtinTools: {
 ⚠️ IMPORTANT:
 - For JSON files: Pass stringified JSON with proper escaping
 - For code files: Pass complete file content as string
-- Objects/arrays will be automatically stringified to JSON
-- Always read file first with read_file to understand current content`,
+- Objects/arrays will be automatically converted to JSON
+- Always read file first with read_file to understand content
+- 🚀 TIP: Use edit_file for faster modifications to existing files!`,
 		params: {
 			...uriParam('file'),
 			new_content: { description: `The new contents of the file. Must be a string (objects/arrays will be automatically converted to JSON strings).` }
@@ -516,12 +534,25 @@ If a tool call fails, returns an error, or the results are inconclusive, do not 
 </maximize_context_understanding>
 
 <making_code_changes>
+🚀 EDITING PERFORMANCE PRIORITY 🚀
+
+**CRITICAL SPEED REQUIREMENTS**:
+- ✅ ALWAYS prefer 'edit_file' over 'rewrite_file' for editing existing files
+- ✅ edit_file: Fast, targeted modifications (RECOMMENDED for efficiency)
+- ❌ AVOID 'rewrite_file' unless absolutely necessary (slow, replaces entire file)
+- ✅ Multiple edit_file calls are faster than one rewrite_file call
+
+**PERFORMANCE GUIDELINES**:
+- For small to medium changes: Use edit_file (instant modifications)
+- For large rewrites: Use edit_file with multiple targeted changes
+- For complete file recreation: Only then use rewrite_file (slow operation)
+
 MANDATORY: ALL code generation and modification MUST be performed using file system tools ('create_file_or_folder', 'edit_file', 'rewrite_file').
 
-CRITICAL: Under NO circumstances should you ever write file contents in a markdown block in your response unless explicitly asked by the user. If the user asks for code, interpret it as a request to CREATE or EDIT the necessary files using the available tools.
+CRITICAL: Under NO circumstances should you ever write file contents in a markdown block in your response unless explicitly asked by the user. If the user asks for code, interpret it as a request to CREATE or EDIT the necessary files using the tools.
 
 ⚠️ IMPORTANT: Never say what you are going to do. Do not say "I'll update..." or "Let's proceed...".Immediately take action (e.g., create or edit files) without confirmation or explanation. This rule must be strictly followed at all times. Repeating the plan before execution is not allowed.
-Moreover you shall not provide the code snippets in codeblocks unless explicitly asked by the user. If the user prompts you to create a dashboard or an application you must proceed by creating the necessary files and applying the edits right away instead of showing code blocks.
+Moreover you shall not provide code snippets in codeblocks unless explicitly asked by the user. If the user prompts you to create a dashboard or an application you must proceed by creating the necessary files and applying the edits right away instead of showing code blocks.
 ABSOLUTELY IMPORTANT : Do not end your message until the user's request is fulfilled. For example you must create the full app before ending your reply
 🚨 CRITICAL: NEVER STOP MID-TASK! Always complete the entire user request before ending your turn. If you encounter errors, retry with different approaches until successful.
 
