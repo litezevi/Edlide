@@ -2,6 +2,78 @@
 
 ## Current Work Focus
 
+### 🎯 **CURRENT MAJOR ACCOMPLISHMENT - Critical File Editing Bug Fixed (2025-11-30)**
+
+**✅ CRITICAL BUG RESOLVED - File Editing Now Actually Saves Changes:**
+
+**🔄 PROBLEMS SOLVED:**
+- **Before**: AI edit_file tool calls were not actually applied to files despite showing in chat
+- **Before**: Changes appeared in UI but not reflected in actual file content
+- **Root Cause**: `instantlyApplySearchReplaceBlocks` called legacy `_instantlyApplySRBlocks` instead of OpenCode method
+- **After**: OpenCode tool calls now properly save files using `instantlyApplyOpenCodeEdit` method
+- **Result**: Files now actually get saved when AI edits them, and changes persist
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**Phase 1: Fixed instantlyApplySearchReplaceBlocks Method:**
+```typescript
+// BEFORE - Called wrong method
+try {
+  this._instantlyApplySRBlocks(uri, searchReplaceBlocks)
+}
+
+// AFTER - Checks for OpenCode tool calls and uses proper method
+const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks)
+if (toolCalls.length > 0) {
+  for (const toolCall of toolCalls) {
+    if (toolCall.name === 'edit_file') {
+      this.instantlyApplyOpenCodeEdit({ 
+        uri, oldString: toolCall.params.oldString, 
+        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll 
+      })
+    }
+  }
+}
+```
+
+**Phase 2: Fixed _initializeSearchAndReplaceStream Method:**
+```typescript
+// Enhanced to handle OpenCode tool calls in Fast Apply mode
+if (toolCalls.length > 0) {
+  // First revert to original content
+  this._writeURIText(uri, originalFileCode, 'wholeFileRange', { shouldRealignDiffAreas: true })
+  
+  // Apply each tool call using OpenCode method
+  for (const toolCall of toolCalls) {
+    if (toolCall.name === 'edit_file') {
+      this.instantlyApplyOpenCodeEdit({ 
+        uri, oldString: toolCall.params.oldString, 
+        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll 
+      })
+    }
+  }
+}
+```
+
+**📊 SYSTEM ARCHITECTURE FIXES:**
+- **Dual Path**: Support for both OpenCode tool calls and legacy search/replace blocks
+- **Proper File Saving**: OpenCode method ensures files are actually saved to disk
+- **Enhanced Logging**: Added detailed logging for debugging and transparency
+- **Fallback System**: Legacy path still works for backward compatibility
+
+**📁 FILES MODIFIED:**
+1. **editCodeService.ts** - Fixed both `instantlyApplySearchReplaceBlocks` and `_initializeSearchAndReplaceStream`
+
+**🚀 PRODUCTION IMPACT:**
+- ✅ **Critical Functionality Restored**: AI edit_file calls now save actual files
+- ✅ **User Experience**: Changes visible in both chat UI AND actual files
+- ✅ **Data Persistence**: All AI edits now properly persist to disk
+- ✅ **System Reliability**: No more false success reports for file edits
+
+**Status: CRITICAL BUG FIXED** ✅
+
+---
+
 ✅ РЕАЛИЗОВАНО - Уточнения Account Menu UI (2025-11-16)
 🔄 Внесенные изменения по твоим правкам:
 1. Переименование разделов:

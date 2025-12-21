@@ -1203,6 +1203,53 @@ class EditCodeService extends Disposable implements IEditCodeService {
 
 
 	public instantlyApplySearchReplaceBlocks({ uri, searchReplaceBlocks }: { uri: URI, searchReplaceBlocks: string }) {
+		console.log('🔧 [EDLIDE SR BLOCKS] Processing search/replace blocks')
+		console.log('🔧 [EDLIDE SR BLOCKS] URI:', uri.toString())
+		
+		// Try to extract OpenCode tool calls first
+		const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks)
+		console.log(`🔧 [EDLIDE SR BLOCKS] Extracted ${toolCalls.length} tool calls from search/replace blocks`)
+		
+		if (toolCalls.length > 0) {
+			console.log('🔧 [EDLIDE SR BLOCKS] Using OpenCode application for tool calls')
+			// Use OpenCode method for tool calls
+			this._startStreamingDiffZone({
+				uri,
+				streamRequestIdRef: { current: null },
+				startBehavior: 'keep-conflicts',
+				linkedCtrlKZone: null,
+				onWillUndo: () => { },
+			})
+			
+			try {
+				for (const toolCall of toolCalls) {
+					if (toolCall.name === 'edit_file') {
+						console.log('🔧 [EDLIDE SR BLOCKS] Applying edit_file tool call')
+						this.instantlyApplyOpenCodeEdit({ 
+							uri, 
+							oldString: toolCall.params.oldString, 
+							newString: toolCall.params.newString, 
+							replaceAll: toolCall.params.replaceAll 
+						})
+					}
+				}
+			} catch (e) {
+				this._undoHistory(uri)
+				throw e
+			}
+			
+			// auto accept
+			if (this._settingsService.state.globalSettings.autoAcceptLLMChanges) {
+				this.acceptOrRejectAllDiffAreas({ uri, removeCtrlKs: false, behavior: 'accept' })
+			}
+			
+			console.log('🔧 [EDLIDE SR BLOCKS] Search/replace blocks applied successfully via OpenCode')
+			return
+		}
+
+		// Fallback to legacy search/replace blocks processing
+		console.log('🔧 [EDLIDE SR BLOCKS] No tool calls found, using legacy search/replace blocks')
+		
 		// start diffzone
 		const res = this._startStreamingDiffZone({
 			uri,
@@ -2136,12 +2183,31 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 					let blocks: ExtractedSearchReplaceBlock[] = []
 					
 					if (toolCalls.length > 0) {
-						// Convert tool calls to search/replace blocks for compatibility
-						blocks = toolCalls.map(toolCall => ({
-							state: 'done' as const,
-							orig: toolCall.params.oldString,
-							final: toolCall.params.newString
-						}))
+						console.log(`🔧 [EDLIDE SEARCH/REPLACE] Found ${toolCalls.length} tool calls in response`)
+						
+						// First revert to original content
+						this._writeURIText(uri, originalFileCode, 'wholeFileRange', { shouldRealignDiffAreas: true })
+						
+						// Apply each tool call using OpenCode method
+						try {
+							for (const toolCall of toolCalls) {
+								if (toolCall.name === 'edit_file') {
+									console.log('🔧 [EDLIDE SEARCH/REPLACE] Applying edit_file tool call')
+									this.instantlyApplyOpenCodeEdit({ 
+										uri, 
+										oldString: toolCall.params.oldString, 
+										newString: toolCall.params.newString, 
+										replaceAll: toolCall.params.replaceAll 
+									})
+								}
+							}
+							onDone()
+							resMessageDonePromise()
+							return
+						} catch (e) {
+							onError(e)
+							return
+						}
 					} else {
 						blocks = extractSearchReplaceBlocks(fullText)
 					}
