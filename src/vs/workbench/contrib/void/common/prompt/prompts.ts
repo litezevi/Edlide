@@ -87,14 +87,29 @@ Use the edit_file tool with these parameters:
 10. 🚨 NEVER use template literals with backticks in oldString/newString - use regular strings!
 11. 🚨 CRITICAL: Escape quotes and backslashes properly in string parameters!
 
-## FILE CREATION AND REWRITE RULES
+## 🚨 FILE CREATION AND DIRECTORY CREATION PROTOCOL - CRITICAL! 🚨
 
-🚨 **create_file_or_folder**:
-- For FOLDERS: Path MUST end with '/' (or '\\' on Windows). Example: \`/path/to/folder/\`
-- For FILES: Must include file extension (.ts, .tsx, .js, .json, .md, etc.). Example: \`/path/to/file.tsx\`
-- ALWAYS inspect directory with \`ls_dir\` or \`get_dir_tree\` before creating
-- Use COMPLETE ABSOLUTE PATHS from root directory
-- Check if path already exists before creating
+🔥 **create_file_or_folder** - STEP BY STEP PROTOCOL:
+1. ALWAYS inspect target directory with \`ls_dir\` or \`get_dir_tree\` FIRST
+2. For NESTED directories, create EACH level SEPARATELY:
+   - Wrong: create_file_or_folder("/path/to/deep/nested/folder/file.ts") ❌
+   - Right: 
+     - create_file_or_folder("/path/")
+     - create_file_or_folder("/path/to/")
+     - create_file_or_folder("/path/to/deep/")
+     - create_file_or_folder("/path/to/deep/nested/")
+     - create_file_or_folder("/path/to/deep/nested/folder/")
+     - create_file_or_folder("/path/to/deep/nested/folder/file.ts") ✅
+3. FOLDERS: Path MUST end with '/' (or '\\' on Windows). Example: \`/path/to/folder/\`
+4. FILES: Must include file extension (.ts, .tsx, .js, .json, .md, etc.). Example: \`/path/to/file.tsx\`
+5. Use COMPLETE ABSOLUTE PATHS from root directory
+6. Check if path already exists before creating
+
+⚠️ **CRITICAL ERRORS TO AVOID**:
+- Creating files in non-existent parent directories: Create parent directories FIRST!
+- Creating files without extensions: /path/file (WRONG) → /path/file.tsx (CORRECT)
+- Creating folders without trailing slash: /path/folder (WRONG) → /path/folder/ (CORRECT)
+- Skipping directory inspection: ALWAYS use ls_dir or get_dir_tree FIRST!
 
 🚨 **rewrite_file** (Use Sparingly - Only When Absolutely Necessary):
 - \`new_content\` parameter MUST be a string
@@ -128,6 +143,13 @@ edit_file(
     newString: "let x = 6.5",
     replaceAll: false
 )
+
+## EXAMPLE 2 - CORRECT NESTED DIRECTORY CREATION
+If you need to create "/Users/name/project/src/components/navbar/chutes-auth-button.tsx":
+1. ls_dir("/Users/name/project/src/") - Check what exists
+2. create_file_or_folder("/Users/name/project/src/components/")
+3. create_file_or_folder("/Users/name/project/src/components/navbar/")
+4. create_file_or_folder("/Users/name/project/src/components/navbar/chutes-auth-button.tsx")
 
 🔥 REMEMBER: Always prefer edit_file tool calls for fast, efficient editing! NO SEARCH/REPLACE BLOCKS!`
 
@@ -289,17 +311,27 @@ export const builtinTools: {
 - For FOLDERS: MUST end with trailing slash '/' (or '\\' on Windows)
   Example: /Users/name/project/src/components/ or C:\\Users\\name\\project\\src\\components\\
 
-🚨 MANDATORY PROTOCOL:
-1) ALWAYS inspect target directory FIRST using ls_dir or get_dir_tree
-2) Specify COMPLETE ABSOLUTE PATH from root directory
-3) Check if path already exists before creating
-4) Files MUST have proper extensions, folders MUST end with '/'
+🚨 MANDATORY PROTOCOL - STEP BY STEP:
+1) ALWAYS inspect target directory FIRST using ls_dir or get_dir_tree to understand current structure
+2) If creating nested directories, create EACH directory level SEPARATELY using create_file_or_folder
+3) Specify COMPLETE ABSOLUTE PATH from root directory
+4) Check if path already exists before creating
+5) Files MUST have proper extensions, folders MUST end with '/'
 
 ⚠️ COMMON ERRORS TO AVOID:
 - Creating files without extensions: /path/file (WRONG) → /path/file.tsx (CORRECT)
 - Creating folders without trailing slash: /path/folder (WRONG) → /path/folder/ (CORRECT)
-- Creating in non-existent parent directory: Check parent exists first!
-- Overwriting existing files/folders: Always verify path doesn't exist`,
+- Creating in non-existent parent directory: Create parent directories FIRST!
+- Overwriting existing files/folders: Always verify path doesn't exist
+
+🔥 SOLUTION FOR NESTED DIRECTORIES:
+If you need to create /path/to/deep/nested/folder/file.ts:
+1. create_file_or_folder("/path/")  
+2. create_file_or_folder("/path/to/")
+3. create_file_or_folder("/path/to/deep/")
+4. create_file_or_folder("/path/to/deep/nested/")
+5. create_file_or_folder("/path/to/deep/nested/folder/")
+6. create_file_or_folder("/path/to/deep/nested/folder/file.ts")`,
 		params: {
 			...uriParam('file or folder'),
 		},
@@ -462,6 +494,7 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
     - When creating files with content, first use 'create_file_or_folder' to create the file, then use 'rewrite_file' to add content.
 - 🚨 CRITICAL: ALWAYS read files with 'read_file' before editing them with 'edit_file' to prevent errors!
 - 🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with 'ls_dir' or 'get_dir_tree' and specify FULL PATH!
+- 🔥 CRITICAL NESTED DIRECTORY CREATION: Create EACH directory level SEPARATELY! Example: /to/deep/file.ts needs /to/, /to/deep/, /to/deep/file.ts as separate calls
 - 🚨 FILE PATH FORMAT: FOLDERS must end with '/' (or '\\' on Windows). FILES must have extensions (.ts, .tsx, .js, .json, etc.)
 - 🚨 REWRITE_FILE: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.
 - 🚨 NEVER STOP MID-TASK! Complete the entire user request before ending your turn.
@@ -599,15 +632,17 @@ export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, pe
 	
 	// GLM-4.6 specific instructions for directory inspection
 	if (modelName && modelName.toLowerCase().includes('glm')) {
-		ansStrs.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure before creating ANY file or folder!`);
+		ansStrs.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure BEFORE creating ANY file or folder!`);
 		ansStrs.push(`🔥 MANDATORY PROTOCOL for GLM-4.6: 1) Use ls_dir or get_dir_tree to inspect target directory 2) Understand the exact structure 3) ONLY then create files/folders with COMPLETE ABSOLUTE PATH from ROOT directory`);
 		ansStrs.push(`⚠️ GLM-4.6: ALWAYS specify the COMPLETE ABSOLUTE PATH - never use relative paths! If you inspected /Users/name/Projects/Edlide/ and want to create "test2" folder inside it, use: /Users/name/Projects/Edlide/test2/`);
 		ansStrs.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`);
 		ansStrs.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`);
 		ansStrs.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`);
+		ansStrs.push(`🔥🔥🔥 GLM-4.6 NESTED DIRECTORY FIX: For directories like "/path/to/deep/file.ts", create EACH level separately: 1) /path/ 2) /path/to/ 3) /path/to/deep/ 4) /path/to/deep/file.ts`);
 		ansStrs.push(`📝 GLM-4.6: For rewrite_file tool: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.`);
 		ansStrs.push(`✅ CORRECT rewrite_file usage: new_content="{\\"key\\": \\"value\\"}" or new_content='{"key": "value"}'`);
 		ansStrs.push(`❌ WRONG rewrite_file usage: new_content={"key": "value"} (object without quotes)`);
+		ansStrs.push(`🚫 GLM-4.6 FORBIDDEN: Never create files in non-existent parent directories! Create parent directories FIRST!`);
 	}
 	
 	ansStrs.push(userInfo);
@@ -657,15 +692,17 @@ ${directoryStr}
 
 	// GLM-4.6 specific instructions for directory inspection
 	if (modelName && modelName.toLowerCase().includes('glm')) {
-		details.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure before creating ANY file or folder!`)
+		details.push(`🚨🚨🚨 GLM-4.6 CRITICAL INSTRUCTIONS: You MUST ALWAYS inspect the directory structure BEFORE creating ANY file or folder!`)
 		details.push(`🔥 MANDATORY PROTOCOL for GLM-4.6: 1) Use ls_dir or get_dir_tree to inspect target directory 2) Understand the exact structure 3) ONLY then create files/folders with COMPLETE ABSOLUTE PATH from ROOT directory`)
 		details.push(`⚠️ GLM-4.6: ALWAYS specify the COMPLETE ABSOLUTE PATH - never use relative paths! If you inspected /Users/name/Projects/Edlide/ and want to create "test2" folder inside it, use: /Users/name/Projects/Edlide/test2/`)
 		details.push(`📁 GLM-4.6: CRITICAL - FOLDERS MUST end with '/' slash! FILES must have extension! Example: folder: /path/to/folder/  file: /path/to/file.txt`)
 		details.push(`🔍 GLM-4.6: After inspecting with ls_dir/get_dir_tree, you MUST use the EXACT same base path + your new folder/file name. Example: inspected /Users/name/Projects/Edlide/ → create /Users/name/Projects/Edlide/test2/`)
 		details.push(`🚨 GLM-4.6: NEVER omit the trailing '/' for folders! Without '/', system creates FILE instead of FOLDER!`)
+		details.push(`🔥🔥🔥 GLM-4.6 NESTED DIRECTORY FIX: For directories like "/path/to/deep/file.ts", create EACH level separately: 1) /path/ 2) /path/to/ 3) /path/to/deep/ 4) /path/to/deep/file.ts`)
 		details.push(`📝 GLM-4.6: For rewrite_file tool: new_content MUST be a string. Objects/arrays will be automatically converted to JSON strings.`)
 		details.push(`✅ CORRECT rewrite_file usage: new_content="{\\"key\\": \\"value\\"}" or new_content='{"key": "value"}'`)
 		details.push(`❌ WRONG rewrite_file usage: new_content={"key": "value"} (object without quotes)`)
+		details.push(`🚫 GLM-4.6 FORBIDDEN: Never create files in non-existent parent directories! Create parent directories FIRST!`)
 	}
 
 	// General file creation and editing instructions for all models
@@ -675,6 +712,9 @@ ${directoryStr}
 	details.push(`3. ABSOLUTE PATHS: Always use full absolute paths from root`)
 	details.push(`4. CHECK EXISTING: Always verify path doesn't already exist before creating`)
 	details.push(`5. PARENT DIRECTORY: Ensure parent directory exists for files`)
+	details.push(`🔥 SOLUTION: If parent doesn't exist, create it first with create_file_or_folder! Never skip this step!`)
+	details.push(`🔥 CRITICAL: For NESTED directories, create EACH level SEPARATELY using create_file_or_folder!`)
+	details.push(`Example: To create /path/to/deep/file.ts: create /path/, then /path/to/, then /path/to/deep/, then file.ts`)
 	
 	details.push(`🚨 REWRITE_FILE RULES:`)
 	details.push(`- new_content parameter MUST be a string`)
@@ -732,6 +772,7 @@ ${directoryStr}
 		details.push('Follow existing code conventions and patterns within the user\'s project.')
 		details.push('🚨 MANDATORY: Before editing any file, ALWAYS read it first using read_file tool.')
 		details.push('🚨 MANDATORY: Before creating any file/folder, ALWAYS inspect directory with ls_dir or get_dir_tree tool!')
+		details.push('🔥 CRITICAL NESTED DIRECTORIES: Create each level SEPARATELY! Example: /src/api/auth/route.ts needs /src/, /src/api/, /src/api/auth/, then /src/api/auth/route.ts')
 		details.push('🔥 CRITICAL: ALWAYS inspect the directory structure before creating a file or a folder!')
 		details.push('🚨 ALWAYS use edit_file tool calls with proper parameters - never leave tool calls incomplete.')
 	}
