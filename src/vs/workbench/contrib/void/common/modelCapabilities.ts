@@ -77,7 +77,7 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'zai-org/GLM-4.6-TEE:THINKING',
-		//'moonshotai/Kimi-K2-Instruct-0905',
+		'XiaomiMiMo/MiMo-V2-Flash',
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.2',
 		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
@@ -1180,8 +1180,8 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-	'moonshotai/Kimi-K2-Instruct-0905': {
-		contextWindow: 262_144,
+	'XiaomiMiMo/MiMo-V2-Flash': {
+		contextWindow: 256_000,
 		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,

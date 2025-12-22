@@ -29,7 +29,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
-		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
+		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8') return 'qwen3-coder'
 	}
 	return modelName

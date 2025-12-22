@@ -27,7 +27,7 @@
 - `zai-org/GLM-4.6-TEE:THINKING-turbo`
 - `deepseek-ai/DeepSeek-V3.2`
 - `deepseek-ai/DeepSeek-V3.2`
-- `moonshotai/Kimi-K2-Instruct-0905`
+- `XiaomiMiMo/MiMo-V2-Flash`
 
 ### 3. API Integration (`sendLLMMessage.impl.ts`)
 

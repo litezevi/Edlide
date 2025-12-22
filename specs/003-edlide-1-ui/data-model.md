@@ -26,7 +26,7 @@ const EDLIDE_MODELS = [
   'zai-org/GLM-4.6-TEE:THINKING-turbo',           // Default model
   'deepseek-ai/DeepSeek-V3.2',
   'deepseek-ai/DeepSeek-V3.2',
-  'moonshotai/Kimi-K2-Instruct-0905'
+  'XiaomiMiMo/MiMo-V2-Flash'
 ] as const;
 ```
 
@@ -128,7 +128,7 @@ Models:
   - zai-org/GLM-4.6-TEE:THINKING-turbo (enabled, selected)
   - deepseek-ai/DeepSeek-V3.2 (enabled)
   - deepseek-ai/DeepSeek-V3.2 (enabled)
-  - moonshotai/Kimi-K2-Instruct-0905 (enabled)
+  - XiaomiMiMo/MiMo-V2-Flash (enabled)
 ```
 
 ### User Actions

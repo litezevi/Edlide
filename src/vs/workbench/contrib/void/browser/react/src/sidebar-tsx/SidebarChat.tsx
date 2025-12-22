@@ -46,7 +46,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
-		if (modelName === 'moonshotai/Kimi-K2-Instruct-0905') return 'kimi-k2-0905'
+		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8') return 'qwen3-coder'
 	}
 	return modelName
@@ -142,8 +142,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 
 		// Model-specific context limits
 		const getModelContextLimit = (modelName: string): number => {
-			if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-				return 262144; // kimi-k2: 256k tokens
+			if (modelName.includes('mimo-v2') || modelName.includes('XiaomiMiMo/MiMo-V2-Flash')) {
+				return 256000; // mimo-v2: 256k tokens
 			}
 			if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
 				return 202752; // glm-4.6: 200k tokens
@@ -3402,8 +3402,8 @@ export const SidebarChat = () => {
 	const modelName = modelSelection?.modelName || '';
 
 	const getModelContextLimit = (modelName: string): number => {
-		if (modelName.includes('kimi-k2') || modelName.includes('Kimi-K2')) {
-			return 262144; // kimi-k2: 256k tokens
+		if (modelName.includes('mimo-v2') || modelName.includes('XiaomiMiMo/MiMo-V2-Flash')) {
+			return 256000; // mimo-v2: 256k tokens
 		}
 		if (modelName.includes('glm-4.6') || modelName.includes('GLM-4.6') || modelName.includes('GLM-4.6-FP8')) {
 			return 202752; // glm-4.6: 200k tokens

@@ -65,7 +65,7 @@ components:
             - zai-org/GLM-4.6-TEE:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.2
             - deepseek-ai/DeepSeek-V3.2
-            - moonshotai/Kimi-K2-Instruct-0905
+            - XiaomiMiMo/MiMo-V2-Flash
           description: The Edlide model to use for completion
         messages:
           type: array
@@ -164,7 +164,7 @@ components:
             - zai-org/GLM-4.6-TEE:THINKING-turbo
             - deepseek-ai/DeepSeek-V3.2
             - deepseek-ai/DeepSeek-V3.2
-            - moonshotai/Kimi-K2-Instruct-0905
+            - XiaomiMiMo/MiMo-V2-Flash
         object:
           type: string
           enum: [model]
@@ -220,6 +220,6 @@ x-edlide-config:
     - id: "deepseek-ai/DeepSeek-V3.2"
       enabled-by-default: true
       recommended: false
-    - id: "moonshotai/Kimi-K2-Instruct-0905"
+    - id: "XiaomiMiMo/MiMo-V2-Flash"
       enabled-by-default: true
       recommended: false

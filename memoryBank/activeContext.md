@@ -33,7 +33,7 @@ Your goal: Follow user instructions and complete coding tasks using available to
 - Use tools to gather information, read files, and make changes
 - Always read files before editing them
 - Always inspect directories before creating files
-- Prefer edit_file over rewrite_file for better performance  
+- Prefer edit_file over rewrite_file for better performance
 - Complete the entire user request before stopping
 - Use absolute file paths only`
 ```
@@ -80,7 +80,7 @@ const systemMessage = chatMode === 'agent'
 
 **Size Reduction Achieved:**
 - **Before**: 1,429 lines in prompts.ts
-- **After**: 1,028 lines in prompts.ts  
+- **After**: 1,028 lines in prompts.ts
 - **Reduction**: 401 lines (-28%)
 - **Removed**: All "CRITICAL", "MANDATORY", "🔥" warnings
 - **Removed**: GLM-4.6 specific instructions and fragmentation
@@ -104,7 +104,7 @@ const systemMessage = chatMode === 'agent'
    - Shortened all system messages by removing redundant warnings
    - Enhanced file creation/editing protocols with specific error prevention
    - Simplified tool descriptions while keeping critical guidance
-   
+
 2. **convertToLLMMessageService.ts** - Interface compatibility fix
    - Removed modelName parameter from agentSystemMessage() and chat_systemMessage() calls
    - Fixed TypeScript compilation errors for function signature mismatches
@@ -255,7 +255,7 @@ Your goal: Follow user instructions and complete coding tasks using available to
 - Use tools to gather information, read files, and make changes
 - Always read files before editing them
 - Always inspect directories before creating files
-- Prefer edit_file over rewrite_file for better performance  
+- Prefer edit_file over rewrite_file for better performance
 - Complete the entire user request before stopping
 - Use absolute file paths only`
 ```
@@ -302,7 +302,7 @@ const systemMessage = chatMode === 'agent'
 
 **Size Reduction Achieved:**
 - **Before**: 1,429 lines in prompts.ts
-- **After**: 1,028 lines in prompts.ts  
+- **After**: 1,028 lines in prompts.ts
 - **Reduction**: 401 lines (-28%)
 - **Removed**: All "CRITICAL", "MANDATORY", "🔥" warnings
 - **Removed**: GLM-4.6 specific instructions and fragmentation
@@ -326,7 +326,7 @@ const systemMessage = chatMode === 'agent'
    - Shortened all system messages by removing redundant warnings
    - Enhanced file creation/editing protocols with specific error prevention
    - Simplified tool descriptions while keeping critical guidance
-   
+
 2. **convertToLLMMessageService.ts** - Interface compatibility fix
    - Removed modelName parameter from agentSystemMessage() and chat_systemMessage() calls
    - Fixed TypeScript compilation errors for function signature mismatches
@@ -1373,7 +1373,7 @@ Active Context Update → Future Reference Complete
 
 **🔄 MODELS UPDATED:**
 - **Replaced**: `deepseek-ai/DeepSeek-V3.2` → `deepseek-ai/DeepSeek-V3.2`
-- **Added**: `moonshotai/Kimi-K2-Instruct-0905`
+- **Added**: `XiaomiMiMo/MiMo-V2-Flash`
 - **UI Names**: `"deepseek-v3.2"` (short, user-friendly)
 - **Backend Names**: Full API names retained for provider compatibility
 
@@ -1386,7 +1386,7 @@ edlide: [
   'zai-org/GLM-4.6-TEE:THINKING',
   'deepseek-ai/DeepSeek-V3.2',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
-  'moonshotai/Kimi-K2-Instruct-0905',  // New model added
+  'XiaomiMiMo/MiMo-V2-Flash',  // New model added
   'openai/gpt-oss-120b-TEE' // Hidden SCM-only
 ]
 
@@ -1415,8 +1415,8 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 }
 
 // Kimi K2-Instruct-0905 Configuration
-'moonshotai/Kimi-K2-Instruct-0905': {
-  contextWindow: 262144, // Largest context window
+'XiaomiMiMo/MiMo-V2-Flash': {
+  contextWindow: 256000, // Largest context window
   reservedOutputTokenSpace: 8192, // 96% context utilization
   cost: { input: 0, output: 0 },
   downloadable: false,
@@ -1805,8 +1805,8 @@ OUTPUT VALIDATION CHECKLIST:
   Available for messages: 155,648 tokens (+24,576!)
 }
 
-'moonshotai/Kimi-K2-Instruct-0905': {
-  contextWindow: 262144,
+'XiaomiMiMo/MiMo-V2-Flash': {
+  contextWindow: 256000,
   reservedOutputTokenSpace: 8192, // From 32768 to 8192
   Available for messages: 253,952 tokens (+24,576!)
 }
@@ -2008,7 +2008,7 @@ UI Shows: "8921 / 200752 tokens used (API verified)"
 ### 🚀 PREVIOUS ACHIEVEMENTS STILL ACTIVE
 
 **Context Progress Bar Foundation (2025-10-07):**
-- **Model-Aware Limits**: GLM-4.6 (200,752), Kimi-K2 (262,144), DeepSeek-V3.1 (163,840)
+- **Model-Aware Limits**: GLM-4.6 (200,752), mimo-v2 (262,144), DeepSeek-V3.1 (163,840)
 - **Visual Integration**: 22px circular progress bar positioned left of action buttons
 - **Smart Detection**: Automatic Edlide provider recognition
 - **Tooltip System**: Press-and-hold for detailed percentage information
