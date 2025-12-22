@@ -609,8 +609,8 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 
 		const persistentTerminalIDs = this.terminalToolService.listPersistentTerminalIds()
 		const systemMessage = chatMode === 'agent'
-			? agentSystemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, mcpTools, includeXMLToolDefinitions, modelName })
-			: chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions, modelName })
+			? agentSystemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, mcpTools, includeXMLToolDefinitions })
+			: chat_systemMessage({ workspaceFolders, openedURIs, directoryStr, activeURI, persistentTerminalIDs, chatMode, mcpTools, includeXMLToolDefinitions })
 		return systemMessage
 	}
 
