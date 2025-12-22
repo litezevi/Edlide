@@ -171,7 +171,7 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 		if (!newSettingsOfProvider[providerName]._didFillInProviderSettings) continue // if disabled, don't display model options
 		for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models) {
 			// Exclude gpt-oss-20b from UI dropdowns completely and respect hidden models
-			if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') && !isHidden) {
+			if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') && !isHidden) {
 				newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
 			}
 		}
@@ -201,7 +201,7 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 	// Force SCM to always use gpt-oss-20b
 	const finalModelSelectionOfFeature: ModelSelectionOfFeature = {
 		...newModelSelectionOfFeature,
-		'SCM': { providerName: 'edlide' as const, modelName: 'openai/gpt-oss-20b' }
+		'SCM': { providerName: 'edlide' as const, modelName: 'openai/gpt-oss-120b-TEE' }
 	}
 
 	const newState = {
@@ -291,13 +291,13 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 			if (typeof readS.globalSettings.autoApprove === 'boolean') readS.globalSettings.autoApprove = {}
 
 			// 1.3.5 add source control feature
-		if (readS.modelSelectionOfFeature && !readS.modelSelectionOfFeature['SCM']) {
-			// Set SCM to use the specific gpt-oss-20b model for commit message generation
-			readS.modelSelectionOfFeature['SCM'] = { providerName: 'edlide', modelName: 'openai/gpt-oss-20b' }
-			readS.optionsOfModelSelection['SCM'] = {}
-		}
-			
-			
+			if (readS.modelSelectionOfFeature && !readS.modelSelectionOfFeature['SCM']) {
+				// Set SCM to use the specific gpt-oss-20b model for commit message generation
+				readS.modelSelectionOfFeature['SCM'] = { providerName: 'edlide', modelName: 'openai/gpt-oss-120b-TEE' }
+				readS.optionsOfModelSelection['SCM'] = {}
+			}
+
+
 			// add autoAcceptLLMChanges feature
 			if (readS.globalSettings.autoAcceptLLMChanges === undefined) readS.globalSettings.autoAcceptLLMChanges = false;
 		}

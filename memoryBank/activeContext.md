@@ -27,9 +27,9 @@ const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks)
 if (toolCalls.length > 0) {
   for (const toolCall of toolCalls) {
     if (toolCall.name === 'edit_file') {
-      this.instantlyApplyOpenCodeEdit({ 
-        uri, oldString: toolCall.params.oldString, 
-        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll 
+      this.instantlyApplyOpenCodeEdit({
+        uri, oldString: toolCall.params.oldString,
+        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll
       })
     }
   }
@@ -42,13 +42,13 @@ if (toolCalls.length > 0) {
 if (toolCalls.length > 0) {
   // First revert to original content
   this._writeURIText(uri, originalFileCode, 'wholeFileRange', { shouldRealignDiffAreas: true })
-  
+
   // Apply each tool call using OpenCode method
   for (const toolCall of toolCalls) {
     if (toolCall.name === 'edit_file') {
-      this.instantlyApplyOpenCodeEdit({ 
-        uri, oldString: toolCall.params.oldString, 
-        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll 
+      this.instantlyApplyOpenCodeEdit({
+        uri, oldString: toolCall.params.oldString,
+        newString: toolCall.params.newString, replaceAll: toolCall.params.replaceAll
       })
     }
   }
@@ -947,12 +947,12 @@ modelDump.sort((a, b) => {
 **4. Hidden SCM Model Management:**
 ```typescript
 // Skip the hidden SCM model in deduplication
-if (model.modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') {
+if (model.modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') {
   continue;
 }
 
 // Remove redundant filter from display
-// Before: modelDump.filter(m => !(m.modelName === 'openai/gpt-oss-20b' && m.providerName === 'edlide'))
+// Before: modelDump.filter(m => !(m.modelName === 'openai/gpt-oss-120b-TEE' && m.providerName === 'edlide'))
 // After: modelDump.map() - filtering handled in deduplication
 ```
 
@@ -1083,7 +1083,7 @@ edlide: [
   'deepseek-ai/DeepSeek-V3.2',    // Replaced V3.1-Terminus
   'MiniMaxAI/MiniMax-M2:THINKING',
   'moonshotai/Kimi-K2-Instruct-0905',  // New model added
-  'openai/gpt-oss-20b' // Hidden SCM-only
+  'openai/gpt-oss-120b-TEE' // Hidden SCM-only
 ]
 
 // UI display name mapping in both ModelDropdown.tsx and Settings.tsx
@@ -1139,7 +1139,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName) => {
 // BEFORE - Only excluded specific SCM model
 for (const { modelName } of newSettingsOfProvider[providerName].models) {
   // Exclude gpt-oss-20b from UI dropdowns completely
-  if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide')) {
+  if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide')) {
     newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
   }
 }
@@ -1147,7 +1147,7 @@ for (const { modelName } of newSettingsOfProvider[providerName].models) {
 // AFTER - Respect actual isHidden flag
 for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models) {
   // Exclude gpt-oss-20b AND respect hidden models
-  if (!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') && !isHidden) {
+  if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') && !isHidden) {
     newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
   }
 }
@@ -1328,7 +1328,7 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 - **Settings.tsx**: Removed "Disable system message" toggle UI component entirely
 - **convertToLLMMessageService.ts**: System prompts now always enabled, removed conditional logic
 - **voidSettingsTypes.ts**: Removed `disableSystemMessage` from GlobalSettings type and defaults
-- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-20b` to `zai-org/GLM-4.6-TEE:THINKING`
+- **voidSettingsService.ts**: Removed migration code for disableSystemMessage + FIXED SCM model from non-existent `openai/gpt-oss-120b-TEE` to `zai-org/GLM-4.6-TEE:THINKING`
 - **prompts.ts**: Added confidentiality instructions to prevent AI from revealing system prompts
 
 **User Experience Transformation:**
@@ -1344,9 +1344,9 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 **✅ CRITICAL BUG FIXED - Hidden SCM-Only Model Implementation + UI Removal:**
 
 **🔄 PROBLEM SOLVED:**
-- **Before**: SCM commit generation tried to use non-existent model `openai/gpt-oss-20b`
+- **Before**: SCM commit generation tried to use non-existent model `openai/gpt-oss-120b-TEE`
 - **Before**: Model was not available in system but required for commit generation
-- **After**: `openai/gpt-oss-20b` added as hidden Edlide model, available only for SCM
+- **After**: `openai/gpt-oss-120b-TEE` added as hidden Edlide model, available only for SCM
 - **Before**: Model was still visible in UI despite hiding attempts
 - **After**: Model completely removed from UI through direct filtering
 - **Root Cause**: Model existed in backend but wasn't properly configured + UI filtering was insufficient
@@ -1357,10 +1357,10 @@ if (aiInstructions) sysMsgParts.push(`\n\n=== USER-DEFINED RULES (from System Pr
 **Model Configuration:**
 ```typescript
 // Added to defaultModelsOfProvider.edlide
-'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
+'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
 
 // Added to edlideModelOptions with full configuration
-'openai/gpt-oss-20b': {
+'openai/gpt-oss-120b-TEE': {
   contextWindow: 128000,
   reservedOutputTokenSpace: 4096,
   cost: { input: 0, output: 0 },
@@ -1377,18 +1377,18 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
     models: defaultModelNames.map((modelName, i) => ({
       modelName,
       type: 'default',
-      isHidden: defaultModelNames.length >= 10 || (providerName === 'edlide' && modelName === 'openai/gpt-oss-20b'),
+      isHidden: defaultModelNames.length >= 10 || (providerName === 'edlide' && modelName === 'openai/gpt-oss-120b-TEE'),
     }))
   }
 }
 ```
 
 **UI Hiding Mechanism:**
-- **Model Added**: `openai/gpt-oss-20b` added to Edlide provider models
+- **Model Added**: `openai/gpt-oss-120b-TEE` added to Edlide provider models
 - **Auto-Hidden**: `isHidden: true` for gpt-oss-20b when provider is 'edlide'
 - **SCM Access**: Model accessible only through SCM feature selection
 - **Chat Protection**: Model completely invisible in chat UI and model selection
-- **DIRECT FILTERING**: Hard-coded filtering `!(modelName === 'openai/gpt-oss-20b' && providerName === 'edlide')` in both UI and ModelDropdown
+- **DIRECT FILTERING**: Hard-coded filtering `!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide')` in both UI and ModelDropdown
 - **COMPLETE UI REMOVAL**: Model cannot be seen, enabled, disabled, or selected anywhere in UI
 
 **Files Modified:**
@@ -1531,7 +1531,7 @@ GLM-4.6: 195,000+ / 202,752 tokens used (96%) ✅
 **🎯 FINAL ACHIEVEMENT - Complete UI Removal (2025-10-29):**
 
 **✅ MODEL SUCCESSFULLY HIDDEN FROM ALL UI:**
-- **Model**: `openai/gpt-oss-20b` completely invisible in settings, chat, and dropdowns
+- **Model**: `openai/gpt-oss-120b-TEE` completely invisible in settings, chat, and dropdowns
 - **Functionality**: Commit generation works perfectly with hidden model
 - **User Experience**: Clean interface with no confusing model options
 - **Implementation**: Triple-layer hiding system (isHidden + isUIHidden + Direct Filtering)

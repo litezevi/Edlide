@@ -680,7 +680,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 			const displayName = getModelDisplayName(model.modelName, providerName);
 
 			// Skip the hidden SCM model
-			if (model.modelName === 'openai/gpt-oss-20b' && providerName === 'edlide') {
+			if (model.modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') {
 				continue;
 			}
 

@@ -81,7 +81,7 @@ export const defaultModelsOfProvider = {
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.2',
 		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
-		'openai/gpt-oss-20b' // Hidden SCM-only model for commit generation
+		'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
 		'gpt-5-high',
@@ -1160,7 +1160,7 @@ const edlideModelOptions = {
 		reasoningCapabilities: false,
 	},
 
-	'openai/gpt-oss-20b': {
+	'openai/gpt-oss-120b-TEE': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 4_096,
 		cost: { input: 0, output: 0 },
