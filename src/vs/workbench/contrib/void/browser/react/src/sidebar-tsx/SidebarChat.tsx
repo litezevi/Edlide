@@ -47,7 +47,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
-		if (modelName === 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8') return 'qwen3-coder'
+		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 	}
 	return modelName
 }
@@ -159,6 +159,9 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 163840; // deepseek v3.1 variants: 162k tokens
+		}
+		if (modelName.includes('glm-4.7') || modelName.includes('GLM-4.7') || modelName.includes('zai-org/GLM-4.7-TEE:THINKING')) {
+			return 202752; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback
 		};
@@ -3419,6 +3422,9 @@ export const SidebarChat = () => {
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.2') || modelName.includes('V3.2'))) {
 			return 163840; // deepseek v3.1 variants: 162k tokens
+		}
+		if (modelName.includes('glm-4.7') || modelName.includes('GLM-4.7') || modelName.includes('zai-org/GLM-4.7-TEE:THINKING')) {
+			return 202752; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback
 	};

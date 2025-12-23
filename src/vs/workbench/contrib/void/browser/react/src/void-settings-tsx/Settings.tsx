@@ -37,7 +37,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
 		return 'minimax-m2'
 	    if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
-		if (modelName === 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8') return 'qwen3-coder'
+		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 	}
 	return modelName
 }

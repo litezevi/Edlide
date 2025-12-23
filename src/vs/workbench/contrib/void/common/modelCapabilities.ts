@@ -80,7 +80,7 @@ export const defaultModelsOfProvider = {
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'MiniMaxAI/MiniMax-M2:THINKING',
 		'deepseek-ai/DeepSeek-V3.2',
-		//'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
+		'zai-org/GLM-4.7-TEE:THINKING',
 		'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
@@ -1170,8 +1170,8 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-	'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8': {
-		contextWindow: 262_144,
+	'zai-org/GLM-4.7-TEE:THINKING': {
+		contextWindow: 202_752,
 		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
