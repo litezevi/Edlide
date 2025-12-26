@@ -1506,84 +1506,15 @@ export const Settings = () => {
 										<h4 className={`text-base`}>Account Settings</h4>
 
 										<div className='my-2'>
-											{/* Not Connected State */}
-											<div className='flex items-center justify-between p-4 bg-void-bg-2 rounded-lg border border-void-border-1'>
-												<div className='flex items-center gap-3'>
-													<div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
-													<div>
-														<span className='text-void-fg-1 font-medium block'>Not Connected</span>
-														<span className='text-void-fg-2 text-sm'>Connect to your Account</span>
-													</div>
-												</div>
-											</div>
-										</div>
-
-										{/* Connected State (Premium) */}
-										<div className='my-2 hidden'>
-											<div className='flex items-center justify-between p-4 bg-gradient-to-r from-void-bg-2 to-[#0e70c0]/10 rounded-lg border border-[#0e70c0]/30'>
-												<div className='flex items-center gap-3'>
-													<div className='w-3 h-3 bg-green-500 rounded-full'></div>
-													<div>
-														<div className='flex items-center gap-2'>
-															<span className='text-void-fg-1 font-medium block'>user@example.com</span>
-															<span className="px-2 py-0.5 bg-[#0e70c0] text-white text-xs rounded-full font-medium">PRO</span>
-														</div>
-														<span className='text-void-fg-2 text-sm'>Premium account active</span>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									{/* Subscription Status */}
-									<div className='w-full'>
-										<h4 className={`text-base`}>Subscription Status</h4>
-										<div className='text-sm text-void-fg-3 mt-1'>Manage your Edlide Pro subscription and billing information.</div>
-
-										<div className='my-2'>
-											{/* Free Tier */}
-											<div className='flex items-center justify-between p-4 bg-void-bg-2 rounded-lg border border-void-border-1'>
-												<span className='text-void-fg-1 font-medium'>Free Plan</span>
-												<VoidButtonBgDarken
-													className="bg-[#0e70c0] hover:bg-[#1177cb] text-white px-4 py-2"
-													onClick={() => {
-														// TODO: Implement upgrade logic
-														console.log('Upgrade to Pro clicked');
-													}}
-												>
-													Upgrade to Pro
-												</VoidButtonBgDarken>
-											</div>
-
-											{/* Pro Tier (Hidden) */}
-											<div className='p-4 bg-gradient-to-r from-void-bg-2 to-[#0e70c0]/10 rounded-lg border border-[#0e70c0]/30 hidden'>
-												<div className='flex items-start justify-between mb-3'>
-													<div>
-														<div className='flex items-center gap-2 mb-2'>
-															<span className='text-void-fg-1 font-medium'>Pro Plan</span>
-															<span className="px-2 py-0.5 bg-[#0e70c0] text-white text-xs rounded-full font-medium">ACTIVE</span>
-														</div>
-														<div className='text-sm text-void-fg-2 space-y-1'>
-															<p>✓ Unlimited API calls</p>
-															<p>✓ Priority support</p>
-															<p>✓ Advanced AI models</p>
-															<p>✓ Team collaboration</p>
-														</div>
-													</div>
-												</div>
-												<div className='flex items-center gap-3'>
-													<span className='text-sm text-void-fg-2'>Next billing: Dec 1, 2025</span>
-													<VoidButtonBgDarken
-														className="border border-void-border-1 text-void-fg-1 hover:bg-void-bg-3 px-3 py-1"
-														onClick={() => {
-															// TODO: Manage billing logic
-															console.log('Manage billing clicked');
-														}}
-													>
-														Manage Billing
-													</VoidButtonBgDarken>
-												</div>
-											</div>
+											<VoidButtonBgDarken
+												className="bg-[#0e70c0] text-white px-4 py-2 rounded-md"
+												onClick={() => {
+													// TODO: Implement connect functionality
+													console.log('Connect button clicked');
+												}}
+											>
+												Connect
+											</VoidButtonBgDarken>
 										</div>
 									</div>
 
