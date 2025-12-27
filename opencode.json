@@ -1,13 +1,32 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "chutes/glm-4.7-tee",
+  "provider": {
+    "chutes": {
+      "models": {
+        "glm-4.7-tee": {
+          "id": "zai-org/GLM-4.7-TEE",
+          "name": "GLM 4.7 TEE",
+          "options": {
+            "reasoningEffort": "high",
+            "textVerbosity": "low"
+          }
+        },
+        "minimax-m2.1-tee": {
+          "id": "MiniMaxAI/MiniMax-M2.1-TEE",
+          "name": "MiniMax M2.1 TEE",
+          "options": {
+            "reasoningEffort": "high",
+            "textVerbosity": "low"
+          }
+        }
+      }
+    }
+  },
   "mcp": {
     "brave-search": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-brave-search"
-      ],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
       "enabled": true,
       "environment": {
         "BRAVE_API_KEY": "BSA2qyPi4UylVxr1ppHH0npK1grHefx"
@@ -15,21 +34,23 @@
     },
     "context7": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@upstash/context7-mcp"
-      ],
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
     "sequential-thinking": {
       "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true
+    },
+    "supabase": {
+      "type": "local",
       "command": [
         "npx",
         "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
-      "enabled": true
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_2ff4c3162e42dd835b84d5adb460a16880dd1fb7"
+      ]
     }
   }
 }

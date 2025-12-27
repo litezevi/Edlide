@@ -38,6 +38,8 @@
 	},
 	"builtInExtensions": [],
 	"linkProtectionTrustedDomains": [
-		"https://edlide.com"
+		"https://edlide.com",
+		"https://*.vercel.app",
+		"http://localhost:3000"
 	]
 }
