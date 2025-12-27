@@ -82,7 +82,8 @@ Edlide (Void fork) is an open-source AI-powered development environment that pro
 
 ---
 
-memorybank находится по директории "/Users/litezevin/Desktop/Projects/Edlide/memoryBank/"
+- memorybank ide находится по директории "/Users/litezevin/Desktop/Projects/Edlide/memoryBank/"
+- memorybank сайта (website) находится тут /Users/litezevin/Desktop/Projects/Edlide/edlide-website/memorybank
 
 Прочитай memorybank в начале это супер важно прочитай его если не нашел ищи правильно. Читай memorybank бл даже если не найдешь ищи дальше оно может быть в другой директории
 
