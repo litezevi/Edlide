@@ -67,6 +67,10 @@ import './fileService.js'
 // register source control management
 import './voidSCMService.js'
 
+// register Supabase authentication service
+import './interfaces/supabaseAuthService.js'
+import './supabaseAuthService.js'
+
 // ---------- common (unclear if these actually need to be imported, because they're already imported wherever they're used) ----------
 
 // llmMessage

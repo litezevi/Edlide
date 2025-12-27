@@ -73,39 +73,46 @@ export default function IDEConnectPage() {
     if (session && !tokensSent) {
       try {
         setTokensSent(true)
-        
-        // Отправляем токены на сервер с state_id
-        const response = await fetch('/api/auth/tokens', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            state: stateId,
-            tokens: {
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-              expires_in: session.expires_in,
-              expires_at: session.expires_at
-            },
-            user: {
-              id: session.user?.id,
-              email: session.user?.email
-            },
-            chutes: {
-              linked: false,
-              username: null
-            },
-            timestamp: Date.now()
-          })
-        })
 
-        if (response.ok) {
-          console.log('Tokens sent to server successfully')
-          // Можно показать уведомление об успехе
-        } else {
-          throw new Error('Failed to send tokens to server')
+        if (!stateId) {
+          throw new Error('No state ID provided. Please open this page from Edlide IDE.')
         }
+
+        console.log('[IDE Connect] Session data:', {
+          has_access_token: !!session.access_token,
+          has_refresh_token: !!session.refresh_token,
+          expires_at: session.expires_at,
+          user_id: session.user?.id,
+          user_email: session.user?.email
+        });
+
+        // Convert expires_at timestamp to ISO datetime string if it's a number
+        const expiresAtDateTime = typeof session.expires_at === 'number'
+          ? new Date(session.expires_at * 1000).toISOString()
+          : session.expires_at;
+
+        console.log('[IDE Connect] expires_at converted:', expiresAtDateTime);
+
+        // Сохраняем токены в ide_pending_tokens таблицу
+        const { error: insertError, data } = await supabase
+          .from('ide_pending_tokens')
+          .insert({
+            state_id: stateId,
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: expiresAtDateTime,
+            user_id: session.user?.id,
+            user_email: session.user?.email
+          })
+
+        if (insertError) {
+          console.error('Error saving tokens:', insertError)
+          throw new Error('Failed to save tokens: ' + insertError.message)
+        }
+
+        console.log('Tokens saved successfully for state:', stateId)
       } catch (err) {
-        console.error('Error sending tokens to server:', err)
+        console.error('Error authorizing IDE:', err)
         setError('Failed to authorize: ' + (err instanceof Error ? err.message : 'Unknown error'))
         setTokensSent(false)
       }

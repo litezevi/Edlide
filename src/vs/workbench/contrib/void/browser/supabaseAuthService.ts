@@ -1,0 +1,186 @@
+import { ISecretStorageService } from '../../../../platform/secrets/common/secrets.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { registerSingleton, InstantiationType } from '../../../../platform/instantiation/common/extensions.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import type { SupabaseTokens, IDEAuthState } from '../common/supabaseAuthTypes.js';
+
+export const ISupabaseAuthService = createDecorator<SupabaseAuthService>('supabaseAuthService');
+
+/**
+ * Service for managing Supabase authentication tokens securely in IDE
+ */
+export class SupabaseAuthService {
+  private static readonly TOKENS_KEY = 'edlide.supabase.tokens';
+  private static readonly AUTH_STATE_KEY = 'edlide.supabase.authState';
+
+  private _onDidChangeAuthState = new Emitter<IDEAuthState>();
+  readonly onDidChangeAuthState: Event<IDEAuthState> = this._onDidChangeAuthState.event;
+
+  private _tokens: SupabaseTokens | null = null;
+
+  constructor(
+    @ISecretStorageService private readonly secretStorage: ISecretStorageService
+  ) {}
+
+  /**
+   * Get stored tokens from secure storage
+   */
+  async getTokens(): Promise<SupabaseTokens | null> {
+    try {
+      if (!this._tokens) {
+        const tokensJson = await this.secretStorage.get(
+          SupabaseAuthService.TOKENS_KEY
+        );
+        if (tokensJson) {
+          this._tokens = JSON.parse(tokensJson);
+          console.log('[SupabaseAuth] Loaded tokens from secure storage');
+        }
+      }
+      return this._tokens;
+    } catch (error) {
+      console.error('[SupabaseAuth] Error loading tokens:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Save tokens to secure storage
+   */
+  async saveTokens(tokens: SupabaseTokens): Promise<void> {
+    try {
+      this._tokens = tokens;
+      await this.secretStorage.set(
+        SupabaseAuthService.TOKENS_KEY,
+        JSON.stringify(tokens)
+      );
+
+      // Update auth state
+      const authState: IDEAuthState = {
+        connected: true,
+        user_email: tokens.user_email,
+        user_id: tokens.user_id
+      };
+      await this.secretStorage.set(
+        SupabaseAuthService.AUTH_STATE_KEY,
+        JSON.stringify(authState)
+      );
+
+      this._onDidChangeAuthState.fire(authState);
+      console.log('[SupabaseAuth] Tokens saved securely:', {
+        user_email: tokens.user_email,
+        user_id: tokens.user_id
+      });
+    } catch (error) {
+      console.error('[SupabaseAuth] Error saving tokens:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove tokens from storage (disconnect)
+   */
+  async removeTokens(): Promise<void> {
+    try {
+      this._tokens = null;
+      await this.secretStorage.delete(SupabaseAuthService.TOKENS_KEY);
+      await this.secretStorage.delete(SupabaseAuthService.AUTH_STATE_KEY);
+
+      const authState: IDEAuthState = { connected: false };
+      this._onDidChangeAuthState.fire(authState);
+      console.log('[SupabaseAuth] Tokens removed');
+    } catch (error) {
+      console.error('[SupabaseAuth] Error removing tokens:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if tokens are valid (not expired)
+   */
+  async isTokenValid(): Promise<boolean> {
+    const tokens = await this.getTokens();
+    if (!tokens) {
+      return false;
+    }
+
+    try {
+      const expiresAt = new Date(tokens.expires_at);
+      const now = new Date();
+      const isValid = expiresAt > now;
+
+      if (!isValid) {
+        console.log('[SupabaseAuth] Tokens expired on:', expiresAt);
+      }
+
+      return isValid;
+    } catch (error) {
+      console.error('[SupabaseAuth] Error validating tokens:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current auth state
+   */
+  async getAuthState(): Promise<IDEAuthState> {
+    const tokens = await this.getTokens();
+    const isValid = await this.isTokenValid();
+
+    if (tokens && isValid) {
+      return {
+        connected: true,
+        user_email: tokens.user_email,
+        user_id: tokens.user_id
+      };
+    }
+
+    return { connected: false };
+  }
+
+  /**
+   * Refresh tokens using refresh_token
+   * Note: This requires calling Supabase auth refresh endpoint
+   */
+  async refreshTokens(supabaseUrl: string): Promise<SupabaseTokens | null> {
+    try {
+      const tokens = await this.getTokens();
+      if (!tokens) {
+        return null;
+      }
+
+      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': tokens.access_token
+        },
+        body: JSON.stringify({
+          refresh_token: tokens.refresh_token
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh tokens');
+      }
+
+      const data = await response.json();
+
+      const newTokens: SupabaseTokens = {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: data.expires_at,
+        user_id: tokens.user_id,
+        user_email: tokens.user_email
+      };
+
+      await this.saveTokens(newTokens);
+      return newTokens;
+    } catch (error) {
+      console.error('[SupabaseAuth] Error refreshing tokens:', error);
+      return null;
+    }
+  }
+}
+
+// Register singleton
+registerSingleton(ISupabaseAuthService, SupabaseAuthService, InstantiationType.Eager);

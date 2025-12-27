@@ -12,6 +12,7 @@ import { X, RefreshCw, Loader2, Check, Asterisk, Plus, Edit, Trash2 } from 'luci
 import { ModelDropdown } from './ModelDropdown.js'
 import { ChatMarkdownRender } from '../markdown/ChatMarkdownRender.js'
 import { WarningBox } from './WarningBox.js'
+import { AccountSettingsSection } from './AccountSettingsSection.js'
 import { os } from '../../../../common/helpers/systemInfo.js'
 import { IconLoading } from '../sidebar-tsx/SidebarChat.js'
 import { ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js'
@@ -26,6 +27,7 @@ import { ICommandService } from '../../../../../../../platform/commands/common/c
 import { IWorkspaceContextService } from '../../../../../../../platform/workspace/common/workspace.js';
 import { IFileService } from '../../../../../../../platform/files/common/files.js';
 import { IVoidModelService } from '../../../../common/voidModelService.js';
+import { IOpenerService } from '../../../../../../../platform/opener/common/opener.js';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../../../../base/common/buffer.js';
 
@@ -1498,50 +1500,35 @@ export const Settings = () => {
 
 						{/* All sections in flex container with gap-12 */}
 						<div key='sections-container' className='flex flex-col gap-12'>
-							{/* Account section */}
-							<div className={`${shouldShowTab('account') ? `` : 'hidden'} flex flex-col gap-y-8 my-4`}>
-								<ErrorBoundary>
-									{/* Account Settings */}
-									<div className='w-full'>
-										<h4 className={`text-base`}>Account Settings</h4>
+{/* Account section */}
+					<div className={`${shouldShowTab('account') ? `` : 'hidden'} flex flex-col gap-y-8 my-4`}>
+						<ErrorBoundary>
+							<AccountSettingsSection />
 
-										<div className='my-2'>
-											<VoidButtonBgDarken
-												className="bg-[#0e70c0] text-white px-4 py-2 rounded-md"
-												onClick={() => {
-													// TODO: Implement connect functionality
-													console.log('Connect button clicked');
-												}}
-											>
-												Connect
-											</VoidButtonBgDarken>
+							{/* Privacy Settings */}
+							<div className='w-full'>
+								<h4 className={`text-base`}>Privacy Settings</h4>
+
+								<div className='my-2'>
+									<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
+										<div>
+											<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
+											<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. The only data collected is minimal usage details without specifics.</span>
+										</div>
+										<div className='flex items-center gap-x-2'>
+											<VoidSwitch
+												size='xs'
+												value={true}
+												disabled={true}
+												onChange={() => {}}
+											/>
+											<span className='text-void-fg-3 text-xs pointer-events-none'>Always enabled</span>
 										</div>
 									</div>
-
-									{/* Privacy Settings */}
-									<div className='w-full'>
-										<h4 className={`text-base`}>Privacy Settings</h4>
-
-										<div className='my-2'>
-											<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
-												<div>
-													<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
-													<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. The only data collected is minimal usage details without specifics.</span>
-												</div>
-												<div className='flex items-center gap-x-2'>
-													<VoidSwitch
-														size='xs'
-														value={true}
-														disabled={true}
-														onChange={() => {}}
-													/>
-													<span className='text-void-fg-3 text-xs pointer-events-none'>Always enabled</span>
-												</div>
-											</div>
-										</div>
-									</div>
-								</ErrorBoundary>
+								</div>
 							</div>
+						</ErrorBoundary>
+					</div>
 
 							{/* General section */}
 							<div className={`${shouldShowTab('general') ? `` : 'hidden'} flex flex-col gap-12`}>
