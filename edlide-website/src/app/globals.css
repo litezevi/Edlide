@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 13 8% 8%;
+    --foreground: 0 0% 98%;
+    --card: 220 13% 13%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 13% 13%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 13 8% 8%;
+    --secondary: 220 13% 13%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 215 13% 22%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 0 0% 98%;
+    --accent-foreground: 13 8% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 13% 22%;
+    --input: 215 13% 22%;
+    --ring: 0 0% 98%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 13 8% 8%;
+    --foreground: 0 0% 98%;
+    --card: 220 13% 13%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 13% 13%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 260 8% 80%;
+    --primary-foreground: 13 8% 8%;
+    --secondary: 220 13% 13%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 215 13% 22%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 0 0% 98%;
+    --accent-foreground: 13 8% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 13% 22%;
+    --input: 215 13% 22%;
+    --ring: 260 8% 80%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, #0d0f14 0%, #1a1d25 100%);
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(26, 29, 37, 0.8);
+    border: 1px solid rgba(42, 45, 56, 0.5);
+  }
+  
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hero-gradient {
+    background: radial-gradient(ellipse at center, 
+      rgba(26, 29, 37, 0.4) 0%, 
+      rgba(13, 15, 20, 0.8) 50%, 
+      rgba(13, 15, 20, 1) 100%);
+  }
+}
