@@ -224,9 +224,10 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Start automatic token refresh timer
-   */
-  private startAutoRefresh(): void {
+    * Start automatic token refresh timer
+    * Called on IDE startup to ensure continuous session
+    */
+  startAutoRefresh(): void {
     this.stopAutoRefresh();
 
     console.log('[SupabaseAuth] Starting auto-refresh timer (30 min interval)');

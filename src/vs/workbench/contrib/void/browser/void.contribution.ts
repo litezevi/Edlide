@@ -70,6 +70,23 @@ import './voidSCMService.js'
 // register Supabase authentication service
 import './interfaces/supabaseAuthService.js'
 import './supabaseAuthService.js'
+import { ISupabaseAuthService } from './interfaces/supabaseAuthService.js';
+
+// Start auto-refresh for existing tokens on IDE startup
+setTimeout(() => {
+	const container = (window as any).__edlideServiceContainer;
+	if (container) {
+		try {
+			const authService = container.get(ISupabaseAuthService);
+			if (authService) {
+				authService.startAutoRefresh();
+				console.log('[void.contribution] Auto-refresh started on IDE startup');
+			}
+		} catch (e) {
+			console.log('[void.contribution] Could not start auto-refresh:', e);
+		}
+	}
+}, 1000);
 
 // ---------- common (unclear if these actually need to be imported, because they're already imported wherever they're used) ----------
 

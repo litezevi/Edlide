@@ -83,6 +83,36 @@ export function useChutesIntegration() {
 
   useEffect(() => {
     fetchLinkedAccount()
+
+    // Background token refresh - runs every 15 minutes
+    const refreshInterval = setInterval(async () => {
+      try {
+        const session = await getSupabaseSession()
+        if (!session) {
+          return
+        }
+
+        const response = await fetch('/api/auth/chutes/refresh', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.refreshed) {
+            console.log('[Chutes Integration] Token proactively refreshed')
+          }
+        }
+      } catch (err) {
+        // Silently fail - refresh will happen on next chat request
+        console.debug('[Chutes Integration] Background refresh failed:', err)
+      }
+    }, 15 * 60 * 1000) // 15 minutes
+
+    return () => {
+      clearInterval(refreshInterval)
+    }
   }, [])
 
   return {

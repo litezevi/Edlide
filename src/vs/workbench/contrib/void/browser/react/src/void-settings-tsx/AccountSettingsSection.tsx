@@ -24,6 +24,12 @@ export const AccountSettingsSection = () => {
 				const authState = await supabaseAuthService.getAuthState();
 				setIsConnected(authState.connected);
 				setUserEmail(authState.user_email || null);
+
+				// Start auto-refresh timer if connected (fixes session expiry on IDE restart)
+				if (authState.connected) {
+					console.log('[AccountSettings] Connected at startup, starting auto-refresh...');
+					supabaseAuthService.startAutoRefresh?.();
+				}
 			} catch (error) {
 				console.error('[AccountSettings] Error checking auth state:', error);
 			}

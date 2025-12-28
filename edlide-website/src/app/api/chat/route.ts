@@ -80,16 +80,26 @@ export async function POST(request: NextRequest) {
     console.log('- Has encryption IV:', !!chutesData.encryption_iv)
 
     let accessToken = TokenEncryption.decrypt(chutesData.encrypted_access_token, chutesData.encryption_iv || '')
-    
+
     console.log('- Decryption successful, token length:', accessToken.length)
 
-    const isTokenExpired = chutesData.expires_at && new Date(chutesData.expires_at) < new Date()
+    // PROACTIVE REFRESH: Check if token expires within 5 minutes (before it actually expires)
+    const expiresAt = chutesData.expires_at ? new Date(chutesData.expires_at) : null
+    const now = new Date()
+    const REFRESH_BEFORE_EXPIRE_MS = 5 * 60 * 1000 // 5 minutes
+    const isTokenExpiringSoon = expiresAt && (expiresAt.getTime() - now.getTime()) < REFRESH_BEFORE_EXPIRE_MS
+    const isTokenExpired = expiresAt && expiresAt < now
 
-    if (isTokenExpired && chutesData.encrypted_refresh_token) {
-      console.log('Token expired, refreshing...')
+    console.log('- Token expires at:', expiresAt?.toISOString())
+    console.log('- Is expired:', isTokenExpired)
+    console.log('- Is expiring soon (within 5 min):', isTokenExpiringSoon)
+
+    // Refresh if expired OR expiring soon (proactive refresh)
+    if ((isTokenExpired || isTokenExpiringSoon) && chutesData.encrypted_refresh_token) {
+      console.log(isTokenExpired ? 'Token expired, refreshing...' : 'Token expiring soon, proactive refresh...')
 
       const decryptedRefreshToken = TokenEncryption.decrypt(chutesData.encrypted_refresh_token, chutesData.encryption_iv || '')
-      
+
       if (!decryptedRefreshToken) {
         console.error('Failed to decrypt refresh token')
         return NextResponse.json(
@@ -143,7 +153,7 @@ export async function POST(request: NextRequest) {
           }
 
           return NextResponse.json(
-            { 
+            {
               error: 'Your Chutes session has expired. Please re-link your Chutes account to continue.',
               code: 'RELINK_REQUIRED'
             },
@@ -156,12 +166,6 @@ export async function POST(request: NextRequest) {
           { status: 401 }
         )
       }
-    } else if (isTokenExpired) {
-      console.log('Token expired and no refresh token available')
-      return NextResponse.json(
-        { error: 'Chutes token expired. Please re-link your Chutes account.' },
-        { status: 401 }
-      )
     }
 
     console.log('Using Chutes token, length:', accessToken.length)
