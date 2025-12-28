@@ -13,11 +13,15 @@ export const ISupabaseAuthService = createDecorator<SupabaseAuthService>('supaba
 export class SupabaseAuthService {
   private static readonly TOKENS_KEY = 'edlide.supabase.tokens';
   private static readonly AUTH_STATE_KEY = 'edlide.supabase.authState';
+  private static readonly SUPABASE_URL = 'https://fkjonloqhzrexbizhiyb.supabase.co';
+  private static readonly REFRESH_INTERVAL_MS = 30 * 60 * 1000;
+  private static readonly REFRESH_BEFORE_EXPIRE_MS = 5 * 60 * 1000;
 
   private _onDidChangeAuthState = new Emitter<IDEAuthState>();
   readonly onDidChangeAuthState: Event<IDEAuthState> = this._onDidChangeAuthState.event;
 
   private _tokens: SupabaseTokens | null = null;
+  private refreshTimer: NodeJS.Timeout | null = null;
 
   constructor(
     @ISecretStorageService private readonly secretStorage: ISecretStorageService
@@ -69,6 +73,9 @@ export class SupabaseAuthService {
       // Update cache for sync access
       SupabaseAuthHelper.setAccessToken(tokens.access_token);
 
+      // Start auto-refresh timer
+      this.startAutoRefresh();
+
       this._onDidChangeAuthState.fire(authState);
       console.log('[SupabaseAuth] Tokens saved securely:', {
         user_email: tokens.user_email,
@@ -88,6 +95,9 @@ export class SupabaseAuthService {
       this._tokens = null;
       await this.secretStorage.delete(SupabaseAuthService.TOKENS_KEY);
       await this.secretStorage.delete(SupabaseAuthService.AUTH_STATE_KEY);
+
+      // Stop auto-refresh timer
+      this.stopAutoRefresh();
 
       const authState: IDEAuthState = { connected: false };
       this._onDidChangeAuthState.fire(authState);
@@ -191,6 +201,72 @@ export class SupabaseAuthService {
    */
   getAccessTokenSync(): string | null {
     return this._tokens?.access_token || null;
+  }
+
+  /**
+   * Get access token, refresh if expired
+   */
+  async getOrRefreshToken(): Promise<string | null> {
+    const tokens = await this.getTokens();
+
+    if (!tokens) {
+      return null;
+    }
+
+    const isValid = await this.isTokenValid();
+    if (!isValid) {
+      console.log('[SupabaseAuth] Token invalid, refreshing...');
+      const newTokens = await this.refreshTokens(SupabaseAuthService.SUPABASE_URL);
+      return newTokens?.access_token || null;
+    }
+
+    return tokens.access_token;
+  }
+
+  /**
+   * Start automatic token refresh timer
+   */
+  private startAutoRefresh(): void {
+    this.stopAutoRefresh();
+
+    console.log('[SupabaseAuth] Starting auto-refresh timer (30 min interval)');
+
+    this.refreshTimer = setInterval(async () => {
+      try {
+        const tokens = await this.getTokens();
+        if (!tokens) {
+          console.log('[SupabaseAuth] No tokens to refresh');
+          return;
+        }
+
+        const isValid = await this.isTokenValid();
+        if (!isValid) {
+          console.log('[SupabaseAuth] Token expired, auto-refreshing...');
+          await this.refreshTokens(SupabaseAuthService.SUPABASE_URL);
+          console.log('[SupabaseAuth] Token refreshed successfully');
+        } else {
+          const expiresAt = new Date(tokens.expires_at).getTime();
+          const now = Date.now();
+          if (expiresAt - now < SupabaseAuthService.REFRESH_BEFORE_EXPIRE_MS) {
+            console.log('[SupabaseAuth] Token expiring soon, proactive refresh...');
+            await this.refreshTokens(SupabaseAuthService.SUPABASE_URL);
+          }
+        }
+      } catch (error) {
+        console.error('[SupabaseAuth] Auto-refresh failed:', error);
+      }
+    }, SupabaseAuthService.REFRESH_INTERVAL_MS);
+  }
+
+  /**
+   * Stop automatic token refresh timer
+   */
+  private stopAutoRefresh(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+      console.log('[SupabaseAuth] Auto-refresh timer stopped');
+    }
   }
 }
 

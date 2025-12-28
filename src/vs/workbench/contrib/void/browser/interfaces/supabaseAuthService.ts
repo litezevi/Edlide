@@ -14,6 +14,7 @@ export interface ISupabaseAuthService {
   getAuthState(): Promise<IDEAuthState>;
   refreshTokens(supabaseUrl: string): Promise<SupabaseTokens | null>;
   getAccessTokenSync(): string | null;
+  getOrRefreshToken(): Promise<string | null>;
 }
 
 export interface IDEService {
