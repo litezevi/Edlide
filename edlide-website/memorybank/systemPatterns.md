@@ -174,19 +174,53 @@ Security:
   - `/api/auth/chutes/unlink` — GET: Check linkage, DELETE: Unlink Chutes
   - `/api/auth/chutes/get-token` — Retrieve saved token for IDE
 
-### Chat Integration Architecture (UPDATED)
+### Chat Integration Architecture (UPDATED FOR Vercel AI Proxy)
 
-**COMPLETE DATABASE DRIVEN FLOW**
+**COMPLETE DATABASE-DRIVEN FLOW WITH Vercel BACKEND**
 
+**Website Chat Flow**:
 1. User sends message → `/api/chat` endpoint
 2. Request includes Supabase session token (NOT Chutes token)
 3. **Chat API validates Supabase token** → Gets user ID
 4. **Chat API reads chutes_tokens table** by user_id
-5. **Auto-refreshes Chutes token** if expired using refresh_token
+5. **Decrypts encrypted_access_token using encryption_iv** via TokenEncryption class
 6. Validates Chutes token with `/idp/userinfo` endpoint
-7. Calls `https://llm.chutes.ai/v1/chat/completions` with Chutes token
-8. Returns AI response to client
-9. All tokens stored/retrieved from Supabase database — NO localStorage dependency
+7. If token expired → decrypts refresh_token, gets new access token, re-encrypts both, updates database
+8. Calls `https://llm.chutes.ai/v1/chat/completions` with Chutes token
+9. Returns AI response to client
+
+**IDE Chat Flow (Via Vercel Proxy)**:
+1. IDE authenticates via website (Supabase OAuth)
+2. IDE stores Supabase JWT in SecretStorage
+3. User sends message in IDE
+4. **IDE retrieves Supabase JWT from SecretStorage** (cached via SupabaseAuthHelper)
+5. IDE forwards request to **Vercel backend: `/api/ai-proxy/chat/completions`**
+6. **Vercel backend validates Supabase JWT** via `supabase.auth.getUser()`
+7. **Vercel forwards request to Supabase Edge Function** with:
+   - Authorization: service_role key
+   - x-user-id: user_id from JWT
+   - x-user-email: user_email from JWT
+   - x-edlide-client: electron
+8. **Supabase Edge Function queries chutes_tokens table** for encrypted token
+9. **Edge Function decrypts encrypted_access_token** using:
+   - `encryption_iv` from database (16 bytes)
+   - `CHUTES_ENCRYPTION_KEY` from environment (AES-256-CBC via Web Crypto API)
+10. **Edge Function calls Chutes AI API** with decrypted token as Bearer
+11. **Edge Function streams AI response back** through Vercel to IDE
+12. IDE displays AI chat response
+
+**Website Chat Flow**:
+1. User sends message → `/api/chat` endpoint
+2. Request includes Supabase session token (NOT Chutes token)
+3. **Chat API validates Supabase token** → Gets user ID
+4. **Chat API reads chutes_tokens table** by user_id
+5. **Decrypts encrypted_access_token using encryption_iv** via TokenEncryption class
+6. Validates Chutes token with `/idp/userinfo` endpoint
+7. If token expired → decrypts refresh_token, gets new access token, re-encrypts both, updates database
+8. Calls `https://llm.chutes.ai/v1/chat/completions` with Chutes token
+9. Returns AI response to client
+
+**Key Technical Insights**:
 
 **Key Technical Insights**:
 - Chutes tokens stored in Supabase chutes_tokens table

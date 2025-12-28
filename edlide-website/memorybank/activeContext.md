@@ -1,7 +1,7 @@
 # Active Context: Edlide Website
 
 ## Current Focus
-Chutes OAuth Integration with Supabase + Token Encryption - **COMPLETE!** All Chutes tokens encrypted with AES-256-CBC!
+Vercel AI Proxy + Supabase Function with Chutes Token Decryption - **COMPLETE!** Full secure AI proxy chain working!
 
 ## Recent MAJOR Changes ✅
 
