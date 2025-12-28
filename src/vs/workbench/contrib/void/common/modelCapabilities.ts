@@ -11,7 +11,7 @@ import { FeatureName, ModelSelectionOptions, OverridesOfModel, ProviderName } fr
 
 export const defaultProviderSettings = {
 	edlide: {
-		apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do',
+		apiKey: '',
 	},
 	anthropic: {
 		apiKey: '',
@@ -79,6 +79,7 @@ export const defaultModelsOfProvider = {
 		'zai-org/GLM-4.6-TEE:THINKING',
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'MiniMaxAI/MiniMax-M2:THINKING',
+		'MiniMaxAI/MiniMax-M2.1-TEE',
 		'deepseek-ai/DeepSeek-V3.2',
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
@@ -1151,7 +1152,17 @@ const edlideModelOptions = {
 	},
 	'MiniMaxAI/MiniMax-M2:THINKING': {
 		contextWindow: 196_608,
-		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
+		reservedOutputTokenSpace: 8_192,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'MiniMaxAI/MiniMax-M2.1-TEE': {
+		contextWindow: 196_608,
+		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,

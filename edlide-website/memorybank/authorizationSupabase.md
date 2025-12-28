@@ -730,7 +730,7 @@ Your Edlide account is synced
 ```typescript
 else if (providerName === 'edlide') {
   // Force use the correct Supabase anon key
-  const correctApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do'
+  const correctApiKey = ''
   return new OpenAI({
     baseURL: 'https://kvftejfolyrfdxppbcqk.supabase.co/functions/v1/ai-proxy',
     apiKey: correctApiKey,  // ❌ HARDCODED TOKEN
@@ -1111,7 +1111,7 @@ Security Layers:
 #### ❌ Current Issue: 403 Unauthorized Client
 **Problem**: Supabase Edge Function returns `403 "Unauthorized client"`
 
-**Root Cause**: 
+**Root Cause**:
 - Vercel backend successfully validates user JWT ✅
 - Vercel forwards request to Supabase Function with service_role ✅
 - Supabase Function rejects the request with 403 ❌
@@ -1196,7 +1196,7 @@ SupabaseAuthService              newOpenAI                  │    - service_rol
 SupabaseAuthHelper                      │                          │    - x-request-source   │                        │
 (Cache: token+timestamp)                 │                          ▼                        │ 3. Decrypt token:       │
       ▼                                  ▼                   Forward Request               │    - AES-256-CBC     ←──┘
- access_token                  Authorization header         with service_role              │    - use IV                    
+ access_token                  Authorization header         with service_role              │    - use IV
       │                           Bearer <token>                   │                         │
       ▼                                  ▼                          ▼                        ▼
   === Installation Point ===        Call Vercel           Read from DB          Call Chutes API
@@ -1246,19 +1246,19 @@ async function decryptToken(encryptedToken: string, encryptionIv: string, key: s
     const keyBuffer = new Uint8Array(
         key.match(/[\da-f]{2}/gi)!.map((h) => parseInt(h, 16))
     );
-    
+
     // Convert encrypted token from base64 to Uint8Array
     const encryptedBuffer = Uint8Array.from(
         atob(encryptedToken),
         (c) => c.charCodeAt(0)
     );
-    
+
     // Convert IV from base64 to Uint8Array (must be 16 bytes)
     const ivBuffer = Uint8Array.from(
         atob(encryptionIv),
         (c) => c.charCodeAt(0)
     );
-    
+
     // Import key for AES-CBC decryption
     const cryptoKey = await crypto.subtle.importKey(
         'raw',
@@ -1267,14 +1267,14 @@ async function decryptToken(encryptedToken: string, encryptionIv: string, key: s
         false,
         ['decrypt']
     );
-    
+
     // Decrypt token
     const decryptedBuffer = await crypto.subtle.decrypt(
         { name: 'AES-CBC', iv: ivBuffer },
         cryptoKey,
         encryptedBuffer
     );
-    
+
     // Convert back to string (JWT token)
     return new TextDecoder().decode(decryptedBuffer);
 }
@@ -1319,13 +1319,13 @@ const response = await fetch(`${aiBaseUrl}/chat/completions`, {
 #### Issue 1: Environment Variable Names
 **Error**: `supabaseUrl is required`
 **Cause**: Function used `PROJECT_URL` but env var was `SUPABASE_URL`
-**Fix**: 
+**Fix**:
 - Line 119: `Deno.env.get('SUPABASE_URL')` ✅
 - Line 120: `Deno.env.get('SUPABASE_ANON_KEY')` ✅
 
 #### Issue 2: IV Length Error
 **Error**: `OperationError: Counter must be 16 bytes`
-**Cause**: 
+**Cause**:
 - Database has encryption_iv = `"d2JXr5bFQmUGOn2jIEJvJg=="` (24 chars base64)
 - Should decode to 16 bytes
 - Issue was old function code still deployed
