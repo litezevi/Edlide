@@ -172,10 +172,15 @@ function AccountContent() {
                     <p className="text-xs text-muted-foreground">@{linkedAccount?.username}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-600">Connected</span>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUnlinkChutes}
+                  disabled={isUnlinking}
+                  className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                >
+                  {isUnlinking ? 'Unlinking...' : 'Unlink'}
+                </Button>
               </div>
             ) : (
               <>
