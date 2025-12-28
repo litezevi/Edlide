@@ -13,8 +13,8 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Lightning Fast",
-    description: "Optimized for local model execution with intelligent resource management. No cloud dependencies, no latency issues."
+    title: "10x Cheaper",
+    description: "Native quantization or lack thereof. Open source models have caught up to closed alternatives while costing 10x less on average."
   },
   {
     icon: GitBranch,
@@ -38,12 +38,9 @@ export function FeaturesSection() {
     <section className="py-24 px-4 border-t">
       <div className="container max-w-6xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4 text-primary">
+          <h2 className="text-3xl font-bold text-primary">
             Why Developers Choose Edlide
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Built from the ground up to serve the open source AI community with tools that respect your freedom and privacy.
-          </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -95,6 +92,10 @@ export function FeaturesSection() {
               <div className="text-sm text-muted-foreground">Open Source</div>
             </div>
           </div>
+
+          <p className="text-2xl font-bold mt-12 text-foreground">
+            Powered by Chutes
+          </p>
         </div>
       </div>
     </section>
