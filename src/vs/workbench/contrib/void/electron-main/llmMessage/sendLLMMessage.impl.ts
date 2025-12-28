@@ -49,6 +49,7 @@ type SendChatParams_Internal = InternalCommonMessageParams & {
 	separateSystemMessage: string | undefined;
 	chatMode: ChatMode | null;
 	mcpTools: InternalToolInfo[] | undefined;
+	supabaseAccessToken?: string;
 }
 type SendFIMParams_Internal = InternalCommonMessageParams & { messages: LLMFIMMessage; separateSystemMessage: string | undefined; }
 export type ListParams_Internal<ModelResponse> = ModelListParams<ModelResponse>
@@ -69,7 +70,7 @@ const parseHeadersJSON = (s: string | undefined): Record<string, string | null |
 	}
 }
 
-const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includeInPayload }: { settingsOfProvider: SettingsOfProvider, providerName: ProviderName, includeInPayload?: { [s: string]: any } }) => {
+const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includeInPayload, supabaseAccessToken }: { settingsOfProvider: SettingsOfProvider, providerName: ProviderName, includeInPayload?: { [s: string]: any }, supabaseAccessToken?: string }) => {
 	const commonPayloadOpts: ClientOptions = {
 		dangerouslyAllowBrowser: true,
 		...includeInPayload,
@@ -168,17 +169,20 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 		return new OpenAI({ baseURL: 'https://api.mistral.ai/v1', apiKey: thisConfig.apiKey, ...commonPayloadOpts })
 	}
 	else if (providerName === 'edlide') {
-		// Force use the correct Supabase anon key
-		const correctApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZram9ubG9xaHpyZXhiaXpoaXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxOTI3NjgsImV4cCI6MjA3ODc2ODc2OH0.lNiyduoXscELKrmmCgmw4JzuY8OsiBcNNDa3SXAP0Do'
-		
-		return new OpenAI({ 
-			baseURL: 'https://fkjonloqhzrexbizhiyb.supabase.co/functions/v1/ai-proxy', 
-			apiKey: correctApiKey, 
+		// Validate supabaseAccessToken
+		if (!supabaseAccessToken) {
+			throw new Error('Not connected. Please connect to your Edlide account in Settings.')
+		}
+
+		// Use Vercel backend with user's Supabase access token
+		return new OpenAI({
+			baseURL: 'http://localhost:3000/api/ai-proxy',
+			apiKey: supabaseAccessToken,
 			defaultHeaders: {
-				'Authorization': `Bearer ${correctApiKey}`,
+				'Authorization': `Bearer ${supabaseAccessToken}`,
 				'x-edlide-client': 'electron'
 			},
-			...commonPayloadOpts 
+			...commonPayloadOpts
 		})
 	}
 
@@ -284,7 +288,7 @@ const rawToolCallObjOfAnthropicParams = (toolBlock: Anthropic.Messages.ToolUseBl
 // ------------ OPENAI-COMPATIBLE ------------
 
 
-const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onError, settingsOfProvider, modelSelectionOptions, modelName: modelName_, _setAborter, providerName, chatMode, separateSystemMessage, overridesOfModel, mcpTools }: SendChatParams_Internal) => {
+const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onError, settingsOfProvider, modelSelectionOptions, modelName: modelName_, _setAborter, providerName, chatMode, separateSystemMessage, overridesOfModel, mcpTools, supabaseAccessToken }: SendChatParams_Internal) => {
 	const {
 		modelName,
 		specialToolFormat,
@@ -310,7 +314,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 		: {}
 
 	// instance
-	const openai: OpenAI = await newOpenAICompatibleSDK({ providerName, settingsOfProvider, includeInPayload })
+	const openai: OpenAI = await newOpenAICompatibleSDK({ providerName, settingsOfProvider, includeInPayload, supabaseAccessToken })
 	if (providerName === 'microsoftAzure') {
 		// Required to select the model
 		(openai as AzureOpenAI).deploymentName = modelName;

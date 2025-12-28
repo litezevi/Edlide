@@ -19,6 +19,7 @@ import { gitCommitMessage_systemMessage, gitCommitMessage_userMessage } from '..
 import { LLMChatMessage } from '../common/sendLLMMessageTypes.js'
 import { generateUuid } from '../../../../base/common/uuid.js'
 import { ThrottledDelayer } from '../../../../base/common/async.js'
+import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js'
 import { CancellationError, isCancellationError } from '../../../../base/common/errors.js'
 import { registerSingleton, InstantiationType } from '../../../../platform/instantiation/common/extensions.js'
 import { createDecorator, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js'
@@ -138,29 +139,30 @@ class GenerateCommitMessageService extends Disposable implements IGenerateCommit
 	private sendLLMMessage(messages: LLMChatMessage[], separateSystemMessage: string, modelOptions: ModelOptions): Promise<string> {
 		return new Promise((resolve, reject) => {
 
-			this.llmRequestId = this.llmMessageService.sendLLMMessage({
-				messagesType: 'chatMessages',
-				messages,
-				separateSystemMessage,
-				chatMode: null,
-				modelSelection: modelOptions.modelSelection,
-				modelSelectionOptions: modelOptions.modelSelectionOptions,
-				overridesOfModel: modelOptions.overridesOfModel,
-				onText: () => { },
-				onFinalMessage: (params: { fullText: string }) => {
-					const match = params.fullText.match(/<output>([\s\S]*?)<\/output>/i)
-					const commitMessage = match ? match[1].trim() : ''
-					resolve(commitMessage)
-				},
-				onError: (error) => {
-					console.error(error)
-					reject(error)
-				},
-				onAbort: () => {
-					reject(new CancellationError())
-				},
-				logging: { loggingName: 'VoidSCM - Commit Message' },
-			})
+this.llmRequestId = this.llmMessageService.sendLLMMessage({
+					messagesType: 'chatMessages',
+					messages,
+					separateSystemMessage,
+					chatMode: null,
+					modelSelection: modelOptions.modelSelection,
+					modelSelectionOptions: modelOptions.modelSelectionOptions,
+					overridesOfModel: modelOptions.overridesOfModel,
+					supabaseAccessToken: modelOptions.modelSelection && modelOptions.modelSelection.providerName === 'edlide' ? SupabaseAuthHelper.getAccessTokenSync() ?? undefined : undefined,
+					onText: () => { },
+					onFinalMessage: (params: { fullText: string }) => {
+						const match = params.fullText.match(/<output>([\s\S]*?)<\/output>/i)
+						const commitMessage = match ? match[1].trim() : ''
+						resolve(commitMessage)
+					},
+					onError: (error) => {
+						console.error(error)
+						reject(error)
+					},
+					onAbort: () => {
+						reject(new CancellationError())
+					},
+					logging: { loggingName: 'VoidSCM - Commit Message' },
+				})
 		})
 	}
 

@@ -47,6 +47,7 @@ import { acceptBg, acceptBorder, buttonFontSize, buttonTextColor, rejectBg, reje
 import { DiffArea, Diff, CtrlKZone, VoidFileSnapshot, DiffAreaSnapshotEntry, diffAreaSnapshotKeys, DiffZone, TrackingZone, ComputedDiff } from '../common/editCodeServiceTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
 import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel, edlideReplace } from '../common/edlideCodeApplySystem.js';
+import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 // import { isMacintosh } from '../../../../base/common/platform.js';
 // import { VOID_OPEN_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
 
@@ -1641,6 +1642,7 @@ ${newString}
 					overridesOfModel,
 					separateSystemMessage,
 					chatMode: null, // not chat
+					supabaseAccessToken: modelSelection && modelSelection.providerName === 'edlide' ? SupabaseAuthHelper.getAccessTokenSync() ?? undefined : undefined,
 					onText: (params) => {
 						const { fullText: fullText_ } = params
 						const newText_ = fullText_.substring(fullTextSoFar.length, Infinity)
@@ -2171,6 +2173,7 @@ DO NOT provide the complete file - only use search/replace blocks for fast apply
 					overridesOfModel,
 					separateSystemMessage,
 					chatMode: null, // not chat
+					supabaseAccessToken: modelSelection && modelSelection.providerName === 'edlide' ? SupabaseAuthHelper.getAccessTokenSync() ?? undefined : undefined,
 					onText: (params) => {
 						onText(params)
 					},

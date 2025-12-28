@@ -39,6 +39,7 @@ import { IDirectoryStrService } from '../common/directoryStrService.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IMCPService } from '../common/mcpService.js';
 import { RawMCPToolCall } from '../common/mcpServiceTypes.js';
+import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 
 
 // related to retrying when LLM message has error
@@ -819,16 +820,23 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 					| { type: 'llmError', error?: { message: string; fullError: Error | null; } }
 					| { type: 'llmAborted' }
 
-				let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user approves this tool use (or if tool doesn't require approval)
-				const messageIsDonePromise = new Promise<ResTypes>((res, rej) => { resMessageIsDonePromise = res })
+let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user approves this tool use (or if tool doesn't require approval)
+			const messageIsDonePromise = new Promise<ResTypes>((res, rej) => { resMessageIsDonePromise = res })
 
-				const llmCancelToken = this._llmMessageService.sendLLMMessage({
+			let supabaseAccessToken: string | undefined = undefined
+			if (modelSelection && modelSelection.providerName === 'edlide') {
+				const token = SupabaseAuthHelper.getAccessTokenSync()
+				supabaseAccessToken = token ?? undefined
+			}
+
+			const llmCancelToken = this._llmMessageService.sendLLMMessage({
 					messagesType: 'chatMessages',
 					chatMode,
 					messages: messages,
 					modelSelection,
 					modelSelectionOptions,
 					overridesOfModel,
+					supabaseAccessToken,
 					logging: { loggingName: `Chat - ${chatMode}`, loggingExtras: { threadId, nMessagesSent, chatMode } },
 					separateSystemMessage: separateSystemMessage,
     onText: ({ fullText, fullReasoning, toolCall, totalTokens }) => {

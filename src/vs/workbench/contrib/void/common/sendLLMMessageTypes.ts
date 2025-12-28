@@ -119,6 +119,7 @@ export type ServiceSendLLMMessageParams = {
 	modelSelectionOptions: ModelSelectionOptions | undefined;
 	overridesOfModel: OverridesOfModel | undefined;
 	onAbort: OnAbort;
+	supabaseAccessToken?: string;
 } & SendLLMType;
 
 // params to the true sendLLMMessage function
@@ -135,6 +136,7 @@ export type SendLLMMessageParams = {
 
 	settingsOfProvider: SettingsOfProvider;
 	mcpTools: InternalToolInfo[] | undefined;
+	supabaseAccessToken?: string;
 } & SendLLMType
 
 

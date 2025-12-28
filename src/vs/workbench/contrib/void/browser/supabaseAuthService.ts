@@ -3,6 +3,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { registerSingleton, InstantiationType } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import type { SupabaseTokens, IDEAuthState } from '../common/supabaseAuthTypes.js';
+import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 
 export const ISupabaseAuthService = createDecorator<SupabaseAuthService>('supabaseAuthService');
 
@@ -64,6 +65,9 @@ export class SupabaseAuthService {
         SupabaseAuthService.AUTH_STATE_KEY,
         JSON.stringify(authState)
       );
+
+      // Update cache for sync access
+      SupabaseAuthHelper.setAccessToken(tokens.access_token);
 
       this._onDidChangeAuthState.fire(authState);
       console.log('[SupabaseAuth] Tokens saved securely:', {
@@ -179,6 +183,14 @@ export class SupabaseAuthService {
       console.error('[SupabaseAuth] Error refreshing tokens:', error);
       return null;
     }
+  }
+
+  /**
+   * Synchronously get access token from cached memory (for immediate use)
+   * Returns null if not cached
+   */
+  getAccessTokenSync(): string | null {
+    return this._tokens?.access_token || null;
   }
 }
 
