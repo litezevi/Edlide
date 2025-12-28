@@ -1120,7 +1120,7 @@ export const AIInstructionsBox = () => {
 	return <VoidInputBox2
 		className='min-h-[81px] p-3 rounded-sm'
 		initValue={voidSettingsState.globalSettings.aiInstructions}
-		placeholder={`System Prompt`}
+		placeholder={``}
 		multiline
 		onChangeText={(newText) => {
 			voidSettingsService.setGlobalSetting('aiInstructions', newText)
@@ -1513,7 +1513,7 @@ export const Settings = () => {
 									<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
 										<div>
 											<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
-											<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. The only data collected is minimal usage details without specifics.</span>
+											<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. </span>
 										</div>
 										<div className='flex items-center gap-x-2'>
 											<VoidSwitch
@@ -1852,7 +1852,7 @@ Use Model Context Protocol to provide Agent mode with more tools.
 												<AIInstructionsBox />
 											</ErrorBoundary>
 											<div className='text-void-fg-3 text-sm mt-1'>
-												Your System Prompt
+											Does not change when opening other projects. Ideal for communication style, explanation depth, etc.
 											</div>
 
 
