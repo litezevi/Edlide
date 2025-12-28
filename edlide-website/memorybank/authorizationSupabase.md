@@ -985,3 +985,176 @@ The IDE-Site OAuth authentication system is fully operational and ready for inte
 **Build Status**: ✅ React + TypeScript compilation successful
 ---
 **📌 Next Action**: Connect Edlide provider to use stored tokens in `sendLLMMessageService.ts` (see above for implementation details)
+
+---
+
+## 🔄 Phase 11: Vercel Backend Integration (December 28, 2025)
+### Implementation Date
+**Completed**: December 28, 2025
+**Phase**: AI Proxy Architecture Overhaul
+
+### Mission Objectives
+1. ✅ Remove hardcoded Supabase anon key from IDE
+2. ✅ Add Vercel backend as authentication layer
+3. ✅ Implement JWT validation for all AI requests
+4. ✅ Pass user tokens via secure channel
+5. ✅ Enable request logging and user tracking
+
+### Architecture Changes
+**Old Architecture (Insecure)**:
+```
+IDE → Direct Supabase Function anon key ❌
+     (hardcoded JWT token exposed)
+```
+
+**New Architecture (Secure)**:
+```
+IDE (Browser)                 IDE (Main)                Vercel Backend            Supabase Function
+─────────────                 ───────────               ─────────────            ─────────────────
+ChatService                  SendLLM                    /api/ai-proxy           /functions/v1/ai-proxy
+     │                            │                              │                         │
+     │ Gets tokens via            │ Uses cached                 │ 1. Validates JWT         │ 2. Receives
+     │ SupabaseAuthHelper         │ supabaseAccessToken        │    - getUser()          │    - service_role
+     │                            │                              │ 2. Logs user            │    - x-user-id
+     ▼                            ▼                              │    - model               │    - x-user-email
+SupabaseAuthService          newOpenAI                   │    - provider             │    - request-source
+(Retrieves cached)          (OpenAI SDK)                │                              │
+     │                            │                              │ 3. Proxies with         │
+     │ Returns access_token     │ Passes in                 │    - service_role       │
+     ▼                            │ Authorization header      │    - custom headers     │
+SupabaseAuthHelper             │                             ▼                         ▼
+(Cache: 10sec TTL)             ▼                          Forward Request         Process AI
+
+Security Layers:
+1. ✅ SupabaseAuthService validates user JWT
+2. ✅ SupabaseAuthHelper provides secure cache
+3. ✅ Vercel backend validates JWT again
+4. ✅ Supabase Function receives service_role
+5. ✅ No hardcoded keys in IDE
+```
+
+### Files Created / Modified
+#### Website (New Files)
+1. ✅ **`src/app/api/ai-proxy/[[...path]]/route.ts`** - Dynamic API route
+   - POST handler for all AI proxy requests
+   - OPTIONS handler for CORS
+   - JWT validation via Supabase auth.getUser()
+   - Request logging with user context
+   - Service role authorization for Supabase calls
+
+**Key Features**:
+- ✅ **Dynamic route [[...path]]**: Catches all paths including /chat/completions
+- ✅ **JWT double validation**: Security layer at Vercel backend
+- ✅ **Service role isolation**: Only Vercel has service_role key
+- ✅ **Request logging**: All AI requests logged with user context
+- ✅ **Error handling**: Returns appropriate HTTP status codes
+
+#### IDE (Modified Files)
+2. ✅ **`src/vs/workbench/contrib/void/common/sendLLMMessageTypes.ts`**
+   - Added `supabaseAccessToken?: string` to types
+
+3. ✅ **`src/vs/workbench/contrib/void/common/supabaseAuthHelper.ts`** (NEW FILE)
+   - Singleton class for sync token access
+   - Cache with 10-second TTL
+   - Updated by SupabaseAuthService
+
+4. ✅ **`src/vs/workbench/contrib/void/browser/supabaseAuthService.ts`**
+   - Updated `saveTokens()` to update SupabaseAuthHelper cache
+   - Added `getAccessTokenSync()` to interface and implementation
+   - Added `refreshTokens()` to interface
+
+5. ✅ **`src/vs/workbench/contrib/void/browser/interfaces/supabaseAuthService.ts`**
+   - Added `getAccessTokenSync()` and `refreshTokens()` to interface
+
+6. ✅ **`src/vs/workbench/contrib/void/electron-main/llmMessage/sendLLMMessage.impl.ts`**
+   - Updated edlide provider to use Vercel backend
+   - Added token validation
+   - Updated `newOpenAICompatibleSDK()` to accept supabaseAccessToken
+
+7. ✅ **`src/vs/workbench/contrib/void/browser/chatThreadService.ts`**
+   - Added SupabaseAuthHelper import
+   - Token retrieval before sendLLMMessage calls
+
+8. ✅ **`src/vs/workbench/contrib/void/browser/editCodeService.ts`**
+   - Added SupabaseAuthHelper import
+   - Inline token retrieval for Edit operations
+
+9. ✅ **`src/vs/workbench/contrib/void/browser/voidSCMService.ts`**
+   - Added SupabaseAuthHelper import
+   - Inline token retrieval for Git commit messages
+
+10. ✅ **`src/vs/workbench/contrib/void/electron-main/llmMessage/sendLLMMessage.ts`**
+    - Updated to pass supabaseAccessToken parameter
+
+### Security Analysis
+
+#### ✅ Security Improvements (New Architecture)
+1. **No Hardcoded Tokens**: IDE no longer contains anon or service_role keys
+2. **User-Specific Tokens**: Each request uses authenticated user's JWT
+3. **Double Validation**: Browser + Vercel both validate JWT
+4. **Service Role Isolation**: Only Vercel backend has service_role key (in .env.local)
+5. **Request Logging**: All AI requests logged with user_id for audit
+6. **Token Limits**: SupabaseAuthHelper cache expires after 10 seconds
+7. **Error Handling**: Detailed error messages without exposing sensitive data
+
+#### ❌ Current Issue: 403 Unauthorized Client
+**Problem**: Supabase Edge Function returns `403 "Unauthorized client"`
+
+**Root Cause**: 
+- Vercel backend successfully validates user JWT ✅
+- Vercel forwards request to Supabase Function with service_role ✅
+- Supabase Function rejects the request with 403 ❌
+
+**Investigation Needed**:
+- Check Supabase Edge Function logs for rejection reason
+- Verify Function accepts requests from external origins
+- Check if Function validates custom headers (x-edlide-client)
+- Confirm service_role key is correct
+
+### Console Logs - Integration Status
+**Website Console (Vercel)**:
+```
+[AI Proxy] User authenticated: { user_id: '...', email: 'litezevin@gmail.com' }
+[AI Proxy] AI request from user: { model: '...', provider: 'edlide' }
+[AI Proxy] Supabase function error: { status: 403, error: 'Unauthorized client' }
+```
+
+**IDE Console**:
+```
+Error: 403 "AI service error. Please try again later."
+```
+
+### Environment Variables (Updated)
+**Website .env.local**:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://fkjonloqhzrexbizhiyb.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+**IDE**: No environment variables needed
+
+### Files Modified Summary
+- **Website**: 1 NEW file (~81 lines)
+- **IDE**: 9 files modified (~200 lines)
+- **Total**: ~281 lines of code changes
+
+### Current Status
+- ✅ JWT Authentication: WORKING
+- ✅ Vercel Backend: WORKING
+- ✅ Request Logging: WORKING
+- ❌ Supabase Function: BLOCKING (403 error)
+
+### Investigation Next Steps
+1. Check Supabase Edge Function implementation for rejection logic
+2. Verify service_role key permissions
+3. Test Function directly with service_role key
+4. Consider fallback: Direct IDE → Supabase (bypass Vercel)
+
+---
+
+**Document Version**: 2.0
+**Last Updated**: December 28, 2025
+**Phase 11 Status**: Architecture Complete, Investigating 403 Error
+**Build Status**: ✅ All code compiled successfully
