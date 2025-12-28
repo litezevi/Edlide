@@ -100,12 +100,6 @@ export function SupabaseAuthButton() {
             Account
           </a>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="/account" className="flex items-center gap-2 cursor-pointer">
-            <Settings className="h-4 w-4" />
-            Settings
-          </a>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {linkedAccount ? (
           <DropdownMenuItem
