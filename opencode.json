@@ -51,6 +51,10 @@
         "--access-token",
         "sbp_2ff4c3162e42dd835b84d5adb460a16880dd1fb7"
       ]
+    },
+    "chutes-api Docs": {
+      "type": "remote",
+      "url": "https://gitmcp.io/chutesai/chutes-api"
     }
   }
 }
