@@ -83,20 +83,21 @@ export async function POST(request: NextRequest) {
 
     console.log('- Decryption successful, token length:', accessToken.length)
 
-    // PROACTIVE REFRESH: Check if token expires within 5 minutes (before it actually expires)
-    const expiresAt = chutesData.expires_at ? new Date(chutesData.expires_at) : null
+    // PROACTIVE REFRESH: Always refresh if token is older than 15 minutes (prevents expiry completely)
+    const createdOrUpdatedAt = chutesData.updated_at ? new Date(chutesData.updated_at) : new Date(chutesData.created_at!)
     const now = new Date()
-    const REFRESH_BEFORE_EXPIRE_MS = 5 * 60 * 1000 // 5 minutes
-    const isTokenExpiringSoon = expiresAt && (expiresAt.getTime() - now.getTime()) < REFRESH_BEFORE_EXPIRE_MS
-    const isTokenExpired = expiresAt && expiresAt < now
+    
+    const tokenAgeMs = now.getTime() - createdOrUpdatedAt.getTime()
+    const REFRESH_EVERY_15_MIN = 15 * 60 * 1000 // 15 minutes
+    const shouldRefresh = tokenAgeMs >= REFRESH_EVERY_15_MIN
 
-    console.log('- Token expires at:', expiresAt?.toISOString())
-    console.log('- Is expired:', isTokenExpired)
-    console.log('- Is expiring soon (within 5 min):', isTokenExpiringSoon)
+    console.log('- Token last updated:', createdOrUpdatedAt.toISOString())
+    console.log('- Token age (minutes):', Math.floor(tokenAgeMs / 60000))
+    console.log('- Should refresh (age >= 15min):', shouldRefresh)
 
-    // Refresh if expired OR expiring soon (proactive refresh)
-    if ((isTokenExpired || isTokenExpiringSoon) && chutesData.encrypted_refresh_token) {
-      console.log(isTokenExpired ? 'Token expired, refreshing...' : 'Token expiring soon, proactive refresh...')
+    // Refresh if token is older than 15 minutes (proactive refresh)
+    if (shouldRefresh && chutesData.encrypted_refresh_token) {
+      console.log('Token age >= 15min, refreshing...')
 
       const decryptedRefreshToken = TokenEncryption.decrypt(chutesData.encrypted_refresh_token, chutesData.encryption_iv || '')
 
@@ -113,14 +114,15 @@ export async function POST(request: NextRequest) {
 
         const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
 
-        const { encrypted: newEncryptedAccess } = TokenEncryption.encrypt(newTokens.access_token)
-        const { encrypted: newEncryptedRefresh } = TokenEncryption.encrypt(newTokens.refresh_token || decryptedRefreshToken)
+        const { encrypted: newEncryptedAccess, iv: newIv } = TokenEncryption.encrypt(newTokens.access_token)
+        const { encrypted: newEncryptedRefresh } = TokenEncryption.encrypt(newTokens.refresh_token || decryptedRefreshToken, Buffer.from(newIv, 'base64'))
 
         const { error: updateError } = await adminSupabase
           .from('chutes_tokens')
           .update({
             encrypted_access_token: newEncryptedAccess,
             encrypted_refresh_token: newEncryptedRefresh,
+            encryption_iv: newIv,
             expires_at: new Date(Date.now() + newTokens.expires_in * 1000).toISOString(),
             updated_at: new Date().toISOString(),
           })
@@ -138,20 +140,6 @@ export async function POST(request: NextRequest) {
         const errorMessage = refreshError instanceof Error ? refreshError.message : String(refreshError)
 
         if (errorMessage.includes('invalid_grant')) {
-          console.log('Refresh token is invalid or expired, deleting from database')
-
-          const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
-          const { error: deleteError } = await adminSupabase
-            .from('chutes_tokens')
-            .delete()
-            .eq('user_id', user.id)
-
-          if (deleteError) {
-            console.error('Failed to delete expired token:', deleteError)
-          } else {
-            console.log('Successfully deleted invalid token from database')
-          }
-
           return NextResponse.json(
             {
               error: 'Your Chutes session has expired. Please re-link your Chutes account to continue.',

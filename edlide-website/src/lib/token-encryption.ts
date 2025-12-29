@@ -23,13 +23,13 @@ export class TokenEncryption {
     return crypto.createHash(this.KEY_HASH_ALGORITHM).update(keyEnv).digest();
   }
 
-  public static encrypt(text: string): { encrypted: string; iv: string } {
+  public static encrypt(text: string, providedIv?: Buffer): { encrypted: string; iv: string } {
     if (!text) {
       return { encrypted: '', iv: '' };
     }
 
     const key = this.getEncryptionKey();
-    const iv = crypto.randomBytes(this.IV_LENGTH);
+    const iv = providedIv || crypto.randomBytes(this.IV_LENGTH);
 
     const cipher = crypto.createCipheriv(this.ALGORITHM, key, iv);
     

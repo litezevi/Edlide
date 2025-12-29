@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
     console.log('=== CHUTES TOKEN ENCRYPTION ===')
     console.log('Encrypting tokens before saving to database...')
 
-    const { encrypted: encryptedAccess, iv: ivAccess } = TokenEncryption.encrypt(accessToken)
-    const { encrypted: encryptedRefresh } = TokenEncryption.encrypt(refreshToken || '')
+    const { encrypted: encryptedAccess, iv: commonIv } = TokenEncryption.encrypt(accessToken)
+    const { encrypted: encryptedRefresh } = TokenEncryption.encrypt(refreshToken || '', Buffer.from(commonIv, 'base64'))
 
     console.log('Encryption successful:')
     console.log('- Encrypted access token length:', encryptedAccess.length)
-    console.log('- Encryption IV length:', ivAccess.length)
+    console.log('- Encryption IV length:', commonIv.length)
     console.log('- Encrypted refresh token exists:', encryptedRefresh.length > 0)
 
     const { data, error } = await supabase
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
           chutes_user_id: chutesUserId,
           encrypted_access_token: encryptedAccess,
           encrypted_refresh_token: encryptedRefresh,
-          encryption_iv: ivAccess,
+          encryption_iv: commonIv,
           expires_at: expiresAt?.toISOString() || null,
           username: username || null,
           updated_at: new Date().toISOString(),
