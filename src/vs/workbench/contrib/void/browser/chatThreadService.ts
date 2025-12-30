@@ -823,11 +823,12 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user approves this tool use (or if tool doesn't require approval)
 			const messageIsDonePromise = new Promise<ResTypes>((res, rej) => { resMessageIsDonePromise = res })
 
-			let supabaseAccessToken: string | undefined = undefined
-			if (modelSelection && modelSelection.providerName === 'edlide') {
-				const token = SupabaseAuthHelper.getAccessTokenSync()
-				supabaseAccessToken = token ?? undefined
-			}
+let supabaseAccessToken: string | undefined = undefined
+if (modelSelection && modelSelection.providerName === 'edlide') {
+  const token = SupabaseAuthHelper.getAccessTokenSync()
+  console.log('[ChatThread] SupabaseAuthHelper token:', token ? '✅ FOUND' : '❌ NULL')
+  supabaseAccessToken = token ?? undefined
+}
 
 			const llmCancelToken = this._llmMessageService.sendLLMMessage({
 					messagesType: 'chatMessages',

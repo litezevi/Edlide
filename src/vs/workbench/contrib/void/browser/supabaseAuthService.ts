@@ -39,6 +39,11 @@ export class SupabaseAuthService {
         if (tokensJson) {
           this._tokens = JSON.parse(tokensJson);
           console.log('[SupabaseAuth] Loaded tokens from secure storage');
+
+          // Update sync cache for immediate access
+          if (this._tokens) {
+            SupabaseAuthHelper.setAccessToken(this._tokens.access_token);
+          }
         }
       }
       return this._tokens;
@@ -95,6 +100,9 @@ export class SupabaseAuthService {
       this._tokens = null;
       await this.secretStorage.delete(SupabaseAuthService.TOKENS_KEY);
       await this.secretStorage.delete(SupabaseAuthService.AUTH_STATE_KEY);
+
+      // Clear the sync cache as well
+      SupabaseAuthHelper.setAccessToken(null);
 
       // Stop auto-refresh timer
       this.stopAutoRefresh();
