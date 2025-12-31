@@ -22,10 +22,29 @@ export class SupabaseAuthService {
 
   private _tokens: SupabaseTokens | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
+  private _initialized = false;
 
   constructor(
     @ISecretStorageService private readonly secretStorage: ISecretStorageService
-  ) {}
+  ) {
+    console.log('[SupabaseAuth] Service constructed, initializing...');
+    this._initialize();
+  }
+
+  /**
+   * Initialize tokens immediately - called from constructor
+   */
+  private async _initialize(): Promise<void> {
+    if (this._initialized) return;
+
+    try {
+      await this.getTokens();
+      this._initialized = true;
+      console.log('[SupabaseAuth] Initialization complete, tokens loaded:', !!this._tokens);
+    } catch (error) {
+      console.error('[SupabaseAuth] Initialization error:', error);
+    }
+  }
 
   /**
    * Get stored tokens from secure storage
@@ -209,6 +228,21 @@ export class SupabaseAuthService {
    */
   getAccessTokenSync(): string | null {
     return this._tokens?.access_token || null;
+  }
+
+  /**
+   * Check if auth is ready (initialization complete)
+   */
+  isReady(): boolean {
+    return this._initialized && this._tokens !== null;
+  }
+
+  /**
+   * Wait for initialization to complete (for critical paths)
+   */
+  async whenReady(): Promise<void> {
+    if (this._initialized) return;
+    await this._initialize();
   }
 
   /**

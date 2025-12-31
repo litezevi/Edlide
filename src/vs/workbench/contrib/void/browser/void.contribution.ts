@@ -76,45 +76,24 @@ import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 // Start auto-refresh for existing tokens on IDE startup
 console.log('[void.contribution] ===== INITIALIZING SUPABASE AUTH =====');
 setTimeout(() => {
-	console.log('[void.contribution] 🔍 Timeout fired, checking container...');
 	const container = (window as any).__edlideServiceContainer;
-	console.log('[void.contribution] Container exists:', !!container);
-
 	if (container) {
 		try {
-			console.log('[void.contribution] 📦 Getting ISupabaseAuthService...');
 			const authService = container.get(ISupabaseAuthService);
-			console.log('[void.contribution] AuthService exists:', !!authService);
-
 			if (authService) {
-				console.log('[void.contribution] 🚀 Initializing tokens...');
-				console.log('[void.contribution] ⏱️ Current time:', new Date().toISOString());
-
-				// Load tokens into cache on startup
-				authService.getOrRefreshToken().then((token: string | null) => {
-					console.log('[void.contribution] ✅ Token result:', token ? 'FOUND' : 'NULL');
-
-					// Check cache state
-					const cachedToken = SupabaseAuthHelper.getAccessTokenSync();
-					console.log('[void.contribution] 🎯 Cache state:', cachedToken ? 'POPULATED' : 'EMPTY');
-					console.log('[void.contribution] ⏱️ Token loaded at:', new Date().toISOString());
-				}).catch((e: Error) => {
-					console.error('[void.contribution] ❌ getOrRefreshToken error:', e);
-				});
+				// Tokens are already loaded in constructor via Eager instantiation
+				const token = SupabaseAuthHelper.getAccessTokenSync();
+				console.log('[void.contribution] ✅ Auth ready:', token ? 'token loaded' : 'no token');
 
 				// Start auto-refresh timer
 				authService.startAutoRefresh();
 				console.log('[void.contribution] ⏰ Auto-refresh timer started');
-			} else {
-				console.error('[void.contribution] ❌ AuthService is null!');
 			}
-		} catch (e: unknown) {
-			console.log('[void.contribution] ❌ Could not start auto-refresh:', e);
+		} catch (e) {
+			console.warn('[void.contribution] Could not start auth:', e);
 		}
-	} else {
-		console.error('[void.contribution] ❌ Container not found!');
 	}
-}, 5000); // Increased to 5 seconds to ensure all services are ready
+}, 100); // Short delay to let services initialize
 
 // ---------- common (unclear if these actually need to be imported, because they're already imported wherever they're used) ----------
 

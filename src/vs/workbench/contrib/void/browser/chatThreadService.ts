@@ -40,6 +40,7 @@ import { IFileService } from '../../../../platform/files/common/files.js';
 import { IMCPService } from '../common/mcpService.js';
 import { RawMCPToolCall } from '../common/mcpServiceTypes.js';
 import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
+import { ISupabaseAuthService } from './supabaseAuthService.js';
 
 
 // related to retrying when LLM message has error
@@ -825,8 +826,27 @@ let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user appro
 
 let supabaseAccessToken: string | undefined = undefined
 if (modelSelection && modelSelection.providerName === 'edlide') {
-  const token = SupabaseAuthHelper.getAccessTokenSync()
-  console.log('[ChatThread] SupabaseAuthHelper token:', token ? '✅ FOUND' : '❌ NULL')
+  let token = SupabaseAuthHelper.getAccessTokenSync()
+
+  if (token) {
+    console.log('[ChatThread] Token from sync cache: ✅')
+  } else {
+    console.log('[ChatThread] Token not in sync cache, waiting for init...')
+    const container = (window as any).__edlideServiceContainer
+    if (container) {
+      try {
+        const authService = container.get(ISupabaseAuthService)
+        if (authService?.whenReady) {
+          await authService.whenReady()
+          token = SupabaseAuthHelper.getAccessTokenSync()
+          console.log('[ChatThread] Token after wait:', token ? '✅' : '❌ NULL')
+        }
+      } catch (e) {
+        console.error('[ChatThread] Auth wait error:', e)
+      }
+    }
+  }
+
   supabaseAccessToken = token ?? undefined
 }
 
