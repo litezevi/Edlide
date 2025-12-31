@@ -166,10 +166,10 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
 export function SupabaseSignInCard() {
   return (
     <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Sign In</CardTitle>
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-2xl">Sign In Required</CardTitle>
         <CardDescription>
-          Access your Edlide account to continue
+          Please sign in to connect your Edlide account with the IDE
         </CardDescription>
       </CardHeader>
       <CardContent>
