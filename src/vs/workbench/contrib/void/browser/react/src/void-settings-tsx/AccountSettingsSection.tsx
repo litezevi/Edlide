@@ -122,9 +122,6 @@ export const AccountSettingsSection = () => {
 								<Check className='stroke-green-500 size-4' />
 								Connected as {userEmail || 'Unknown'}
 							</span>
-							<span className='text-void-fg-2 text-sm'>
-								Your Edlide account is synced
-							</span>
 						</div>
 						<VoidButtonBgDarken
 							className="bg-void-bg-3 text-void-fg-1 px-4 py-2 rounded-md hover:bg-void-bg-4"
