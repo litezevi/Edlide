@@ -207,6 +207,16 @@ VERCEL_ANALYTICS_ID=<analytics-id>
 **Features**:
 - Email/password authentication
 - **Google OAuth (NEW)** - "Continue with Google" button with official icon
+- **Password strength validation (NEW)**:
+  - Minimum 8 characters
+  - One uppercase letter
+  - One lowercase letter
+  - One number
+  - One special character (!@#$%^&*...)
+- **Real-time password requirements checklist** with green checkmarks
+- **Confirm Password field** with match validation
+- **Terms of Use & Privacy Policy checkbox** (Sign Up only)
+- **Agreement text** under Sign In button
 - User session management with automatic JWT refresh
 - Secure password storage (bcrypt)
 - Email verification ready
@@ -215,8 +225,8 @@ VERCEL_ANALYTICS_ID=<analytics-id>
 **Files**:
 - `src/lib/supabase.ts` - Supabase client configuration
 - `src/lib/supabase-auth.ts` - React hook (auth state, signUp, signIn, signOut, signInWithOAuth, signUpWithOAuth)
-- `src/components/auth/supabase-signin-button.tsx` - Sign-in form + Google button
-- `src/components/auth/supabase-signup-button.tsx` - Sign-up form + Google button
+- `src/components/auth/supabase-signin-button.tsx` - Sign-in form + Google button + agreement text
+- `src/components/auth/supabase-signup-button.tsx` - Sign-up form + Google button + password validation + confirm password + terms checkbox
 - `src/components/auth/google-button.tsx` - Google OAuth button (NEW)
 - `src/app/api/auth/signup/route.ts` - Registration endpoint
 - `src/app/api/auth/signin/route.ts` - Sign-in endpoint
@@ -229,6 +239,13 @@ VERCEL_ANALYTICS_ID=<analytics-id>
 - Official Google SVG icon with 4-color branding
 - Divider with "Or continue with" text between email/password and Google
 - Scopes: `openid email profile`
+
+**Password Validation UI**:
+- Real-time validation as user types
+- Checkmarks turn green when requirement is met
+- Confirm password shows "Passwords match" (green) or "Passwords do not match" (red)
+- Create Account button disabled until all requirements are met
+- Button text is black for better visibility
 
 ### Chutes OAuth Integration - LINKED TO SUPABASE ✅
 **Purpose**: AI model access for chat functionality

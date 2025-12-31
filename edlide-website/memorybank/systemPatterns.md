@@ -287,6 +287,20 @@ Security:
 6. Redirects to `/account` with session active
 7. Google user metadata (name, avatar) stored in `auth.users.user_metadata`
 
+#### Sign Up Flow with Password Validation (NEW - Dec 31, 2025)
+1. User fills in Full Name, Email, Password
+2. **Real-time password validation**:
+   - Minimum 8 characters
+   - One uppercase letter
+   - One lowercase letter
+   - One number
+   - One special character (!@#$%^&*...)
+3. Password requirements shown with green checkmarks
+4. User must confirm password (match validation)
+5. User must accept Terms of Use and Privacy Policy (checkbox)
+6. **Create Account button disabled** until all requirements met
+7. Button text is black for better visibility
+
 ### Chutes Linking Flow
 1. User logs into Supabase first (REQUIRED)
 2. User clicks "Link Chutes Account"

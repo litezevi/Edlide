@@ -114,6 +114,25 @@
 - [x] **Update sign-up form** with Google button under email/password
 - [x] **Test Google OAuth flow** locally
 
+### Phase 8: Password Validation & UI Improvements - **COMPLETE** ✅
+**Timeline:** Dec 31, 2025
+**Objectives:**
+- [x] **Add password strength validation**:
+  - Minimum 8 characters
+  - One uppercase letter
+  - One lowercase letter
+  - One number
+  - One special character (!@#$%^&*...)
+- [x] **Add real-time password requirements checklist** with green checkmarks
+- [x] **Add Confirm Password field** with match validation
+- [x] **Add "I agree" checkbox** for Terms of Use and Privacy Policy (Sign Up only)
+- [x] **Add agreement text** under Sign In button
+- [x] **Remove top icons** from Sign In and Sign Up cards
+- [x] **Remove side content** (Why create an Edlide account?, Security & Privacy)
+- [x] **Center form** on account page
+- [x] **Make button text black** for better visibility
+- [x] **Make checkbox rounded** with custom styling
+
 ## Completed Features
 
 ### Database Schema
