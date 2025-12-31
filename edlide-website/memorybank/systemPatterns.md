@@ -15,7 +15,9 @@
 │   │   ├── download/          # Download section
 │   │   │   └── page.tsx       # Platform-specific download page
 │   │   ├── account/           # Account section
-│   │   │   └── page.tsx       # User dashboard with stats
+│   │   │   ├── page.tsx       # User dashboard with stats
+│   │   │   └── reset-password/ # Password reset page (NEW)
+│   │   │       └── page.tsx   # Reset password form with token exchange
 │   │   ├── chat/              # Chat section
 │   │   │   └── page.tsx       # Chat interface page
 │   │   ├── auth/              # Authentication pages
@@ -48,10 +50,11 @@
 │   │   │   ├── supabase-auth-button.tsx  # Supabase auth dropdown
 │   │   │   └── chutes-auth-button.tsx    # Chutes auth dropdown (preserved)
 │   │   ├── auth/             # Authentication components
-│   │   │   ├── supabase-signin-button.tsx    # Supabase sign-in forms
+│   │   │   ├── supabase-signin-button.tsx    # Supabase sign-in forms + Forgot Password toggle
 │   │   │   ├── supabase-signup-button.tsx    # Supabase sign-up forms
-│   │   │   ├── google-button.tsx             # Google OAuth button (NEW)
+│   │   │   ├── google-button.tsx             # Google OAuth button
 │   │   │   ├── chutes-signin-button.tsx      # Chutes OAuth sign-in
+│   │   │   ├── forgot-password-form.tsx      # Forgot password form (NEW)
 │   │   │   └── ...
 │   │   ├── chat/             # Chat components
 │   │   │   └── ChatInterface.tsx        # Chat UI with message history
@@ -164,10 +167,11 @@ Security:
 
 #### Supabase Auth (Primary)
 - **src/lib/supabase.ts**: Supabase client configuration
-- **src/lib/supabase-auth.ts**: React hook for session management, sign up, sign in, sign out, signInWithOAuth, signUpWithOAuth
-- **src/components/auth/supabase-signin-button.tsx**: Sign-in forms + Google button
+- **src/lib/supabase-auth.ts**: React hook for session management, sign up, sign in, sign out, signInWithOAuth, signUpWithOAuth, resetPassword, updatePassword
+- **src/components/auth/supabase-signin-button.tsx**: Sign-in forms + Google button + Forgot Password toggle
 - **src/components/auth/supabase-signup-button.tsx**: Sign-up forms + Google button
-- **src/components/auth/google-button.tsx**: Google OAuth button with official Google icon (NEW)
+- **src/components/auth/google-button.tsx**: Google OAuth button with official Google icon
+- **src/components/auth/forgot-password-form.tsx**: Forgot password form + Reset password form (NEW)
 - **src/components/layout/supabase-auth-button.tsx**: Navbar dropdown with user menu + Unlink Chutes button
 - **API Routes**: `/api/auth/signup`, `/api/auth/signin`, `/api/auth/refresh`
 
@@ -300,6 +304,29 @@ Security:
 5. User must accept Terms of Use and Privacy Policy (checkbox)
 6. **Create Account button disabled** until all requirements met
 7. Button text is black for better visibility
+
+#### Password Reset Flow (NEW - Dec 31, 2025)
+1. User clicks "Forgot password?" on sign-in page
+2. User enters email address
+3. User clicks "Send Reset Link"
+4. Supabase sends email with recovery link to user's email
+5. User clicks link in email → redirects to `/account/reset-password?access_token=xxx&type=recovery`
+6. Page exchanges recovery token for session via `exchangeCodeForSession()`
+7. User enters new password + confirm password
+8. Password validated (same requirements as sign-up)
+9. User clicks "Update Password"
+10. `updateUser({ password: newPassword })` called
+11. Success message shown → Redirect to `/account` after 2 seconds
+
+**Error Cases:**
+- Invalid recovery link → Show "Invalid Reset Link" card with "Go to Sign In" button
+- Expired recovery link → Same error card
+- Password requirements not met → Show error message
+- Passwords don't match → Show error message
+
+**Supabase Dashboard Settings:**
+- Enable "Email Password Resets" in Authentication → Providers → Email
+- Configure SMTP for password reset emails
 
 ### Chutes Linking Flow
 1. User logs into Supabase first (REQUIRED)

@@ -1,7 +1,25 @@
 # Active Context: Edlide Website
 
 ## Current Focus
-Vercel AI Proxy + Supabase Function with Chutes Token Decryption - **COMPLETE!** Full secure AI proxy chain working!
+Forgot Password System - **COMPLETE!** Password reset flow with email recovery implemented!
+
+### Password Reset Flow (NEW - Dec 31, 2025) ✅
+**Implemented:**
+- ✅ `ForgotPasswordForm` component with email input
+- ✅ "Forgot password?" link in sign-in form
+- ✅ `/account/reset-password` page with password reset form
+- ✅ Token exchange from recovery email for session restoration
+- ✅ Same password validation rules as sign-up (8 chars, upper, lower, number, special)
+- ✅ Confirm password with real-time match validation
+- ✅ Show/hide password toggle
+
+**Files Created:**
+- `src/components/auth/forgot-password-form.tsx` - Forgot password form component
+- `src/app/account/reset-password/page.tsx` - Reset password page with token exchange
+
+**Files Modified:**
+- `src/components/auth/supabase-signin-button.tsx` - Added forgot password toggle
+- `src/lib/supabase-auth.ts` - `resetPassword()` already existed (redirects to `/account/reset-password`)
 
 ## Recent MAJOR Changes ✅
 
@@ -25,6 +43,61 @@ Vercel AI Proxy + Supabase Function with Chutes Token Decryption - **COMPLETE!**
 7. ✅ Re-linking Supabase account restores Chutes access
 8. ✅ Chat API uses Supabase session + Chutes from DB
 9. ✅ **No plain text tokens anywhere in system**
+
+### Password Reset System (NEW - Dec 31, 2025) ✅
+**Problem Solved:**
+- Users could not recover their account if they forgot password
+- No way to reset password without support intervention
+- Recovery flow was not integrated with the sign-in experience
+
+**Solution Implemented:**
+1. ✅ Created `ForgotPasswordForm` component with email input
+2. ✅ Added "Forgot password?" link under password field in sign-in form
+3. ✅ Created `/account/reset-password` page with full reset flow
+4. ✅ Implemented token exchange from recovery URL (`?access_token=xxx&type=recovery`)
+5. ✅ Applied same password validation rules as sign-up:
+   - Minimum 8 characters
+   - One uppercase letter
+   - One lowercase letter
+   - One number
+   - One special character (!@#$%^&*...)
+6. ✅ Added confirm password with real-time match validation
+7. ✅ Added show/hide password toggle for better UX
+8. ✅ Proper error handling for invalid/expired recovery links
+
+**Files Created:**
+- `src/components/auth/forgot-password-form.tsx` - ForgotPasswordForm + ForgotPasswordCard
+- `src/app/account/reset-password/page.tsx` - ResetPasswordContent + ResetPasswordPage
+
+**Files Modified:**
+- `src/components/auth/supabase-signin-button.tsx` - Added showForgotPassword state + toggle
+
+**Reset Flow:**
+```
+User clicks "Forgot password?" on sign-in page
+         ↓
+Enters email address
+         ↓
+Clicks "Send Reset Link"
+         ↓
+Supabase sends email with recovery link
+         ↓
+User clicks link in email → /account/reset-password?access_token=xxx&type=recovery
+         ↓
+Page exchanges token for session via exchangeCodeForSession()
+         ↓
+User enters new password + confirm password
+         ↓
+Password validated (requirements + match)
+         ↓
+updateUser({ password: newPassword })
+         ↓
+Success message → Redirect to /account
+```
+
+**Supabase Dashboard Requirements:**
+- Enable "Email Password Resets" in Authentication → Providers → Email
+- Configure SMTP for password reset emails
 
 ### Database Structure Created ✅
 **Table: public.chutes_tokens (ENCRYPTED)**

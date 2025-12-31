@@ -372,3 +372,84 @@ Button.displayName = "Button"
 - Muted for subtle text (light gray)
 - Background and surface for dark theme elements
 - Always preserve white text for readability
+
+---
+
+## Password Reset System Implementation
+
+**Last performed:** Dec 31, 2025
+**Complexity:** Medium
+**When needed:** Adding password recovery to authentication system
+
+**Files created:**
+- `src/components/auth/forgot-password-form.tsx` - ForgotPasswordForm component + ForgotPasswordCard
+- `src/app/account/reset-password/page.tsx` - Reset password page with token exchange
+
+**Files modified:**
+- `src/components/auth/supabase-signin-button.tsx` - Added showForgotPassword state + toggle to ForgotPasswordForm
+
+**Supabase Dashboard configuration:**
+1. Go to Authentication → Providers → Email
+2. Enable "Enable email password resets"
+3. Configure SMTP settings for password reset emails
+
+**Environment variables (automatic):**
+- Uses existing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+- No additional env vars needed
+
+**Steps:**
+
+1. **Create ForgotPasswordForm component:**
+   - Email input field with Mail icon
+   - "Send Reset Link" button with loading state
+   - Success state showing "Check your email" message
+   - "Send to another email" button to reset form
+   - "Back to Sign In" button to return to login
+
+2. **Create reset-password page:**
+   - Use Suspense for useSearchParams
+   - Extract `access_token` and `type` from URL params
+   - Exchange recovery token for session via `exchangeCodeForSession()`
+   - New password input with show/hide toggle (eye icon)
+   - Confirm password input with real-time match validation
+   - Password requirements checklist (same as sign-up):
+     - At least 8 characters
+     - One uppercase letter
+     - One lowercase letter
+     - One number
+     - One special character
+   - Loading state while verifying recovery link
+   - Error state for invalid/expired links
+   - Success state with redirect to /account after 2 seconds
+
+3. **Update sign-in form:**
+   - Add "Forgot password?" link under password field
+   - Add showForgotPassword state
+   - Toggle between SignInForm and ForgotPasswordForm
+
+4. **Test the flow:**
+   - Click "Forgot password?" on sign-in page
+   - Enter email and click "Send Reset Link"
+   - Check email for recovery link
+   - Click link and verify page loads
+   - Enter new password and confirm
+   - Verify success message and redirect
+
+**Important notes:**
+- Supabase sends the recovery email automatically
+- Recovery link contains `access_token` and `type=recovery`
+- Token exchange must happen client-side via `exchangeCodeForSession()`
+- Password validation same as sign-up for consistency
+- Show/hide password toggle improves UX
+- Confirm password prevents typos in new password
+- Auto-redirect after successful reset improves UX
+
+**Common issues:**
+- "Invalid Reset Link" - recovery token expired or already used
+- Email not received - check spam folder or SMTP configuration
+- Session not restored - verify `exchangeCodeForSession()` is called
+
+**Future enhancements:**
+- Add resend email functionality
+- Add email verification before reset
+- Add countdown timer for resend button

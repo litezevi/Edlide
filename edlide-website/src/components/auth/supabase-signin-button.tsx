@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { GoogleButton } from './google-button'
+import { ForgotPasswordForm } from './forgot-password-form'
 
 interface SupabaseSignInFormProps {
   className?: string
@@ -17,6 +18,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
   const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const { signIn } = useSupabaseAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,6 +39,15 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordForm
+        className={className}
+        onBack={() => setShowForgotPassword(false)}
+      />
+    )
   }
 
   return (
@@ -77,6 +88,17 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
               minLength={6}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-xs text-primary hover:underline"
+            disabled={isLoading || success}
+          >
+            Forgot password?
+          </button>
         </div>
 
         <Button

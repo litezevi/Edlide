@@ -133,6 +133,30 @@
 - [x] **Make button text black** for better visibility
 - [x] **Make checkbox rounded** with custom styling
 
+### Phase 9: Forgot Password System - **COMPLETE** ✅
+**Timeline:** Dec 31, 2025
+**Objectives:**
+- [x] **Create ForgotPasswordForm component** (`src/components/auth/forgot-password-form.tsx`):
+  - Email input field
+  - "Send Reset Link" button with loading state
+  - Success state with email check instruction
+  - Back to Sign In button
+- [x] **Add "Forgot password?" link** in sign-in form:
+  - Located under password field
+  - Toggles to ForgotPasswordForm
+- [x] **Create reset password page** (`src/app/account/reset-password/page.tsx`):
+  - Exchange recovery token for session (`exchangeCodeForSession`)
+  - New password input with show/hide toggle
+  - Confirm password input with real-time match validation
+  - Password requirements checklist (same as sign-up)
+  - Loading state while verifying recovery link
+  - Error state for invalid/expired links
+  - Success state with redirect to /account
+- [x] **Update supabase-signin-button.tsx** with forgot password toggle
+- [x] **Supabase configuration**:
+  - Enable email password resets in Dashboard
+  - SMTP configured for reset emails
+
 ## Completed Features
 
 ### Database Schema
@@ -152,6 +176,12 @@
 - [x] Chutes OAuth integration (linked to Supabase)
 - [x] Session management with automatic refresh
 - [x] Sign out with proper cleanup
+- [x] **Forgot Password System** (NEW - Dec 31, 2025):
+  - [x] Email-based password reset
+  - [x] Recovery link via email
+  - [x] Token exchange for session restoration
+  - [x] New password setting with validation
+  - [x] Confirm password with match checking
 
 ### Chat System
 - [x] Database-driven token management
