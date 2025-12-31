@@ -63,29 +63,11 @@ export function ChutesSignInButton({
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path
-              d="M12 2L2 7L12 12L22 7L12 2Z"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M2 17L12 22L22 17"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M2 12L12 17L22 12"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img
+            src="/chutesLogo.png"
+            alt="Chutes"
+            className="h-6 w-6 object-contain"
+          />
         )}
         {isLoading ? 'Connecting...' : 'Sign in with Chutes'}
       </Button>
@@ -139,29 +121,11 @@ export function ChutesSignInCard() {
       <CardHeader className="text-center">
         <div className="mx-auto mb-4">
           <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <svg
-              className="h-6 w-6 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                d="M12 2L2 7L12 12L22 7L12 2Z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 17L12 22L22 17"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 12L12 17L22 12"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <img
+              src="/chutesLogo.png"
+              alt="Chutes"
+              className="h-10 w-10 object-contain"
+            />
           </div>
         </div>
         <CardTitle className="text-2xl">Sign in with Chutes</CardTitle>
@@ -180,29 +144,11 @@ export function ChutesSignInCard() {
           ) : success ? (
             <CheckCircle className="h-4 w-4" />
           ) : (
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                d="M12 2L2 7L12 12L22 7L12 2Z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 17L12 22L22 17"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 12L12 17L22 12"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <img
+              src="/chutesLogo.png"
+              alt="Chutes"
+              className="h-5 w-5 object-contain"
+            />
           )}
           {isLoading ? 'Connecting to Chutes...' : success ? 'Redirecting...' : 'Continue with Chutes'}
         </Button>

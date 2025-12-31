@@ -87,8 +87,7 @@ function AccountContent() {
         {/* Integrations Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Link2 className="h-5 w-5 text-purple-500" />
+            <CardTitle>
               Integrations
             </CardTitle>
             <CardDescription>
@@ -99,9 +98,11 @@ function AccountContent() {
             {isChutesLinked ? (
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">C</span>
-                  </div>
+                  <img
+                    src="/chutesLogo.png"
+                    alt="Chutes"
+                    className="h-8 w-8 object-contain rounded"
+                  />
                   <div>
                     <p className="font-medium">Chutes.ai</p>
                     <p className="text-xs text-muted-foreground">@{linkedAccount?.username}</p>

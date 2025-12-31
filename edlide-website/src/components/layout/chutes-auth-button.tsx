@@ -66,8 +66,12 @@ export function ChutesAuthButton() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
-              {user.username?.charAt(0)?.toUpperCase()}
+            <AvatarFallback className="text-xs overflow-hidden p-0">
+              <img
+                src="/chutesLogo.png"
+                alt="Chutes"
+                className="h-full w-full object-cover"
+              />
             </AvatarFallback>
           </Avatar>
         </Button>
