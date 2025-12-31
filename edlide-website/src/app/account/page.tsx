@@ -57,78 +57,13 @@ function AccountContent() {
 
   if (!user) {
     return (
-      <div className="container max-w-4xl py-12">
-        <h1 className="text-4xl font-bold text-primary mb-8">Account</h1>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <div>
-            {isSignupMode ? (
-              <SupabaseSignUpCardComponent />
-            ) : (
-              <SupabaseSignInCard />
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Why create an Edlide account?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-medium text-primary">1</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">AI Model Management</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Deploy and manage open source AI models directly from Edlide
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-medium text-primary">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Secure Authentication</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Your data stays secure with enterprise-grade authentication
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-medium text-primary">3</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Developer Tools</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Access powerful AI development tools and resources
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Security & Privacy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li>• Encrypted password storage via Supabase</li>
-                  <li>• Secure session management</li>
-                  <li>• Two-factor authentication ready</li>
-                  <li>• You control your data and permissions</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="container max-w-md py-12">
+        <div className="flex justify-center">
+          {isSignupMode ? (
+            <SupabaseSignUpCardComponent />
+          ) : (
+            <SupabaseSignInCard />
+          )}
         </div>
       </div>
     )

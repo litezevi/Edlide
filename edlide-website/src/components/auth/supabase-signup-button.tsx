@@ -17,8 +17,17 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
   const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const { signUp } = useSupabaseAuth()
+
+  const hasUppercase = /[A-Z]/.test(password)
+  const hasLowercase = /[a-z]/.test(password)
+  const hasNumber = /[0-9]/.test(password)
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  const hasMinLength = password.length >= 8
+  const isPasswordValid = hasUppercase && hasLowercase && hasNumber && hasSpecialChar && hasMinLength
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,14 +101,84 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
               className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               required
               disabled={isLoading || success}
-              minLength={6}
             />
           </div>
         </div>
 
+        {password.length > 0 && (
+          <div className="space-y-1 text-xs">
+            <p className="text-muted-foreground mb-2">Password requirements:</p>
+            <div className={`flex items-center gap-2 ${hasMinLength ? 'text-green-500' : 'text-muted-foreground'}`}>
+              {hasMinLength ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
+              <span>At least 8 characters</span>
+            </div>
+            <div className={`flex items-center gap-2 ${hasUppercase ? 'text-green-500' : 'text-muted-foreground'}`}>
+              {hasUppercase ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
+              <span>One uppercase letter</span>
+            </div>
+            <div className={`flex items-center gap-2 ${hasLowercase ? 'text-green-500' : 'text-muted-foreground'}`}>
+              {hasLowercase ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
+              <span>One lowercase letter</span>
+            </div>
+            <div className={`flex items-center gap-2 ${hasNumber ? 'text-green-500' : 'text-muted-foreground'}`}>
+              {hasNumber ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
+              <span>One number</span>
+            </div>
+            <div className={`flex items-center gap-2 ${hasSpecialChar ? 'text-green-500' : 'text-muted-foreground'}`}>
+              {hasSpecialChar ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
+              <span>One special character (!@#$...)</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              required
+              disabled={isLoading || success}
+            />
+          </div>
+          {confirmPassword.length > 0 && password !== confirmPassword && (
+            <p className="text-xs text-destructive">Passwords do not match</p>
+          )}
+          {confirmPassword.length > 0 && password === confirmPassword && password.length > 0 && (
+            <p className="text-xs text-green-500">Passwords match</p>
+          )}
+        </div>
+
+        <div className="flex flex-row-reverse items-center gap-2 justify-end">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            className="h-4 w-4 rounded border-border bg-background accent-primary"
+            required
+          />
+          <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
+            I agree to the{' '}
+            <a href="/terms-of-use" target="_blank" className="text-primary hover:underline">
+              Terms of Use
+            </a>{' '}
+            and{' '}
+            <a href="/privacy-policy" target="_blank" className="text-primary hover:underline">
+              Privacy Policy
+            </a>
+          </label>
+        </div>
+
         <Button
           type="submit"
-          disabled={isLoading || success || !email || !password || password.length < 6}
+          disabled={isLoading || success || !email || !password || !isPasswordValid || !acceptedTerms || password !== confirmPassword}
           className="w-full"
         >
           {isLoading ? (
@@ -113,7 +192,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
               Success!
             </>
           ) : (
-            'Create Account'
+            <span className="text-black">Create Account</span>
           )}
         </Button>
 
@@ -152,11 +231,6 @@ export function SupabaseSignUpCard() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4">
-          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Mail className="h-6 w-6 text-white" />
-          </div>
-        </div>
         <CardTitle className="text-2xl">Create Account</CardTitle>
         <CardDescription>
           Join Edlide to manage AI models with ease

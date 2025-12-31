@@ -95,9 +95,20 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
               Success!
             </>
           ) : (
-            'Sign In'
+            <span className="text-black">Sign In</span>
           )}
         </Button>
+
+        <p className="text-[10px] text-muted-foreground text-center">
+          By signing in, you agree to our{' '}
+          <a href="/terms-of-use" target="_blank" className="text-primary hover:underline">
+            Terms of Use
+          </a>{' '}
+          and{' '}
+          <a href="/privacy-policy" target="_blank" className="text-primary hover:underline">
+            Privacy Policy
+          </a>
+        </p>
 
         {error && (
           <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
@@ -134,11 +145,6 @@ export function SupabaseSignInCard() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4">
-          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Mail className="h-6 w-6 text-white" />
-          </div>
-        </div>
         <CardTitle className="text-2xl">Sign In</CardTitle>
         <CardDescription>
           Access your Edlide account to continue
