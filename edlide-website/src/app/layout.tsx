@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Edlide IDE - Open Source AI Development',
+  title: 'Edlide IDE',
   description: 'Specialized IDE for Open Source AI model development',
   icons: {
     icon: '/favicon.ico',

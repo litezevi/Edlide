@@ -67,30 +67,6 @@ export default function DownloadPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>System Requirements</CardTitle>
-          <CardDescription>Minimum requirements for optimal performance</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-semibold mb-2">General Requirements:</h4>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• 8GB RAM (16GB recommended)</li>
-              <li>• 2GB disk space for installation</li>
-              <li>• OpenGL 3.3+ or Vulkan support</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">For ML Model Development:</h4>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• 16GB+ RAM for large models</li>
-              <li>• Dedicated GPU with CUDA/ROCm support</li>
-              <li>• SSD storage for better model loading performance</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

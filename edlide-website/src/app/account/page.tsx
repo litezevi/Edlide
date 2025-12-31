@@ -91,7 +91,7 @@ function AccountContent() {
               Integrations
             </CardTitle>
             <CardDescription>
-              Connect third-party services to enhance your experience
+              Manage your connected services and integrations
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -127,18 +127,10 @@ function AccountContent() {
                   <div className="flex-1">
                     <h4 className="font-medium mb-1">Chutes.ai Integration</h4>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Connect your Chutes account to access AI model deployment services and advanced AI tools
+                      Connect your Chutes account to access AI models in the IDE.
                     </p>
                     <ChutesSignInButton variant="outline" size="sm" />
                   </div>
-                </div>
-                <div className="pt-3 border-t">
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Access to Chutes AI model deployment platform</li>
-                    <li>• Direct integration with Qwen models</li>
-                    <li>• Secure OAuth2 authentication</li>
-                    <li>• Enhanced AI capabilities</li>
-                  </ul>
                 </div>
               </>
             )}

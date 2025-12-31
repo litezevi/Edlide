@@ -18,10 +18,7 @@ export function HeroSection() {
         {/* Main Content */}
         <div className="space-y-8 animate-slide-up">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Open Source AI Development</span>
-          </div>
+
 
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -35,7 +32,7 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed">
-            Break free from closed AI ecosystems. Open source models now match closed alternatives at a fraction of the cost.
+            Break free from closed AI ecosystems.
           </p>
 
           {/* CTA Buttons */}
