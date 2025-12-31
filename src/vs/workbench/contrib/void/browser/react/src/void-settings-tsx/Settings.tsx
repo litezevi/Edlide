@@ -1177,7 +1177,6 @@ const RedoOnboardingButton = ({ className }: { className?: string }) => {
 		className={`text-void-fg-4 flex flex-nowrap text-nowrap items-center hover:brightness-110 cursor-pointer ${className}`}
 		onClick={() => { voidSettingsService.setGlobalSetting('isOnboardingComplete', false) }}
 	>
-		See onboarding screen?
 	</div>
 
 }
@@ -1488,8 +1487,6 @@ export const Settings = () => {
 
 
 					<div className='max-w-3xl'>
-
-						<h1 className='text-2xl w-full'>{`Edlide's Settings`}</h1>
 
 						<div className='w-full h-[1px] my-2' />
 
