@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { GoogleButton } from './google-button'
 
 interface SupabaseSignInFormProps {
   className?: string
@@ -113,6 +114,17 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
             </a>
           </p>
         </div>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          </div>
+        </div>
+
+        <GoogleButton mode="signin" />
       </form>
     </div>
   )

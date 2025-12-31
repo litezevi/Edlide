@@ -11,11 +11,14 @@
 
 #### Primary: Supabase Auth
 - **Provider**: Supabase Auth service
-- **Method**: Email/Password authentication
+- **Methods**:
+  - Email/Password authentication
+  - **Google OAuth (NEW)** - "Continue with Google" button
 - **Client SDK**: `@supabase/supabase-js`
-- **Custom Hook**: `src/lib/supabase-auth.ts` — Session management, sign up, sign in, sign out
+- **Custom Hook**: `src/lib/supabase-auth.ts` — Session management, sign up, sign in, sign out, signInWithOAuth, signUpWithOAuth
 - **Session Management**: Automatic JWT refresh, HttpOnly cookies
 - **User Storage**: Supabase `auth.users` table
+- **Google OAuth**: Enabled in Supabase Dashboard → Authentication → Providers → Google
 
 #### Secondary: Chutes OAuth Integration (LINKED)
 - **Provider**: Chutes.ai Identity Provider
@@ -105,6 +108,10 @@ NEXT_PUBLIC_SUPABASE_URL=https://kvftejfolyrfdxppbcqk.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 
+# Google OAuth Configuration (NEW - for Sign In with Google)
+GOOGLE_CLIENT_ID=<your-google-client-id>
+GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+
 # Chutes OAuth Configuration (SECONDARY - for AI chat)
 NEXT_PUBLIC_CHUTES_CLIENT_ID=cid_za1t2dbofb9uvtex03x0jfc3
 CHUTES_CLIENT_SECRET=<your-chutes-client-secret>
@@ -121,6 +128,14 @@ NEXTAUTH_SECRET=<auth-secret>
 # Analytics (if needed)
 VERCEL_ANALYTICS_ID=<analytics-id>
 ```
+
+**Google OAuth Setup**:
+1. Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs
+2. Add authorized redirect URIs:
+   - `http://localhost:3000/auth/v1/callback` (local development)
+   - `https://kvftejfolyrfdxppbcqk.supabase.co/auth/v1/callback` (production)
+3. Enable Google in Supabase Dashboard → Authentication → Providers → Google
+4. Add credentials to environment variables
 
 ### Build & Deploy Pipeline
 1. **Development**: `npm run dev` - Development server with hot reload
@@ -191,6 +206,7 @@ VERCEL_ANALYTICS_ID=<analytics-id>
 
 **Features**:
 - Email/password authentication
+- **Google OAuth (NEW)** - "Continue with Google" button with official icon
 - User session management with automatic JWT refresh
 - Secure password storage (bcrypt)
 - Email verification ready
@@ -198,12 +214,21 @@ VERCEL_ANALYTICS_ID=<analytics-id>
 
 **Files**:
 - `src/lib/supabase.ts` - Supabase client configuration
-- `src/lib/supabase-auth.ts` - React hook (auth state, signUp, signIn, signOut)
+- `src/lib/supabase-auth.ts` - React hook (auth state, signUp, signIn, signOut, signInWithOAuth, signUpWithOAuth)
+- `src/components/auth/supabase-signin-button.tsx` - Sign-in form + Google button
+- `src/components/auth/supabase-signup-button.tsx` - Sign-up form + Google button
+- `src/components/auth/google-button.tsx` - Google OAuth button (NEW)
 - `src/app/api/auth/signup/route.ts` - Registration endpoint
 - `src/app/api/auth/signin/route.ts` - Sign-in endpoint
 - `src/app/api/auth/refresh/route.ts` - Token refresh endpoint
 
 **Storage**: Supabase `auth.users` table
+
+**Google OAuth Implementation**:
+- Uses Supabase built-in OAuth flow (`supabase.auth.signInWithOAuth`)
+- Official Google SVG icon with 4-color branding
+- Divider with "Or continue with" text between email/password and Google
+- Scopes: `openid email profile`
 
 ### Chutes OAuth Integration - LINKED TO SUPABASE ✅
 **Purpose**: AI model access for chat functionality

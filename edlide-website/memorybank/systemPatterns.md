@@ -50,6 +50,7 @@
 │   │   ├── auth/             # Authentication components
 │   │   │   ├── supabase-signin-button.tsx    # Supabase sign-in forms
 │   │   │   ├── supabase-signup-button.tsx    # Supabase sign-up forms
+│   │   │   ├── google-button.tsx             # Google OAuth button (NEW)
 │   │   │   ├── chutes-signin-button.tsx      # Chutes OAuth sign-in
 │   │   │   └── ...
 │   │   ├── chat/             # Chat components
@@ -134,11 +135,16 @@ Security:
 
 #### Primary: Supabase Auth (ACTIVE)
 - **Provider**: Supabase Auth service
-- **Authentication Method**: Email/Password
+- **Authentication Methods**:
+  - Email/Password
+  - **Google OAuth (NEW)** - "Continue with Google" button
 - **Token Management**: Supabase session management with automatic refresh
 - **User Storage**: Supabase auth.users table
-- **UI Components**: SupabaseSignInForm, SupabaseSignUpForm, SupabaseAuthButton
+- **UI Components**: SupabaseSignInForm, SupabaseSignUpForm, SupabaseAuthButton, GoogleButton
 - **API Routes**: `/api/auth/signup`, `/api/auth/signin`, `/api/auth/refresh`
+- **Google OAuth Redirect URIs**:
+  - Local: `http://localhost:3000/auth/v1/callback`
+  - Production: `https://edlide.com/auth/v1/callback`
 
 #### Secondary: Chutes OAuth Integration (LINKED to Supabase)
 - **Provider**: Chutes.ai Identity Provider
@@ -157,9 +163,11 @@ Security:
 ### Authentication Components
 
 #### Supabase Auth (Primary)
-- **src/lib/supabase/auth.ts**: Supabase client configuration
-- **src/lib/supabase-auth.ts**: React hook for session management, sign up, sign in, sign out
-- **src/components/auth/supabase-signin-button.tsx**: Sign-in forms and cards
+- **src/lib/supabase.ts**: Supabase client configuration
+- **src/lib/supabase-auth.ts**: React hook for session management, sign up, sign in, sign out, signInWithOAuth, signUpWithOAuth
+- **src/components/auth/supabase-signin-button.tsx**: Sign-in forms + Google button
+- **src/components/auth/supabase-signup-button.tsx**: Sign-up forms + Google button
+- **src/components/auth/google-button.tsx**: Google OAuth button with official Google icon (NEW)
 - **src/components/layout/supabase-auth-button.tsx**: Navbar dropdown with user menu + Unlink Chutes button
 - **API Routes**: `/api/auth/signup`, `/api/auth/signin`, `/api/auth/refresh`
 
@@ -263,10 +271,21 @@ Security:
 5. Contextual navigation in docs
 
 ### Authentication Flow (Supabase)
+
+#### Email/Password Flow
 1. User registers/logs in via email/password
 2. Supabase creates session with JWT
 3. Session stored in HttpOnly cookies
 4. User gets Supabase user account
+
+#### Google OAuth Flow (NEW - Dec 31, 2025)
+1. User clicks "Continue with Google" on Sign In or Sign Up page
+2. Redirect to `https://kvftejfolyrfdxppbcqk.supabase.co/auth/v1/authorize?provider=google`
+3. User authenticates with Google
+4. Google redirects to `http://localhost:3000/auth/v1/callback` or `https://edlide.com/auth/v1/callback`
+5. Supabase creates session + user account automatically
+6. Redirects to `/account` with session active
+7. Google user metadata (name, avatar) stored in `auth.users.user_metadata`
 
 ### Chutes Linking Flow
 1. User logs into Supabase first (REQUIRED)

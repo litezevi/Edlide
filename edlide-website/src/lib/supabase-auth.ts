@@ -132,6 +132,42 @@ export function useSupabaseAuth() {
     }
   }
 
+  const signInWithOAuth = async (provider: 'google' | 'github' = 'google') => {
+    const supabase = getSupabaseClient()
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/account`,
+        scopes: 'openid email profile',
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  }
+
+  const signUpWithOAuth = async (provider: 'google' | 'github' = 'google') => {
+    const supabase = getSupabaseClient()
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/account`,
+        scopes: 'openid email profile',
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  }
+
   return {
     user,
     session,
@@ -142,5 +178,7 @@ export function useSupabaseAuth() {
     signOut,
     resetPassword,
     updatePassword,
+    signInWithOAuth,
+    signUpWithOAuth,
   }
 }
