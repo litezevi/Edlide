@@ -1515,7 +1515,7 @@ export const Settings = () => {
 									<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
 										<div>
 											<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
-											<span className='text-void-fg-2 text-sm'>Always enabled. We don't collect any data. </span>
+											<span className='text-void-fg-2 text-sm'>Always on. No code or IDE activity collected. </span>
 										</div>
 										<div className='flex items-center gap-x-2'>
 											<VoidSwitch
