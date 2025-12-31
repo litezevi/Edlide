@@ -11,8 +11,8 @@ on:
       - 'product.json'
 
 jobs:
-  build-windows-x64:
-    runs-on: windows-2022
+  build-react:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,6 +21,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.18.2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build React components
+        run: npm run buildreact
+
+      - name: Upload React build
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: src/vs/workbench/contrib/void/browser/react/out
+          retention-days: 1
+
+  build-windows-x64:
+    runs-on: windows-2022
+    needs: build-react
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.2
+
+      - name: Download React build
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: src/vs/workbench/contrib/void/browser/react/out
 
       - name: Install dependencies
         run: npm ci
@@ -37,6 +68,7 @@ jobs:
 
   build-windows-arm64:
     runs-on: windows-2022
+    needs: build-react
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,6 +77,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.18.2
+
+      - name: Download React build
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: src/vs/workbench/contrib/void/browser/react/out
 
       - name: Install dependencies
         run: npm ci
