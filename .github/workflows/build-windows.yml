@@ -1,0 +1,60 @@
+name: Build Edlide Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**.ts'
+      - '**.js'
+      - 'package.json'
+      - 'product.json'
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Edlide x64
+        run: npm run gulp vscode-win32-x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edlide-win32-x64
+          path: VSCode-win32-x64
+          retention-days: 5
+
+  build-windows-arm64:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Edlide ARM64
+        run: npm run gulp vscode-win32-arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edlide-win32-arm64
+          path: VSCode-win32-arm64
+          retention-days: 5
