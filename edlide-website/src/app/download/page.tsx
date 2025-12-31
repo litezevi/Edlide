@@ -7,26 +7,24 @@ export default function DownloadPage() {
   return (
     <div className="container max-w-4xl py-12">
       <h1 className="text-4xl font-bold text-primary mb-8">Download Edlide IDE</h1>
-      
+
       <div className="mb-8">
         <p className="text-lg text-muted-foreground">
           Get started with Edlide IDE. Choose your platform below and download the latest version.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
+      <div className="grid md:grid-cols-2 gap-6 mb-12">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
-              </svg>
+              <img src="/windows.png" alt="Windows" className="w-[26px] h-[26px] object-contain" />
               Windows
             </CardTitle>
             <CardDescription>Windows 10 or later</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" size="lg">
+            <Button className="w-full text-black" size="lg">
               Download .exe
             </Button>
           </CardContent>
@@ -43,25 +41,8 @@ export default function DownloadPage() {
             <CardDescription>macOS 11.0 or later</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" size="lg">
+            <Button className="w-full text-black" size="lg">
               Download .dmg
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              Linux
-            </CardTitle>
-            <CardDescription>Ubuntu 18.04 or later</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full" size="lg">
-              Download .AppImage
             </Button>
           </CardContent>
         </Card>
