@@ -24,13 +24,13 @@ export async function GET(request: NextRequest) {
   try {
     // Exchange code for token
     const tokenResponse = await exchangeCodeForToken(code)
-    
+
     // Create session
     const session = await createChutesSession(tokenResponse)
-    
+
     // Create response with session cookie
     const response = NextResponse.redirect(new URL('/account', request.url))
-    
+
     // Set session cookie
     response.cookies.set('chutes_session', JSON.stringify(session), {
       httpOnly: true,
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
     })
-    
+
     return response
   } catch (error) {
     console.error('Chutes callback error:', error)
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 async function exchangeCodeForToken(code: string) {
   const clientId = process.env.NEXT_PUBLIC_CHUTES_CLIENT_ID
   const clientSecret = process.env.CHUTES_CLIENT_SECRET
-  const redirectUri = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/chutes/callback`
+  const redirectUri = `${process.env.NEXTAUTH_URL || 'https://edlide.com'}/auth/chutes/callback`
 
   const response = await fetch('https://api.chutes.ai/idp/token', {
     method: 'POST',
