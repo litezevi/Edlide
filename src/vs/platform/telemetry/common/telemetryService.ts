@@ -191,7 +191,7 @@ ${telemetryText}
 
 ${restartString}
 
-Void separately records basic usage like the number of messages people are sending. If you'd like to disable Void metrics, you may do so in Void's Settings.
+Edlide separately records basic usage like the number of messages people are sending. If you'd like to disable Edlide metrics, you may do so in Edlide's Settings.
 `;
 
 	return telemetryDescription;
@@ -214,7 +214,7 @@ configurationRegistry.registerConfiguration({
 				localize('telemetry.telemetryLevel.off', "Disables all product telemetry.")
 			],
 			'markdownDescription': getTelemetryLevelSettingDescription(),
-			'default': TelemetryConfiguration.ON,
+			'default': TelemetryConfiguration.OFF,
 			'restricted': true,
 			'scope': ConfigurationScope.APPLICATION,
 			'tags': ['usesOnlineServices', 'telemetry'],
