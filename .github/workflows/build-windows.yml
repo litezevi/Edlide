@@ -66,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: edlide-win32-x64
-          path: VSCode-win32-x64
+          path: ${{ github.workspace }}\\..\\VSCode-win32-x64
           retention-days: 5
 
   build-windows-arm64:
@@ -97,5 +97,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: edlide-win32-arm64
-          path: VSCode-win32-arm64
+          path: ${{ github.workspace }}\\..\\VSCode-win32-arm64
           retention-days: 5
