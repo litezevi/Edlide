@@ -48,7 +48,7 @@ export default function DownloadPage() {
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
             <Button className="w-full text-black" size="lg" disabled>
-              Download .exe (x64)
+              Coming soon...
             </Button>
           </CardContent>
         </Card>
@@ -95,7 +95,7 @@ export default function DownloadPage() {
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
             <Button className="w-full text-black" size="lg" disabled>
-              Download .exe (ARM)
+              Coming soon...
             </Button>
           </CardContent>
         </Card>
