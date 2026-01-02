@@ -11,7 +11,7 @@ import { FeatureName, ModelSelectionOptions, OverridesOfModel, ProviderName } fr
 
 export const defaultProviderSettings = {
 	edlide: {
-		apiKey: '',
+		apiKey: 'prod',
 	},
 	anthropic: {
 		apiKey: '',
