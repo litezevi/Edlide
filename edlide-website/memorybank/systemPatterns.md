@@ -34,7 +34,8 @@
 │   │       │   ├── signup/route.ts
 │   │       │   ├── signin/route.ts
 │   │       │   └── refresh/route.ts
-│   │       └── chat/route.ts  # Chat completions API
+│   │       ├── chat/route.ts  # Chat completions API
+│   │       └── download/route.ts  # R2 presigned URL generation
 │   ├── components/            # Reusable UI components
 │   │   ├── ui/               # Base UI primitives
 │   │   │   ├── button.tsx    # Custom white/purple button style
@@ -185,6 +186,41 @@ Security:
   - `/api/auth/chutes/save` — Save tokens to chutes_tokens table
   - `/api/auth/chutes/unlink` — GET: Check linkage, DELETE: Unlink Chutes
   - `/api/auth/chutes/get-token` — Retrieve saved token for IDE
+
+### Download Architecture (Cloudflare R2)
+
+**Cloudflare R2 Integration - ACTIVE ✅**
+- **Purpose**: Secure download distribution for macOS DMG files
+- **Bucket**: `edlideimagev100`
+- **Endpoint**: `https://3229678876cd5bd68510871faa81e57d.r2.cloudflarestorage.com`
+- **Files**:
+  - `Edlide-arm64.dmg` - Apple Silicon (M1/M2/M3)
+  - `Edlide-x64.dmg` - Intel Macs
+
+**API Route**: `/api/download?file=arm64|x64`
+- Generates presigned URLs with 1-hour expiration
+- Uses AWS SDK v3 for S3-compatible R2 API
+- Reads credentials from environment variables
+
+**Download Flow**:
+```
+1. User clicks download button on /download page
+   ↓
+2. Client calls /api/download?file=<version>
+   ↓
+3. Server generates presigned URL via AWS SDK
+   ↓
+4. Server returns { url: "https://..." }
+   ↓
+5. Client redirects to presigned URL
+   ↓
+6. Browser downloads directly from R2
+```
+
+**Environment Variables Required**:
+- `CLOUDFLARE_R2_ACCOUNT_ID`
+- `CLOUDFLARE_R2_ACCESS_KEY_ID`
+- `CLOUDFLARE_R2_SECRET_ACCESS_KEY_ID`
 
 ### Chat Integration Architecture (UPDATED FOR Vercel AI Proxy)
 

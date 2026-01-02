@@ -1,9 +1,46 @@
 # Active Context: Edlide Website
 
 ## Current Focus
-Forgot Password System - **COMPLETE!** Password reset flow with email recovery implemented!
+Cloudflare R2 Download Integration - **COMPLETE!** macOS DMG downloads working with presigned URLs!
 
-### Password Reset Flow (NEW - Dec 31, 2025) ✅
+### Cloudflare R2 Download Integration (NEW - Jan 2, 2026) ✅
+**Implemented:**
+- ✅ `/api/download` API route generates presigned URLs for R2
+- ✅ Download buttons for macOS ARM (Edlide-arm64.dmg) and Intel (Edlide-x64.dmg)
+- ✅ AWS SDK v3 (@aws-sdk/client-s3, @aws-sdk/s3-request-presigner)
+- ✅ Presigned URLs valid for 1 hour
+- ✅ Loading state on download buttons
+
+**Files Created:**
+- `src/app/api/download/route.ts` - Presigned URL generation endpoint
+
+**Files Modified:**
+- `src/app/download/page.tsx` - Dynamic download buttons with loading states
+
+**R2 Configuration:**
+- Bucket: `edlideimagev100`
+- Endpoint: `https://3229678876cd5bd68510871faa81e57d.r2.cloudflarestorage.com`
+- Environment variables:
+  - `CLOUDFLARE_R2_ACCOUNT_ID`
+  - `CLOUDFLARE_R2_ACCESS_KEY_ID`
+  - `CLOUDFLARE_R2_SECRET_ACCESS_KEY_ID`
+
+**Download Flow:**
+```
+User clicks "Download .dmg (ARM)" or "Download .dmg (Intel)"
+         ↓
+Fetch /api/download?file=arm64 or /api/download?file=x64
+         ↓
+API generates presigned URL (valid 1 hour)
+         ↓
+Browser redirects to presigned URL
+         ↓
+File downloads directly from Cloudflare R2
+```
+
+**Dependencies Added:**
+- `@aws-sdk/client-s3` ^3.x
+- `@aws-sdk/s3-request-presigner` ^3.x
 **Implemented:**
 - ✅ `ForgotPasswordForm` component with email input
 - ✅ "Forgot password?" link in sign-in form

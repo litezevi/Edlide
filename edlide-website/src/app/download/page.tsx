@@ -1,9 +1,28 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Download, Loader2 } from 'lucide-react'
 
 export default function DownloadPage() {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleDownload = async (file: string) => {
+    setLoading(file)
+    try {
+      const res = await fetch(`/api/download?file=${file}`)
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+    } finally {
+      setLoading(null)
+    }
+  }
+
   return (
     <div className="container max-w-4xl py-12">
       <h1 className="text-4xl font-bold text-primary mb-8">Download  </h1>
@@ -28,7 +47,7 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg">
+            <Button className="w-full text-black" size="lg" disabled>
               Download .exe (x64)
             </Button>
           </CardContent>
@@ -44,8 +63,23 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg">
-              Download .dmg (ARM)
+            <Button
+              className="w-full text-black"
+              size="lg"
+              onClick={() => handleDownload('arm64')}
+              disabled={loading === 'arm64'}
+            >
+              {loading === 'arm64' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download .dmg (ARM)
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -60,7 +94,7 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg">
+            <Button className="w-full text-black" size="lg" disabled>
               Download .exe (ARM)
             </Button>
           </CardContent>
@@ -76,8 +110,23 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg">
-              Download .dmg (Intel)
+            <Button
+              className="w-full text-black"
+              size="lg"
+              onClick={() => handleDownload('x64')}
+              disabled={loading === 'x64'}
+            >
+              {loading === 'x64' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download .dmg (Intel)
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>

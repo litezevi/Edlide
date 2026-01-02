@@ -78,12 +78,15 @@ CREATE TABLE public.chutes_tokens (
 - **Autoprefixer**: Browser compatibility
 
 ### Infrastructure & Storage
-- **Supabase**: 
+- **Supabase**:
   - Authentication and database service
   - User authentication (Supabase Auth)
   - Chutes token storage (chutes_tokens table)
   - PostgreSQL 17.6.1 with row-level security
-- **Cloudflare R2**: Object storage for binary files (planned)
+- **Cloudflare R2**: Object storage for binary files (ACTIVE)
+  - Bucket: `edlideimagev100`
+  - Files: `Edlide-arm64.dmg`, `Edlide-x64.dmg`
+  - Presigned URLs for secure downloads
 - **Cloudflare Workers**: Edge computing for download distribution (planned)
 - **Cloudflare Pages**: Potential deployment target (alternative to Vercel)
 
@@ -176,6 +179,8 @@ VERCEL_ANALYTICS_ID=<analytics-id>
   "@radix-ui/react-avatar": "^1.0.4",
   "@radix-ui/react-dropdown-menu": "^2.0.6",
   "@radix-ui/react-slot": "^1.0.2",
+  "@aws-sdk/client-s3": "^3.x",
+  "@aws-sdk/s3-request-presigner": "^3.x",
   "class-variance-authority": "^0.7.0",
   "clsx": "^2.0.0",
   "framer-motion": "^12.23.26",
