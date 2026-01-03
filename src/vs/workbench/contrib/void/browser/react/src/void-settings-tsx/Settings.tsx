@@ -1017,7 +1017,7 @@ const ProviderSetting = ({ providerName, settingName, subTextMd }: { providerNam
 
 
 export const SettingsForProvider = ({ providerName, showProviderTitle, showProviderSuggestions }: { providerName: ProviderName, showProviderTitle: boolean, showProviderSuggestions: boolean }) => {
-	const voidSettingsState = useSettingsState()
+const voidSettingsState = useSettingsState()
 
 	const needsModel = isProviderNameDisabled(providerName, voidSettingsState) === 'addModel'
 
@@ -1028,7 +1028,7 @@ export const SettingsForProvider = ({ providerName, showProviderTitle, showProvi
 	const settingNames = customSettingNamesOfProvider(providerName)
 
 	// Providers with hidden settings (API keys, etc.)
-	const providersWithHiddenSettings: ProviderName[] = ['deepseek', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM']
+	const providersWithHiddenSettings: ProviderName[] = ['deepseek', 'edlide', 'ollama', 'vLLM', 'openRouter', 'mistral', 'lmStudio', 'liteLLM']
 	const shouldHideSettings = providersWithHiddenSettings.includes(providerName)
 
 	const { title: providerTitle } = displayInfoOfProviderName(providerName)
