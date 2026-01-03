@@ -151,7 +151,9 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 	for (const providerName of providerNames) {
 		const settingsAtProvider = newSettingsOfProvider[providerName]
 
-		const didFillInProviderSettings = Object.keys(defaultProviderSettings[providerName]).every(key => !!settingsAtProvider[key as keyof typeof settingsAtProvider])
+		const didFillInProviderSettings = providerName === 'edlide'
+			? true
+			: Object.keys(defaultProviderSettings[providerName]).every(key => !!settingsAtProvider[key as keyof typeof settingsAtProvider])
 
 		if (didFillInProviderSettings === settingsAtProvider._didFillInProviderSettings) continue
 
@@ -319,6 +321,8 @@ class VoidSettingsService extends Disposable implements IVoidSettingsService {
 				readS.settingsOfProvider[providerName] = {
 					...defaultSettingsOfProvider[providerName],
 					...readS.settingsOfProvider[providerName],
+					// Ensure edlide is always active regardless of saved state
+					_didFillInProviderSettings: providerName === 'edlide' ? true : readS.settingsOfProvider[providerName]._didFillInProviderSettings
 				} as any
 
 				// conversion from 1.0.3 to 1.2.5 (can remove this when enough people update)
