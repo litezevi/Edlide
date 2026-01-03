@@ -7,15 +7,15 @@
 **✅ WINDOWS-ONLY BUGS FIXED - Icon Issues and API Key Request:**
 
 **Problem 1: Black logo in installer top-right corner - FIXED ✅**
-- **Issue**: Electron was using `code_150x150.png` instead of `edlide_150x150.png` for Windows window icons
+- **Issue**: Electron was using `code_150x150.png` instead of `code_150x150.png.png` for Windows window icons
 - **Root Cause**: Hardcoded path to VSCode's icon in `defaultBrowserWindowOptions()` function
-- **Solution**: Changed path from `resources/win32/code_150x150.png` to `resources/win32/edlide_150x150.png`
+- **Solution**: Changed path from `resources/win32/code_150x150.png` to `resources/win32/code_150x150.png.png`
 - **File Modified**: `src/vs/platform/windows/electron-main/windows.ts` (line 165)
 - **Impact**: Windows application windows now show Edlide logo instead of React/VSCode default
 
 **Problem 2: Application shortcuts showing React logo - FIXED ✅**
 - **Issue**: Same root cause as Problem 1 - wrong icon file was being used
-- **Solution**: Same fix applies - using correct `edlide.ico` file for installer
+- **Solution**: Same fix applies - using correct `code.ico` file for installer
 - **Impact**: Desktop shortcuts and taskbar icons will show Edlide branding correctly
 
 **Problem 3: Edlide provider requesting API key on first launch - FIXED ✅**
@@ -36,7 +36,7 @@ if (isWindows && !environmentMainService.isBuilt) {
 
 // AFTER
 if (isWindows && !environmentMainService.isBuilt) {
-  options.icon = join(environmentMainService.appRoot, 'resources/win32/edlide_150x150.png');
+  options.icon = join(environmentMainService.appRoot, 'resources/win32/code_150x150.png.png');
 }
 ```
 
