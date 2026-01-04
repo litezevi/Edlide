@@ -469,6 +469,17 @@ function patchWin32DependenciesTask(destinationFolderName) {
 	};
 }
 
+function patchWin32IconTask(destinationFolderName) {
+	const cwd = path.join(path.dirname(root), destinationFolderName);
+
+	return async () => {
+		const iconPath = path.join(root, 'resources', 'win32', 'code.ico');
+		const exePath = path.join(cwd, `${product.applicationName}.exe`);
+
+		await rcedit(exePath, { icon: iconPath });
+	};
+}
+
 const buildRoot = path.dirname(root);
 
 const BUILD_TARGETS = [
@@ -498,6 +509,7 @@ BUILD_TARGETS.forEach(buildTarget => {
 
 		if (platform === 'win32') {
 			tasks.push(patchWin32DependenciesTask(destinationFolderName));
+			tasks.push(patchWin32IconTask(destinationFolderName));
 		}
 
 		const vscodeTaskCI = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}-ci`, task.series(...tasks));
