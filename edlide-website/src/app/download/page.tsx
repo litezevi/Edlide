@@ -47,8 +47,23 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg" disabled>
-              Coming soon...
+            <Button
+              className="w-full text-black"
+              size="lg"
+              onClick={() => handleDownload('win64')}
+              disabled={loading === 'win64'}
+            >
+              {loading === 'win64' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download .exe (Intel)
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -94,8 +109,23 @@ export default function DownloadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 mt-auto">
-            <Button className="w-full text-black" size="lg" disabled>
-              Coming soon...
+            <Button
+              className="w-full text-black"
+              size="lg"
+              onClick={() => handleDownload('winarm64')}
+              disabled={loading === 'winarm64'}
+            >
+              {loading === 'winarm64' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download .exe (ARM)
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
