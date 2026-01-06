@@ -39,6 +39,16 @@ const validateStr = (argName: string, value: unknown) => {
 }
 
 
+// Remove trailing slashes from file paths to prevent Windows file editing errors
+const normalizeFilePath = (path: string): string => {
+	// Remove trailing slash if path has a file extension (but keep directory trailing slashes allowed)
+	const hasExtension = /\.\w+$/.test(path)
+	if (hasExtension && (path.endsWith('/') || path.endsWith('\\'))) {
+		return path.slice(0, -1)
+	}
+	return path
+}
+
 // We are NOT checking to make sure in workspace
 const validateURI = (uriStr: unknown) => {
 	if (uriStr === null) throw new Error(`Invalid LLM output: uri was null.`)
@@ -51,19 +61,23 @@ const validateURI = (uriStr: unknown) => {
 	// - vscode-remote://ssh-remote+myserver/home/user/file.txt (SSH)
 	// - file:///home/user/file.txt (local file with scheme)
 	// - /home/user/file.txt (local file path, will be converted to file://)
-	// - C:\Users\file.txt (Windows local path, will be converted to file://)
+	// - C:\\Users\\file.txt (Windows local path, will be converted to file://)
 	if (uriStr.includes('://')) {
 		try {
-			const uri = URI.parse(uriStr)
+			// Normalize the path before parsing to remove trailing slashes from filenames
+			const normalizedUriStr = normalizeFilePath(uriStr)
+			const uri = URI.parse(normalizedUriStr)
 			return uri
 		} catch (e) {
 			// If parsing fails, it's a malformed URI
 			throw new Error(`Invalid URI format: ${uriStr}. Error: ${e}`)
 		}
-	} else {
-		// No scheme present, treat as file path
-		// This handles regular file paths like /home/user/file.txt or C:\Users\file.txt
-		const uri = URI.file(uriStr)
+} else {
+// No scheme present, treat as file path
+		// This handles regular file paths like /home/user/file.txt or C:\\\\Users\\\\file.txt
+		// Normalize the path to remove trailing slashes from filenames
+		const normalizedPath = normalizeFilePath(uriStr)
+		const uri = URI.file(normalizedPath)
 		return uri
 	}
 }
@@ -332,15 +346,16 @@ export class ToolsService implements IToolsService {
 					throw new Error(`Invalid LLM output: new_string parameter is required and cannot be undefined. Must contain the replacement code.`)
 				}
 				
-				const uriStr = validateStr('uri', uriUnknown)
-				const oldString = validateStr('old_string', oldStringUnknown)
-				const newString = validateStr('new_string', newStringUnknown)
-				const replaceAll = replaceAllUnknown === 'true'
-				
-				// Convert uri string to URI format
-				const uri = validateURI(uriStr.startsWith('file://') ? uriStr : `file://${uriStr}`)
-				
-				return { uri, oldString, newString, replaceAll }
+const uriStr = validateStr('uri', uriUnknown)
+			const oldString = validateStr('old_string', oldStringUnknown)
+			const newString = validateStr('new_string', newStringUnknown)
+			const replaceAll = replaceAllUnknown === 'true'
+
+			// Let validateURI handle URI construction automatically
+			// It will properly handle both file:// URIs and plain paths (including Windows paths)
+			const uri = validateURI(uriStr)
+
+			return { uri, oldString, newString, replaceAll }
 			},
 
 			// ---
