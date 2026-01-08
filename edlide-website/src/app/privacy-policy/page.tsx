@@ -15,9 +15,8 @@ export default function PrivacyPolicy() {
             to protecting your information when you use our AI-powered development environment.
           </p>
           <p className="text-muted-foreground mt-2">
-            Edlide is a commercial, proprietary product and a fork of Void, which is licensed under 
-            the Apache 2.0 License. We maintain minimal data practices to respect your privacy while 
-            providing essential services.
+            Edlide is a commercial, proprietary product licensed under Apache 2.0. We maintain minimal 
+            data practices to respect your privacy while providing essential services.
           </p>
         </section>
 

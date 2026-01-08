@@ -19,22 +19,17 @@ export default function TermsOfUse() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-foreground">2. About Edlide</h2>
           <p className="text-muted-foreground mb-4">
-            Edlide is an AI-powered development environment and is a commercial, proprietary product. 
-            Edlide is a fork of Void, which is licensed under the Apache 2.0 License.
+            Edlide is an AI-powered development environment and is a commercial, proprietary product licensed 
+            under the Apache 2.0 License.
           </p>
           <p className="text-muted-foreground mb-4">
-            <strong>Ownership:</strong> Edlide and all associated intellectual property, including but not 
-            limited to the Edlide name, logo, trademarks, branding, proprietary code, features, and functionality, 
-            are the exclusive property of Edlide. Edlide is a closed, proprietary product.
-          </p>
-          <p className="text-muted-foreground mb-4">
-            <strong>License:</strong> While Edlide is based on Void (a fork of VS Code licensed under Apache 2.0), 
-            the Edlide product itself is proprietary and is distributed under our own license terms. All original 
-            components, modifications, and additions made by Edlide are the property of Edlide.
+            <strong>Ownership:</strong> Edlide and all associated intellectual property, including the Edlide 
+            name, logo, trademarks, branding, proprietary code, features, and functionality, are the exclusive 
+            property of Edlide.
           </p>
           <p className="text-muted-foreground">
             You may not use Edlide's name, logo, trademarks, or branding without explicit written permission. 
-            Edlide is not open source software.
+            Edlide is a closed, proprietary product.
           </p>
         </section>
 
@@ -170,7 +165,7 @@ export default function TermsOfUse() {
             <li>The Edlide name, brand identity, and company name</li>
             <li>Edlide logos, trademarks, service marks, and trade dress</li>
             <li>Website design, layout, and content</li>
-            <li>Proprietary code, features, and functionality (excluding Apache 2.0 licensed components)</li>
+            <li>Proprietary code, features, and functionality</li>
             <li>Documentation, marketing materials, promotional content, and assets</li>
             <li>Product designs, user interfaces, and user experience</li>
           </ul>
@@ -182,8 +177,7 @@ export default function TermsOfUse() {
             Edlide claims no ownership of your code or projects.
           </p>
           <p className="text-muted-foreground">
-            <strong>Apache 2.0 License:</strong> Edlide incorporates software from VSCode and Void which are 
-            licensed under the Apache 2.0 License. The Apache 2.0 License applies only to those components. 
+            <strong>Apache 2.0 License:</strong> Edlide is licensed under the Apache 2.0 License. 
             See our <a href="/licenses" className="text-primary hover:underline">Licenses</a> page for the full license text.
           </p>
         </section>
