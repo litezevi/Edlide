@@ -5,7 +5,7 @@ export default function PrivacyPolicy() {
       
       <div className="prose prose-invert max-w-none">
         <p className="text-muted-foreground mb-6">
-          Last updated: December 2025
+          Last updated: January 2026
         </p>
 
         <section className="mb-8">
@@ -15,8 +15,8 @@ export default function PrivacyPolicy() {
             to protecting your information when you use our AI-powered development environment.
           </p>
           <p className="text-muted-foreground mt-2">
-            Edlide is a commercial product developed to provide developers with powerful AI-assisted 
-            coding capabilities. We maintain minimal data practices to respect your privacy while 
+            Edlide is a commercial, proprietary product and a fork of Void, which is licensed under 
+            the Apache 2.0 License. We maintain minimal data practices to respect your privacy while 
             providing essential services.
           </p>
         </section>
@@ -78,23 +78,9 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">5. Local Processing</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">5. Third-Party Services</h2>
           <p className="text-muted-foreground mb-4">
-            When you use local AI models integrated with Edlide (e.g., Ollama, LM Studio, or similar):
-          </p>
-          <ul className="list-disc list-inside text-muted-foreground space-y-2">
-            <li>All processing happens entirely on your machine</li>
-            <li>No data or code leaves your device for AI inference</li>
-            <li>No internet connection required for local model inference</li>
-            <li>Complete offline privacy and control over your data</li>
-            <li>Your code never touches external servers</li>
-          </ul>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">6. Third-Party Services</h2>
-          <p className="text-muted-foreground mb-4">
-            Edlite integrates with the following third-party services:
+            Edlide integrates with the following third-party services:
           </p>
           <ul className="list-disc list-inside text-muted-foreground space-y-2">
             <li><strong>Supabase:</strong> Used for user authentication and account management. Subject to Supabase's privacy policy.</li>
@@ -108,12 +94,11 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">7. Data Storage and Security</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">6. Data Storage and Security</h2>
           <p className="text-muted-foreground mb-4">
             Data security practices:
           </p>
           <ul className="list-disc list-inside text-muted-foreground space-y-2">
-            <li>Your data is stored locally on your device whenever possible</li>
             <li>Authentication tokens are encrypted and stored securely</li>
             <li>We use industry-standard encryption (TLS/SSL) for data transmission</li>
             <li>No code or content is logged or retained by Edlide servers</li>
@@ -122,7 +107,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">8. Cookies and Tracking</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">7. Cookies and Tracking</h2>
           <p className="text-muted-foreground mb-4">
             On our website and services:
           </p>
@@ -135,7 +120,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Children's Privacy</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">8. Children's Privacy</h2>
           <p className="text-muted-foreground">
             Edlide is a professional development tool not intended for users under 13 years of age. 
             We do not knowingly collect information from children under 13. If we become aware of such 
@@ -144,7 +129,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Subscriptions and Billing</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Subscriptions and Billing</h2>
           <p className="text-muted-foreground mb-4">
             For paid subscription tiers:
           </p>
@@ -157,7 +142,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Data Retention</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Data Retention</h2>
           <p className="text-muted-foreground">
             Minimal usage data is retained only as necessary for service operation, security, and improvement. 
             We automatically delete anonymized usage data after 12 months. You may delete your account at 
@@ -166,7 +151,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">12. Your Rights</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Your Rights</h2>
           <p className="text-muted-foreground mb-4">
             Depending on your location, you may have the right to:
           </p>
@@ -186,7 +171,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">13. Changes to This Policy</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">12. Changes to This Policy</h2>
           <p className="text-muted-foreground">
             We may update this Privacy Policy occasionally to reflect changes in our practices or legal 
             requirements. Any significant changes will be notified through in-app notifications, email 
@@ -195,7 +180,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">14. International Data Transfers</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">13. International Data Transfers</h2>
           <p className="text-muted-foreground">
             When using external AI providers, your data may be transferred to and processed in countries 
             other than your own. We ensure that such transfers comply with applicable data protection laws 
@@ -205,7 +190,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">15. Contact</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">14. Contact</h2>
           <p className="text-muted-foreground">
             If you have questions about this Privacy Policy, need to exercise your rights, or have privacy 
             concerns, please contact us through our support channels.

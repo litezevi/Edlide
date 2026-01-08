@@ -1,5 +1,6 @@
+Edlide is a proprietary product that includes and is based on Void, which is licensed under the Apache 2.0 License (see LICENSE)
 Void is a fork of VS Code, which is licensed under the MIT License (below).
-Void's additions and modifications are licensed under the Apache 2.0 License (see LICENSE.txt).
+Void's additions and modifications are licensed under the Apache 2.0 License.
 
 --------------------
 

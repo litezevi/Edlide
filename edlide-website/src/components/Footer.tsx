@@ -9,6 +9,8 @@ export function Footer() {
           <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</a>
           <span className="text-muted-foreground/30">|</span>
           <a href="/terms-of-use" className="hover:text-foreground transition-colors">Terms of Use</a>
+          <span className="text-muted-foreground/30">|</span>
+          <a href="/licenses" className="hover:text-foreground transition-colors">Licenses</a>
         </div>
         <div className="text-sm text-muted-foreground">
           Built with Edlide

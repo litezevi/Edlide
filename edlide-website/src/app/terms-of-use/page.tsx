@@ -5,28 +5,36 @@ export default function TermsOfUse() {
       
       <div className="prose prose-invert max-w-none">
         <p className="text-muted-foreground mb-6">
-          Last updated: December 2025
+          Last updated: January 2026
         </p>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-foreground">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground">
             By using Edlide, you accept and agree to be bound by these Terms of Use and our Privacy Policy. 
-            These terms constitute a legally binding agreement between you and Edlide (each term shall have 
-            the meaning set forth below).
+            These terms constitute a legally binding agreement between you and Edlide.
           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-foreground">2. About Edlide</h2>
           <p className="text-muted-foreground mb-4">
-            Edlide is an AI-powered development environment and is a commercial product. Edlide is built 
-            using components from VSCode and Void projects, which are licensed under the Apache 2.0 License.
+            Edlide is an AI-powered development environment and is a commercial, proprietary product. 
+            Edlide is a fork of Void, which is licensed under the Apache 2.0 License.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            <strong>Ownership:</strong> Edlide and all associated intellectual property, including but not 
+            limited to the Edlide name, logo, trademarks, branding, proprietary code, features, and functionality, 
+            are the exclusive property of Edlide. Edlide is a closed, proprietary product.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            <strong>License:</strong> While Edlide is based on Void (a fork of VS Code licensed under Apache 2.0), 
+            the Edlide product itself is proprietary and is distributed under our own license terms. All original 
+            components, modifications, and additions made by Edlide are the property of Edlide.
           </p>
           <p className="text-muted-foreground">
-            The Edlide name, logo, trademarks, and all associated branding assets are the exclusive property 
-            of Edlide and may not be used, reproduced, or distributed without explicit written permission. 
-            Edlide is proprietary software, not open source.
+            You may not use Edlide's name, logo, trademarks, or branding without explicit written permission. 
+            Edlide is not open source software.
           </p>
         </section>
 
@@ -156,9 +164,9 @@ export default function TermsOfUse() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Intellectual Property</h2>
           <p className="text-muted-foreground mb-4">
-            Edlide and all associated intellectual property rights, including but not limited to:
+            <strong>Edlide Ownership:</strong> Edlide and all associated intellectual property rights, including:
           </p>
-          <ul className="list-disc list-inside text-muted-foreground space-y-2">
+          <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
             <li>The Edlide name, brand identity, and company name</li>
             <li>Edlide logos, trademarks, service marks, and trade dress</li>
             <li>Website design, layout, and content</li>
@@ -166,13 +174,17 @@ export default function TermsOfUse() {
             <li>Documentation, marketing materials, promotional content, and assets</li>
             <li>Product designs, user interfaces, and user experience</li>
           </ul>
-          <p className="text-muted-foreground mt-4">
-            Are the exclusive property of Edlide. You retain ownership of all code you create using Edlide. 
+          <p className="text-muted-foreground mb-4">
+            Are the exclusive property of Edlide. All rights reserved.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            <strong>Your Code:</strong> You retain ownership of all code you create using Edlide. 
             Edlide claims no ownership of your code or projects.
           </p>
-          <p className="text-muted-foreground mt-2">
-            Edlide incorporates software from VSCode and Void which are licensed under the Apache 2.0 License. 
-            The Apache 2.0 License applies to those components only. Click here for the full Apache 2.0 License text.
+          <p className="text-muted-foreground">
+            <strong>Apache 2.0 License:</strong> Edlide incorporates software from VSCode and Void which are 
+            licensed under the Apache 2.0 License. The Apache 2.0 License applies only to those components. 
+            See our <a href="/licenses" className="text-primary hover:underline">Licenses</a> page for the full license text.
           </p>
         </section>
 
