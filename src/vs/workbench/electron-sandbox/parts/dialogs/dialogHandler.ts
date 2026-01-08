@@ -83,7 +83,7 @@ export class NativeDialogHandler extends AbstractDialogHandler {
 			return localize({ key: 'aboutDetail', comment: ['Electron, Chromium, Node.js and V8 are product names that need no translation'] },
 				"VSCode Version: {0}\nEdlide Version: {1}\nDate: {2}\nElectron: {3}\nChromium: {4}\nNode.js: {5}\nV8: {6}\nOS: {7}",
 				version,
-				this.productService.voidVersion || 'Unknown',
+				this.productService.edlideVersion || 'Unknown',
 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
 				process.versions['electron'],
 				process.versions['chrome'],
