@@ -190,12 +190,15 @@ Security:
 ### Download Architecture (Cloudflare R2)
 
 **Cloudflare R2 Integration - ACTIVE ✅**
-- **Purpose**: Secure download distribution for macOS DMG files
+- **Purpose**: Secure download distribution for all platform binaries
 - **Bucket**: `edlideimagev100`
 - **Endpoint**: `https://3229678876cd5bd68510871faa81e57d.r2.cloudflarestorage.com`
+- **Version**: 1.0.0 (Released: January 9, 2026)
 - **Files**:
-  - `Edlide-arm64.dmg` - Apple Silicon (M1/M2/M3)
-  - `Edlide-x64.dmg` - Intel Macs
+  - `Edlide-1.0.0-arm64.dmg` - macOS Apple Silicon (M1/M2/M3)
+  - `Edlide-1.0.0-x64.dmg` - macOS Intel
+  - `edlide-1.0.0-x64.exe` - Windows Intel/AMD 64-bit
+  - `edlide-1.0.0-arm64.exe` - Windows ARM64
 
 **API Route**: `/api/download?file=arm64|x64`
 - Generates presigned URLs with 1-hour expiration

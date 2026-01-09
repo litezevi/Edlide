@@ -7,11 +7,13 @@ const R2_ACCOUNT_ID = process.env.CLOUDFLARE_R2_ACCOUNT_ID
 const R2_ACCESS_KEY_ID = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID
 const R2_SECRET_ACCESS_KEY = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY_ID
 
+const VERSION = '1.0.0'
+
 const FILE_MAP: Record<string, string> = {
-  arm64: 'Edlide-arm64.dmg',
-  x64: 'Edlide-x64.dmg',
-  win64: 'Edlide-x64.exe',
-  winarm64: 'Edlide-arm64.exe',
+  arm64: `Edlide-${VERSION}-arm64.dmg`,
+  x64: `Edlide-${VERSION}-x64.dmg`,
+  win64: `edlide-${VERSION}-x64.exe`,
+  winarm64: `edlide-${VERSION}-arm64.exe`,
 }
 
 export async function GET(request: NextRequest) {

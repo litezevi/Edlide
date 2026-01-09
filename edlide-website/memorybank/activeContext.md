@@ -1,9 +1,30 @@
 # Active Context: Edlide Website
 
 ## Current Focus
-Cloudflare R2 Download Integration - **COMPLETE!** macOS DMG downloads working with presigned URLs!
+Versioned Downloads UI - **COMPLETE!** Added version v1.0.0 and release date January 9, 2026 to download page!
 
-### Cloudflare R2 Download Integration (NEW - Jan 2, 2026) ✅
+### Versioned Downloads UI (NEW - Jan 9, 2026) ✅
+**Implemented:**
+- ✅ Added `VERSION = '1.0.0'` constant to API route
+- ✅ Updated FILE_MAP to use versioned filenames:
+  - `Edlide-1.0.0-arm64.dmg`
+  - `Edlide-1.0.0-x64.dmg`
+  - `edlide-1.0.0-arm64.exe`
+  - `edlide-1.0.0-x64.exe`
+- ✅ Added version display (v1.0.0) to each download card title
+- ✅ Added release date (January 9, 2026) under version in each card
+
+**Files Modified:**
+- `src/app/api/download/route.ts` - Version constant + FILE_MAP update
+- `src/app/download/page.tsx` - Added v1.0.0 labels and release date
+
+**Download Files (Cloudflare R2):**
+- Windows x64 → `edlide-1.0.0-x64.exe`
+- Windows ARM → `edlide-1.0.0-arm64.exe`
+- macOS ARM → `Edlide-1.0.0-arm64.dmg`
+- macOS Intel → `Edlide-1.0.0-x64.dmg`
+
+### Cloudflare R2 Download Integration (Jan 2, 2026) ✅
 **Implemented:**
 - ✅ `/api/download` API route generates presigned URLs for R2
 - ✅ Download buttons for macOS ARM (Edlide-arm64.dmg) and Intel (Edlide-x64.dmg)
