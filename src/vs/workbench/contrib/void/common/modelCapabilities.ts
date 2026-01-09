@@ -76,10 +76,10 @@ export const defaultProviderSettings = {
 
 export const defaultModelsOfProvider = {
 	edlide: [
-		//'MiniMaxAI/MiniMax-M2.1-TEE',
+		'MiniMaxAI/MiniMax-M2.1-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'zai-org/GLM-4.6-TEE:THINKING',
-		'MiniMaxAI/MiniMax-M2:THINKING',
+		//'MiniMaxAI/MiniMax-M2:THINKING',
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'deepseek-ai/DeepSeek-V3.2',
 		'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
