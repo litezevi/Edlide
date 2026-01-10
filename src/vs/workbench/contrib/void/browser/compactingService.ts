@@ -249,7 +249,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 		threadId: string,
 		cancellationToken: CancellationToken
 	): Promise<string> {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			if (cancellationToken.isCancellationRequested) {
 				reject(new Error('Compacting cancelled'));
 				return;
@@ -291,6 +291,18 @@ export class CompactingService extends Disposable implements ICompactingService 
 
 			console.log(`[COMPACTING] Sending ${messagesToSend.length} messages for context`);
 
+			let supabaseAccessToken: string | undefined = undefined
+			if (modelSelection && modelSelection.providerName === 'edlide') {
+				try {
+					const { SupabaseAuthHelper } = await import('../common/supabaseAuthHelper.js')
+					const token = SupabaseAuthHelper.getAccessTokenSync()
+					supabaseAccessToken = token ?? undefined
+					console.log(`[COMPACTING] Supabase token: ${supabaseAccessToken ? '✅' : '❌'}`)
+				} catch (e) {
+					console.warn('[COMPACTING] Could not get supabase token:', e)
+				}
+			}
+
 			// Отправляем сообщения с контекстом
 			const llmCancelToken = this.llmMessageService.sendLLMMessage({
 				messagesType: 'chatMessages',
@@ -299,6 +311,7 @@ export class CompactingService extends Disposable implements ICompactingService 
 				modelSelection,
 				modelSelectionOptions: this.voidSettingsService.state.optionsOfModelSelection['Chat']?.[modelSelection.providerName as keyof typeof this.voidSettingsService.state.optionsOfModelSelection['Chat']]?.[modelSelection.modelName],
 				overridesOfModel: this.voidSettingsService.state.overridesOfModel,
+				supabaseAccessToken,
 				logging: {
 					loggingName: `Compacting - ${threadId}`,
 					loggingExtras: { threadId, compacting: true }

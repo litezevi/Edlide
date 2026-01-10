@@ -979,14 +979,73 @@ Select New Thread → Normal Operation
 
 ---
 
-**Last Updated**: 2025-12-11  
-**Status**: **COMPLETE SUCCESS - INFINITE THREAD CHAIN + COMPACTED THREAD PROTECTION** ✅🎉🛡️  
-**All Features**: Working perfectly with unlimited conversation capability and complete compacted thread safety  
-**Chat Continuation**: Fixed and working across infinite threads  
-**Compacted Thread Safety**: Complete protection system implemented  
-**Ready for**: Production use with unlimited conversation support and robust error handling
+## 🐛 **BUG FIX - Compacting Not Connected Error (2026-01-10)**
 
-**🚀 CAPABILITIES:**
-- **Infinite conversation length** through automatic multi-thread compacting!
-- **Complete compacted thread protection** with user-friendly feedback!
-- **Robust error handling** with multi-layer security system!
+### **Problem:**
+Compacting system was showing "compacting..." animation but no actual compacting request was being sent. Users saw "Not connected. Please connect to your Edlide account in Settings." error.
+
+### **Root Cause:**
+`compactingService.ts` was calling `sendLLMMessage()` without `supabaseAccessToken`, while regular chat calls included it. This caused authentication to fail for edlide provider.
+
+### **Solution:**
+
+#### **Added supabaseAccessToken to sendLLMMessage call** (`compactingService.ts:292-310`)
+
+```typescript
+console.log(`[COMPACTING] Sending ${messagesToSend.length} messages for context`);
+
+let supabaseAccessToken: string | undefined = undefined
+if (modelSelection && modelSelection.providerName === 'edlide') {
+	try {
+		const { SupabaseAuthHelper } = await import('../common/supabaseAuthHelper.js')
+		const token = SupabaseAuthHelper.getAccessTokenSync()
+		supabaseAccessToken = token ?? undefined
+		console.log(`[COMPACTING] Supabase token: ${supabaseAccessToken ? '✅' : '❌'}`)
+	} catch (e) {
+		console.warn('[COMPACTING] Could not get supabase token:', e)
+	}
+}
+
+// Отправляем сообщения с контекстом
+const llmCancelToken = this.llmMessageService.sendLLMMessage({
+	messagesType: 'chatMessages',
+	chatMode: null,
+	messages: messagesToSend,
+	modelSelection,
+	modelSelectionOptions: this.voidSettingsService.state.optionsOfModelSelection['Chat']?.[modelSelection.providerName as keyof typeof this.voidSettingsService.state.optionsOfModelSelection['Chat']]?.[modelSelection.modelName],
+	overridesOfModel: this.voidSettingsService.state.overridesOfModel,
+	supabaseAccessToken,  // <-- ADDED THIS LINE
+	logging: {
+		loggingName: `Compacting - ${threadId}`,
+		loggingExtras: { threadId, compacting: true }
+	},
+	// ...
+})
+```
+
+#### **Changed Promise to async** (`compactingService.ts:252`)
+
+```typescript
+// BEFORE:
+return new Promise((resolve, reject) => {
+
+// AFTER:
+return new Promise(async (resolve, reject) => {
+```
+
+### **Files Modified:**
+- `src/vs/workbench/contrib/void/browser/compactingService.ts` (lines 252, 292-310)
+
+### **Result:**
+- ✅ Compacting requests now use same authentication as regular chat
+- ✅ No more "Not connected" errors for edlide provider
+- ✅ Animation shows only when compacting is actually in progress
+- ✅ Proper Supabase token logging for debugging
+
+---
+
+**Last Updated**: 2026-01-10  
+**Status**: **BUG FIXED - Compacting Authentication** ✅  
+**Issue**: "Not connected" error during compacting  
+**Fix**: Added supabaseAccessToken to sendLLMMessage call  
+**Compacting Now Works**: Same authentication flow as regular chat messages
