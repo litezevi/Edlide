@@ -20,7 +20,7 @@ import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, ToolCallParams, T
 import { IToolsService } from './toolsService.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ILanguageFeaturesService } from '../../../../editor/common/services/languageFeatures.js';
-import { ChatMessage, CheckpointEntry, CodespanLocationLink, StagingSelectionItem, ToolMessage } from '../common/chatThreadServiceTypes.js';
+import { ChatMessage, CheckpointEntry, ChatImageAttachment, CodespanLocationLink, StagingSelectionItem, ToolMessage } from '../common/chatThreadServiceTypes.js';
 import { Position } from '../../../../editor/common/core/position.js';
 import { IMetricsService } from '../common/metricsService.js';
 import { shorten } from '../../../../base/common/labels.js';
@@ -121,29 +121,31 @@ export type ThreadType = {
 	messages: ChatMessage[];
 	filesWithUserChanges: Set<string>;
 
-	// this doesn't need to go in a state object, but feels right
-	state: {
-		currCheckpointIdx: number | null; // the latest checkpoint we're at (null if not at a particular checkpoint, like if the chat is streaming, or chat just finished and we haven't clicked on a checkpt)
+		// this doesn't need to go in a state object, but feels right
+		state: {
+			currCheckpointIdx: number | null;
 
-		stagingSelections: StagingSelectionItem[];
-		focusedMessageIdx: number | undefined; // index of the user message that is being edited (undefined if none)
+			stagingSelections: StagingSelectionItem[];
+			focusedMessageIdx: number | undefined;
 
-		linksOfMessageIdx: { // eg. link = linksOfMessageIdx[4]['RangeFunction']
-			[messageIdx: number]: {
-				[codespanName: string]: CodespanLocationLink
+			linksOfMessageIdx: {
+				[messageIdx: number]: {
+					[codespanName: string]: CodespanLocationLink
+				}
 			}
-		}
 
-		isCompacted?: boolean; // indicates if this thread was compacted and a new thread was created with summary
+			isCompacted?: boolean;
 
-		mountedInfo?: {
-			whenMounted: Promise<WhenMounted>
-			_whenMountedResolver: (res: WhenMounted) => void
-			mountedIsResolvedRef: { current: boolean };
-		}
+			chatImages: ChatImageAttachment[];
+
+			mountedInfo?: {
+				whenMounted: Promise<WhenMounted>
+				_whenMountedResolver: (res: WhenMounted) => void
+				mountedIsResolvedRef: { current: boolean };
+			}
 
 
-	};
+		};
 }
 
 type ChatThreads = {
@@ -221,6 +223,7 @@ const newThreadObject = () => {
 			stagingSelections: [],
 			focusedMessageIdx: undefined,
 			linksOfMessageIdx: {},
+			chatImages: [],
 		},
 		filesWithUserChanges: new Set()
 	} satisfies ThreadType
@@ -255,6 +258,12 @@ export interface IChatThreadService {
 	setCurrentMessageState: (messageIdx: number, newState: Partial<UserMessageState>) => void
 	getCurrentThreadState: () => ThreadType['state']
 	setCurrentThreadState: (newState: Partial<ThreadType['state']>) => void
+
+	// chat images
+	getCurrentChatImages: () => ChatImageAttachment[]
+	addChatImage: (image: ChatImageAttachment) => void
+	removeChatImage: (id: string) => void
+	clearChatImages: () => void
 
 	// you can edit multiple messages - the one you're currently editing is "focused", and we add items to that one when you press cmd+L.
 	getCurrentFocusedMessageIdx(): number | undefined;
@@ -1896,6 +1905,34 @@ We only need to do it for files that were edited since `from`, ie files between 
 			...selections.slice(0, selections.length - numPops)
 		])
 
+	}
+
+	// Chat images management
+	getCurrentChatImages(): ChatImageAttachment[] {
+		return this.getCurrentThreadState().chatImages ?? []
+	}
+
+	addChatImage(image: ChatImageAttachment): void {
+		const threadId = this.state.currentThreadId
+		const thread = this.state.allThreads[threadId]
+		if (!thread) return
+
+		const currentImages = thread.state.chatImages ?? []
+		this._setThreadState(threadId, { chatImages: [...currentImages, image] })
+	}
+
+	removeChatImage(id: string): void {
+		const threadId = this.state.currentThreadId
+		const thread = this.state.allThreads[threadId]
+		if (!thread) return
+
+		const currentImages = thread.state.chatImages ?? []
+		this._setThreadState(threadId, { chatImages: currentImages.filter(img => img.id !== id) })
+	}
+
+	clearChatImages(): void {
+		const threadId = this.state.currentThreadId
+		this._setThreadState(threadId, { chatImages: [] })
 	}
 
 	// set message.state

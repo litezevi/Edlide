@@ -119,3 +119,13 @@ export type CompactingMessage = {
 	displayContent: string;
 	state: CompactingState;
 };
+
+
+export type ChatImageAttachment = {
+	id: string;
+	file: File;
+	previewUrl: string;
+	name: string;
+	size: number;
+	type: string;
+};

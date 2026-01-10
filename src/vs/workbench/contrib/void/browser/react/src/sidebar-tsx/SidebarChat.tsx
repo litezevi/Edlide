@@ -24,8 +24,9 @@ import { ChatMode, displayInfoOfProviderName, FeatureName, isFeatureNameDisabled
 import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { WarningBox } from '../void-settings-tsx/WarningBox.js';
 import { getModelCapabilities, getIsReasoningEnabledState } from '../../../../common/modelCapabilities.js';
-import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CirclePlus, Ellipsis, CircleEllipsis, Folder, ALargeSmall, TypeOutline, Text } from 'lucide-react';
-import { ChatMessage, CheckpointEntry, StagingSelectionItem, ToolMessage } from '../../../../common/chatThreadServiceTypes.js';
+import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CirclePlus, Ellipsis, CircleEllipsis, Folder, ALargeSmall, TypeOutline, Text, Image } from 'lucide-react';
+import { ChatMessage, CheckpointEntry, StagingSelectionItem, ToolMessage, ChatImageAttachment } from '../../../../common/chatThreadServiceTypes.js';
+import { generateUuid } from '../../../../../../../base/common/uuid.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, BuiltinToolName, ToolName, LintErrorItem, ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js';
 import { CopyButton, EditToolAcceptRejectButtonsHTML, IconShell1, JumpToFileButton, JumpToTerminalButton, StatusIndicator, StatusIndicatorForApplyButton, useApplyStreamState, useEditToolStreamState } from '../markdown/ApplyBlockHoverButtons.js';
 import { IsRunningType } from '../../../chatThreadService.js';
@@ -610,6 +611,88 @@ const CompactingSystemMessage = ({ compactingState }: { compactingState?: Compac
 };
 
 
+// Image Preview Modal Component
+const ImagePreviewModal = ({ image, onClose }: { image: ChatImageAttachment; onClose: () => void }) => {
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				onClose();
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown as unknown as EventListener);
+		return () => window.removeEventListener('keydown', handleKeyDown as unknown as EventListener);
+	}, [onClose]);
+
+	return (
+		<div
+			className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+			onClick={onClose}
+		>
+			<div className="relative">
+				<button
+					className="absolute -top-3 -right-3 text-white hover:text-gray-300 cursor-pointer z-60 bg-black/50 rounded-full p-1"
+					onClick={onClose}
+				>
+					<X size={24} />
+				</button>
+
+				<img
+					src={image.previewUrl}
+					alt={image.name}
+					className="max-w-[50vw] max-h-[45vh] object-contain"
+					onClick={(e) => e.stopPropagation()}
+				/>
+			</div>
+
+			<div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black/50 px-3 py-1 rounded text-sm whitespace-nowrap">
+				{image.name}
+			</div>
+		</div>
+	);
+};
+
+
+// Image Thumbnails Component
+const ChatImageThumbnails = ({
+	images,
+	onRemove,
+	onPreview
+}: {
+	images: ChatImageAttachment[];
+	onRemove: (id: string) => void;
+	onPreview: (image: ChatImageAttachment) => void;
+}) => {
+	if (images.length === 0) return null;
+
+	return (
+		<div className="flex flex-wrap gap-2 mb-2">
+			{images.map((img) => (
+				<div
+					key={img.id}
+					className="relative group w-6 h-6 cursor-pointer"
+					onClick={() => onPreview(img)}
+				>
+					<img
+						src={img.previewUrl}
+						alt={img.name}
+						className="w-full h-full object-cover rounded-sm"
+					/>
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							onRemove(img.id);
+						}}
+						className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+					>
+						<X size={10} className="text-white" />
+					</button>
+				</div>
+			))}
+		</div>
+	);
+};
+
 
 // SLIDER ONLY:
 const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) => {
@@ -784,6 +867,15 @@ interface VoidChatAreaProps {
 	contextPercentage?: number;
 	showContextBar?: boolean;
 	contextTooltipText?: string;
+
+	// Chat images props
+	chatImages?: ChatImageAttachment[];
+	onRemoveImage?: (id: string) => void;
+	onPreviewImage?: (image: ChatImageAttachment) => void;
+	onAddImage?: () => void;
+	onPaste?: (e: React.ClipboardEvent) => void;
+	onDragOver?: (e: React.DragEvent) => void;
+	onDrop?: (e: React.DragEvent) => void;
 }
 
 export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
@@ -806,6 +898,13 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 	contextPercentage = 0,
 	showContextBar = false,
 	contextTooltipText = '',
+	chatImages,
+	onRemoveImage,
+	onPreviewImage,
+	onAddImage,
+	onPaste,
+	onDragOver,
+	onDrop,
 }) => {
 	return (
 		<div
@@ -823,6 +922,9 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 			onClick={(e) => {
 				onClickAnywhere?.()
 			}}
+			onPaste={onPaste}
+			onDragOver={onDragOver}
+			onDrop={onDrop}
 		>
 			{/* Selections section */}
 			{showSelections && selections && setSelections && (
@@ -831,6 +933,15 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 					selections={selections}
 					setSelections={setSelections}
 					showProspectiveSelections={showProspectiveSelections}
+				/>
+			)}
+
+			{/* Chat Images thumbnails */}
+			{chatImages && chatImages.length > 0 && (
+				<ChatImageThumbnails
+					images={chatImages}
+					onRemove={onRemoveImage || (() => {})}
+					onPreview={onPreviewImage || (() => {})}
 				/>
 			)}
 
@@ -864,6 +975,17 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 			)}
 
 				<div className="flex items-center gap-2">
+
+					{/* Image upload button */}
+					{onAddImage && (
+						<button
+							onClick={onAddImage}
+							className="p-1 text-void-fg-3 hover:text-void-fg-1 cursor-pointer"
+							title="Attach image"
+						>
+							<Image size={18} />
+						</button>
+					)}
 
 					{/* Context bar - positioned left of stop/submit buttons */}
 					{showContextBar && (
@@ -3444,6 +3566,109 @@ export const SidebarChat = () => {
 
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+
+	// ----- Chat Images state -----
+	const [chatImages, setChatImages] = useState<ChatImageAttachment[]>([])
+	const [previewImage, setPreviewImage] = useState<ChatImageAttachment | null>(null)
+	const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+	// Load images from thread state on mount/thread change
+	useEffect(() => {
+		const images = chatThreadsService.getCurrentChatImages()
+		setChatImages(images)
+	}, [chatThreadsService, chatThreadsState.currentThreadId])
+
+	// Handle image addition from file
+	const handleImageFile = useCallback((file: File) => {
+		if (!file.type.startsWith('image/')) return
+
+		const reader = new FileReader()
+		reader.onload = (e) => {
+			const image: ChatImageAttachment = {
+				id: generateUuid(),
+				file,
+				previewUrl: e.target?.result as string,
+				name: file.name,
+				size: file.size,
+				type: file.type
+			}
+			setChatImages(prev => [...prev, image])
+			chatThreadsService.addChatImage(image)
+		}
+		reader.readAsDataURL(file)
+	}, [chatThreadsService])
+
+	// Handle file input change
+	const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files
+		if (files) {
+			Array.from(files).forEach(handleImageFile)
+		}
+		// Reset input
+		if (fileInputRef.current) {
+			fileInputRef.current.value = ''
+		}
+	}, [handleImageFile])
+
+	// Handle paste events
+	const handlePaste = useCallback((e: React.ClipboardEvent) => {
+		const items = e.clipboardData.items
+		const imageFiles: File[] = []
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i]
+			if (item.type.startsWith('image/')) {
+				const file = item.getAsFile()
+				if (file) imageFiles.push(file)
+			}
+		}
+		imageFiles.forEach(handleImageFile)
+	}, [handleImageFile])
+
+	// Handle drag and drop
+	const handleDragOver = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+	}, [])
+
+	const handleDrop = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+		files.forEach(handleImageFile)
+	}, [handleImageFile])
+
+	// Handle image removal
+	const handleRemoveImage = useCallback((id: string) => {
+		setChatImages(prev => prev.filter(img => img.id !== id))
+		chatThreadsService.removeChatImage(id)
+	}, [chatThreadsService])
+
+	// Handle image preview
+	const handlePreviewImage = useCallback((image: ChatImageAttachment) => {
+		setPreviewImage(image)
+	}, [])
+
+	// Close preview modal
+	const handleClosePreview = useCallback(() => {
+		setPreviewImage(null)
+	}, [])
+
+	// Global paste handler for when textarea is focused
+	useEffect(() => {
+		const handleGlobalPaste = (e: ClipboardEvent) => {
+			const clipboardData = e.clipboardData
+			if (!clipboardData?.files.length) return
+
+			const imageFiles = Array.from(clipboardData.files).filter(f => f.type.startsWith('image/'))
+			if (imageFiles.length > 0) {
+				e.preventDefault()
+				imageFiles.forEach(handleImageFile)
+			}
+		}
+
+		document.addEventListener('paste', handleGlobalPaste as EventListener)
+		return () => document.removeEventListener('paste', handleGlobalPaste as EventListener)
+	}, [handleImageFile])
+
+	// Clear images on submit
 	const onSubmit = useCallback(async (_forceSubmit?: string) => {
 
 		if (isDisabled && !_forceSubmit) return
@@ -3461,6 +3686,8 @@ export const SidebarChat = () => {
 		}
 
 		setSelections([]) // clear staging
+		setChatImages([]) // clear images
+		chatThreadsService.clearChatImages()
 		textAreaFnsRef.current?.setValue('')
 		textAreaRef.current?.focus() // focus input after submit
 
@@ -3605,34 +3832,47 @@ export const SidebarChat = () => {
 		}
 	}, [onSubmit, onAbort, isRunning])
 
-const inputChatArea = <VoidChatArea
-		featureName='Chat'
-		onSubmit={() => onSubmit()}
-		onAbort={onAbort}
-		isStreaming={!!isRunning}
-		isDisabled={isDisabled}
-		showSelections={true}
-		// showProspectiveSelections={previousMessagesHTML.length === 0}
-		selections={selections}
-		setSelections={setSelections}
-		onClickAnywhere={() => { textAreaRef.current?.focus() }}
-		contextPercentage={contextPercentage}
-		showContextBar={showContextBar}
-   	contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
-	>
-		<VoidInputBox2
-			enableAtToMention
-			className={`min-h-[81px] px-0.5 py-0.5`}
-			placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
-			onChangeText={onChangeText}
-			onKeyDown={onKeyDown}
-			onFocus={() => { chatThreadsService.setCurrentlyFocusedMessageIdx(undefined) }}
-			ref={textAreaRef}
-			fnsRef={textAreaFnsRef}
-			multiline={true}
-		/>
-
-	</VoidChatArea>
+const inputChatArea = (
+		<VoidChatArea
+			featureName='Chat'
+			onSubmit={() => onSubmit()}
+			onAbort={onAbort}
+			isStreaming={!!isRunning}
+			isDisabled={isDisabled}
+			showSelections={true}
+			selections={selections}
+			setSelections={setSelections}
+			onClickAnywhere={() => { textAreaRef.current?.focus() }}
+			contextPercentage={contextPercentage}
+			showContextBar={showContextBar}
+			contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
+			chatImages={chatImages}
+			onRemoveImage={handleRemoveImage}
+			onPreviewImage={handlePreviewImage}
+			onAddImage={() => fileInputRef.current?.click()}
+		>
+			<VoidInputBox2
+				enableAtToMention
+				className={`min-h-[81px] px-0.5 py-0.5`}
+				placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
+				onChangeText={onChangeText}
+				onKeyDown={onKeyDown}
+				onFocus={() => { chatThreadsService.setCurrentlyFocusedMessageIdx(undefined) }}
+				ref={textAreaRef}
+				fnsRef={textAreaFnsRef}
+				multiline={true}
+			/>
+			{/* Hidden file input for image selection */}
+			<input
+				type="file"
+				ref={fileInputRef}
+				onChange={handleFileInputChange}
+				accept="image/*"
+				multiple
+				className="hidden"
+			/>
+		</VoidChatArea>
+	);
 
 
 	const isLandingPage = previousMessages.length === 0
@@ -3641,7 +3881,10 @@ const inputChatArea = <VoidChatArea
 
 
 
-	const threadPageInput = <div key={'input' + chatThreadsState.currentThreadId}>
+	const threadPageInput = <div key={'input' + chatThreadsState.currentThreadId}
+		onDragOver={handleDragOver}
+		onDrop={handleDrop}
+	>
 		<div className='px-4'>
 			<CommandBarInChat />
 		</div>
@@ -3650,7 +3893,7 @@ const inputChatArea = <VoidChatArea
 		</div>
 	</div>
 
-	const landingPageInput = <div>
+	const landingPageInput = <div onDragOver={handleDragOver} onDrop={handleDrop}>
 		<div className='pt-8'>
 			{inputChatArea}
 		</div>
@@ -3708,6 +3951,14 @@ const inputChatArea = <VoidChatArea
 			{isLandingPage ?
 				landingPageContent
 				: threadPageContent}
+
+			{/* Image Preview Modal */}
+			{previewImage && (
+				<ImagePreviewModal
+					image={previewImage}
+					onClose={handleClosePreview}
+				/>
+			)}
 		</Fragment>
 	)
 }
