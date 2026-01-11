@@ -7,6 +7,10 @@ Implemented image attachment support for the Edlide IDE chat interface. Users ca
 2. **Ctrl+V** - Paste images from clipboard
 3. **File picker** - Click the image icon button in the input area
 
+## Image Limit
+
+**Maximum 5 images per message.** When trying to add more images, users receive a notification: "Maximum 5 images per message allowed." If multiple images are selected and some exceed the limit, a notification shows how many were actually added.
+
 ## Changes by File
 
 ---
@@ -122,6 +126,9 @@ import { ..., ChatImageAttachment } from '../../../../common/chatThreadServiceTy
 
 // UUID generator import
 import { generateUuid } from '../../../../../../../base/common/uuid.js';
+
+// Notification service import
+const notificationService = accessor.get('INotificationService')
 ```
 
 #### b) ImagePreviewModal Component (Lines ~612-651)
@@ -311,9 +318,13 @@ useEffect(() => {
 **Image file handler** (converts File to ChatImageAttachment with DataURL):
 ```typescript
 const handleImageFile = useCallback((file: File) => {
-  if (!file.type.startsWith('image/')) return;
+  if (!file.type.startsWith('image/')) return
+  if (chatImages.length >= 5) {
+    notificationService.info('Maximum 5 images per message allowed.')
+    return
+  }
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = (e) => {
     const image: ChatImageAttachment = {
       id: generateUuid(),
@@ -322,38 +333,56 @@ const handleImageFile = useCallback((file: File) => {
       name: file.name,
       size: file.size,
       type: file.type
-    };
-    setChatImages(prev => [...prev, image]);
-    chatThreadsService.addChatImage(image);
-  };
-  reader.readAsDataURL(file);
-}, [chatThreadsService]);
+    }
+    setChatImages(prev => [...prev, image])
+    chatThreadsService.addChatImage(image)
+  }
+  reader.readAsDataURL(file)
+}, [chatThreadsService, chatImages.length])
 ```
 
 **File input change handler**:
 ```typescript
 const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = e.target.files;
+  const files = e.target.files
   if (files) {
-    Array.from(files).forEach(handleImageFile);
+    const remainingSlots = 5 - chatImages.length
+    if (remainingSlots <= 0) {
+      notificationService.info('Maximum 5 images per message allowed.')
+      return
+    }
+    const filesToAdd = Array.from(files).slice(0, remainingSlots)
+    if (filesToAdd.length < files.length) {
+      notificationService.info(`Only ${filesToAdd.length} of ${files.length} images added. Maximum 5 images per message.`)
+    }
+    filesToAdd.forEach(handleImageFile)
   }
   if (fileInputRef.current) {
-    fileInputRef.current.value = ''; // Reset input
+    fileInputRef.current.value = ''
   }
-}, [handleImageFile]);
+}, [handleImageFile, chatImages.length, notificationService])
 ```
 
 **Drag and drop handlers**:
 ```typescript
 const handleDragOver = useCallback((e: React.DragEvent) => {
-  e.preventDefault();
-}, []);
+  e.preventDefault()
+}, [])
 
 const handleDrop = useCallback((e: React.DragEvent) => {
-  e.preventDefault();
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-  files.forEach(handleImageFile);
-}, [handleImageFile]);
+  e.preventDefault()
+  const imageFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+  const remainingSlots = 5 - chatImages.length
+  if (remainingSlots <= 0) {
+    notificationService.info('Maximum 5 images per message allowed.')
+    return
+  }
+  const filesToAdd = imageFiles.slice(0, remainingSlots)
+  if (filesToAdd.length < imageFiles.length) {
+    notificationService.info(`Only ${filesToAdd.length} of ${imageFiles.length} images added. Maximum 5 images per message.`)
+  }
+  filesToAdd.forEach(handleImageFile)
+}, [handleImageFile, chatImages.length, notificationService])
 ```
 
 **Image removal handler**:
@@ -548,6 +577,8 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 6. **File Type Validation**: Only files starting with `image/` are accepted
 7. **Cleanup on Submit**: Images are cleared after message is sent
 8. **Multiple Images**: Supports attaching multiple images at once
+9. **Image Limit**: Maximum 5 images per message with user notifications when limit is reached
+10. **Notifications**: Uses `INotificationService` to inform users about image limits
 
 ---
 
@@ -563,4 +594,4 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 
 ## Last Updated
 
-2026-01-11
+2026-01-11 (Updated: Image limit changed to 5 per message)

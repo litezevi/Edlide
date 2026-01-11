@@ -3499,6 +3499,7 @@ export const SidebarChat = () => {
 	const chatThreadsService = accessor.get('IChatThreadService')
 	const voidSettingsService = accessor.get('IVoidSettingsService')
 	const compactingService = accessor.get('ICompactingService')
+	const notificationService = accessor.get('INotificationService')
 
 	const settingsState = useSettingsState()
 	// ----- HIGHER STATE -----
@@ -3581,6 +3582,10 @@ export const SidebarChat = () => {
 	// Handle image addition from file
 	const handleImageFile = useCallback((file: File) => {
 		if (!file.type.startsWith('image/')) return
+		if (chatImages.length >= 5) {
+			notificationService.info('Maximum 5 images per message allowed.')
+			return
+		}
 
 		const reader = new FileReader()
 		reader.onload = (e) => {
@@ -3596,19 +3601,28 @@ export const SidebarChat = () => {
 			chatThreadsService.addChatImage(image)
 		}
 		reader.readAsDataURL(file)
-	}, [chatThreadsService])
+	}, [chatThreadsService, chatImages.length])
 
 	// Handle file input change
 	const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files
 		if (files) {
-			Array.from(files).forEach(handleImageFile)
+			const remainingSlots = 5 - chatImages.length
+			if (remainingSlots <= 0) {
+				notificationService.info('Maximum 5 images per message allowed.')
+				return
+			}
+			const filesToAdd = Array.from(files).slice(0, remainingSlots)
+			if (filesToAdd.length < files.length) {
+				notificationService.info(`Only ${filesToAdd.length} of ${files.length} images added. Maximum 5 images per message.`)
+			}
+			filesToAdd.forEach(handleImageFile)
 		}
 		// Reset input
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
 		}
-	}, [handleImageFile])
+	}, [handleImageFile, chatImages.length, notificationService])
 
 	// Handle paste events
 	const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -3631,9 +3645,18 @@ export const SidebarChat = () => {
 
 	const handleDrop = useCallback((e: React.DragEvent) => {
 		e.preventDefault()
-		const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
-		files.forEach(handleImageFile)
-	}, [handleImageFile])
+		const imageFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+		const remainingSlots = 5 - chatImages.length
+		if (remainingSlots <= 0) {
+			notificationService.info('Maximum 5 images per message allowed.')
+			return
+		}
+		const filesToAdd = imageFiles.slice(0, remainingSlots)
+		if (filesToAdd.length < imageFiles.length) {
+			notificationService.info(`Only ${filesToAdd.length} of ${imageFiles.length} images added. Maximum 5 images per message.`)
+		}
+		filesToAdd.forEach(handleImageFile)
+	}, [handleImageFile, chatImages.length, notificationService])
 
 	// Handle image removal
 	const handleRemoveImage = useCallback((id: string) => {
