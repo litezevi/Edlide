@@ -172,8 +172,10 @@ const _validatedModelState = (state: Omit<VoidSettingsState, '_modelOptions'>): 
 		const providerTitle = providerName // displayInfoOfProviderName(providerName).title.toLowerCase() // looks better lowercase, best practice to not use raw providerName
 		if (!newSettingsOfProvider[providerName]._didFillInProviderSettings) continue // if disabled, don't display model options
 		for (const { modelName, isHidden } of newSettingsOfProvider[providerName].models) {
-			// Exclude gpt-oss-20b from UI dropdowns completely and respect hidden models
-			if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') && !isHidden) {
+			// Exclude hidden models from UI dropdowns completely
+			if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') &&
+				!(modelName === 'zai-org/GLM-4.6V' && providerName === 'edlide') &&
+				!isHidden) {
 				newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
 			}
 		}

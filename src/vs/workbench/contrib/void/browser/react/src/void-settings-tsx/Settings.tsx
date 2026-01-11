@@ -36,11 +36,8 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6-TEE:THINKING') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
-		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
-		return 'minimax-m2'
-		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE')
-		return 'minimax-m2.1'
-	    if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
+		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE') return 'minimax-m2.1'
+		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 	}
 	return modelName
@@ -680,6 +677,9 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 		// if (!providerSettings.enabled) continue
 
 		for (const model of providerSettings.models) {
+			// Skip hidden models from UI (like GLM-4.6V which is image-only)
+			if (providerName === 'edlide' && model.modelName === 'zai-org/GLM-4.6V') continue
+
 			const modelWithProvider = { ...model, providerName, providerEnabled: !!providerSettings._didFillInProviderSettings };
 			const displayName = getModelDisplayName(model.modelName, providerName);
 

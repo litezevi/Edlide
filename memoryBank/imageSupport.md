@@ -1,5 +1,53 @@
 # Image Support in Edlide IDE Chat
 
+## 2026-01-11 Update: Hidden Image-Only Model (GLM-4.6V)
+
+Added support for hidden image-only model `zai-org/GLM-4.6V`:
+- Model is hidden from UI dropdowns and settings
+- Used internally for image processing
+- Context window: 131,072 tokens
+
+### Files Modified
+
+**voidSettingsTypes.ts** - Added isUIHidden for GLM-4.6V:
+```typescript
+isUIHidden: (providerName === 'edlide' && modelName === 'openai/gpt-oss-120b-TEE') ||
+            (providerName === 'edlide' && modelName === 'zai-org/GLM-4.6V'),
+```
+
+**voidSettingsService.ts** - Exclude hidden models from modelOptions:
+```typescript
+if (!(modelName === 'openai/gpt-oss-120b-TEE' && providerName === 'edlide') &&
+    !(modelName === 'zai-org/GLM-4.6V' && providerName === 'edlide') &&
+    !isHidden) {
+  newModelOptions.push({ name: `${modelName} (${providerTitle})`, selection: { providerName, modelName } })
+}
+```
+
+**modelCapabilities.ts** - Added GLM-4.6V configuration:
+```typescript
+'zai-org/GLM-4.6V': {
+  contextWindow: 131_072,
+  reservedOutputTokenSpace: 8_192,
+  cost: { input: 0, output: 0 },
+  downloadable: false,
+  supportsFIM: false,
+  supportsSystemMessage: 'system-role',
+  specialToolFormat: 'openai-style',
+  reasoningCapabilities: false,
+}
+```
+
+**Settings.tsx** - Updated display name and hidden logic:
+```typescript
+if (modelName === 'zai-org/GLM-4.6V') return 'zai-org/GLM-4.6'
+
+// Skip hidden models from UI (like GLM-4.6V which is image-only)
+if (providerName === 'edlide' && model.modelName === 'zai-org/GLM-4.6V') continue
+```
+
+---
+
 ## Overview
 
 Implemented image attachment support for the Edlide IDE chat interface. Users can now attach images to their chat messages using three methods:
@@ -579,6 +627,7 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 8. **Multiple Images**: Supports attaching multiple images at once
 9. **Image Limit**: Maximum 5 images per message with user notifications when limit is reached
 10. **Notifications**: Uses `INotificationService` to inform users about image limits
+11. **Hidden Image Model**: `zai-org/GLM-4.6V` is hidden from UI but used as internal image-only model
 
 ---
 
@@ -589,9 +638,13 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 | `chatThreadServiceTypes.ts` | Type definition for ChatImageAttachment |
 | `chatThreadService.ts` | State management and methods for images |
 | `SidebarChat.tsx` | UI components and event handlers |
+| `voidSettingsTypes.ts` | Added isUIHidden for GLM-4.6V |
+| `voidSettingsService.ts` | Exclude hidden models from UI dropdowns |
+| `modelCapabilities.ts` | GLM-4.6V model configuration |
+| `Settings.tsx` | Hide GLM-4.6V from models list, display name mapping |
 
 ---
 
 ## Last Updated
 
-2026-01-11 (Updated: Image limit changed to 5 per message)
+2026-01-11 (Added hidden image-only model GLM-4.6V, image limit 5 per message)
