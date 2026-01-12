@@ -1822,6 +1822,9 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 	const isEmpty = !chatMessage.displayContent && !chatMessage.reasoning
 	if (isEmpty) return null
 
+	// Get full message content for copy button
+	const fullMessageContent = chatMessage.displayContent || ''
+
 	return <>
 		{/* reasoning token */}
 		{hasReasoning &&
@@ -1841,7 +1844,7 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 
 		{/* assistant message */}
 		{chatMessage.displayContent &&
-			<div className={`${isCheckpointGhost ? 'opacity-50' : ''}`}>
+			<div className={`${isCheckpointGhost ? 'opacity-50' : ''} group relative mb-4`}>
 				<ProseWrapper>
 					<ChatMarkdownRender
 						string={chatMessage.displayContent || ''}
@@ -1850,6 +1853,16 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 						isLinkDetectionEnabled={true}
 					/>
 				</ProseWrapper>
+
+				{/* Copy button - shows on hover after message is finished, positioned at bottom right */}
+				{isCommitted && (
+					<div className="absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-200 z-10">
+						<CopyButton
+							codeStr={fullMessageContent}
+							toolTipName='Copy message'
+						/>
+					</div>
+				)}
 			</div>
 		}
 	</>

@@ -2,7 +2,62 @@
 
 ## Current Work Focus
 
-### 🎯 **LATEST FIX - Windows Installation Icon & Edlide Provider API Key Issues (2025-01-20)**
+### 🎯 **LATEST FEATURE - AI Message Copy Button (2025-01-21)**
+
+**✅ NEW FEATURE ADDED - Copy Button for AI Messages:**
+
+**Feature Implementation:**
+- **Issue**: Users couldn't easily copy AI assistant messages from the chat interface
+- **Solution**: Added a floating copy button that appears at the bottom-right of each completed AI message
+- **Behavior**: Button only appears after the message is fully generated and shows on hover
+- **Impact**: Users can now copy entire AI message content with a single click
+
+**🏗️ TECHNICAL IMPLEMENTATION:**
+
+**AssistantMessageComponent Enhancement:**
+```typescript
+// src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx
+
+// Added message content extraction for copy functionality
+const fullMessageContent = chatMessage.displayContent || ''
+
+// Copy button positioned at bottom-right of message
+{isCommitted && (
+  <div className="absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-200 z-10">
+    <CopyButton
+      codeStr={fullMessageContent}
+      toolTipName='Copy message'
+    />
+  </div>
+)}
+```
+
+**Key Implementation Details:**
+- **Position**: `absolute -bottom-8 right-0` - 8 units below message, flush to right edge
+- **Visibility Control**: `opacity-0 group-hover:opacity-100 hover:opacity-100` - hidden by default, shows on hover
+- **Type Safety**: Button only rendered when `isCommitted === true` (message finished)
+- **Existing Component**: Reused `CopyButton` from `ApplyBlockHoverButtons.tsx`
+- **Smooth Animation**: `transition-opacity duration-200` for smooth fade-in/out
+- **Z-Index**: `z-10` ensures button appears above all other content
+
+**User Experience:**
+- Button is unobtrusive - only appears when hovering over a completed message
+- Copy button shows in bottom-right corner, easily accessible
+- After clicking, button shows "✓" icon for 1.5 seconds (built-in feedback)
+- Seamless integration with existing UI patterns
+
+**Files Modified:**
+- `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx` - Added copy button to AssistantMessageComponent
+
+**Build Status:**
+```bash
+✅ Build success in 2667ms
+✅ Build complete!
+```
+
+---
+
+### 🎯 **PREVIOUS FIX - Windows Installation Icon & Edlide Provider API Key Issues (2025-01-20)**
 
 **✅ WINDOWS-ONLY BUGS FIXED - Icon Issues and API Key Request:**
 
