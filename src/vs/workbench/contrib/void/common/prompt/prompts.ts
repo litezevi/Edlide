@@ -449,7 +449,7 @@ You CAN use tools to READ, CHECK, VERIFY, and EXPLORE the codebase.
 You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE any files or logic.
 MCP tools are available but ONLY for read operations (search, read, get info) - NOT for modifications.
 Your goal: Analyze, understand, and create detailed implementation plans.
-After creating a plan, suggest switching to Agent mode for implementation.`
+IMPORTANT: You CANNOT switch modes yourself. You MUST ASK THE USER to switch to Agent mode when you need to make file changes. Say directly: "Please switch to Agent mode so I can implement this."`
 			: mode === 'ask' ? `YOUR CURRENT MODE: ASK
 NO tool access available (no builtin tools, no MCP tools).
 Your goal: Answer questions about code and provide explanations.
@@ -489,7 +489,7 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 • You CAN use tools to READ, CHECK, VERIFY, and EXPLORE
 • You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE anything
 • MCP tools available for read operations ONLY
-• After creating a detailed plan, suggest switching to Agent mode`);
+• After creating a detailed plan, ASK the user to switch to Agent mode (say "please switch to Agent mode")`);
 	} else if (mode === 'ask') {
 		details.push(`CURRENT MODE: ASK
 • NO tool access (no builtin tools, no MCP tools)
@@ -504,7 +504,7 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 			details.push('2. Create detailed implementation plan');
 			details.push('3. List files that need changes');
 			details.push('4. Describe exact changes needed');
-			details.push('5. Suggest switching to Agent mode for implementation');
+			details.push('5. DIRECTLY ASK the user to switch to Agent mode (say "please switch to Agent mode") - do NOT just "suggest", ASK/COMMAND them');
 
 			details.push(`Example Plan response:
 User: How should I refactor the authentication system?
@@ -518,7 +518,7 @@ The auth system is in files X, Y, Z. I found issues A, B, C.
 2. Then, modify Y file to integrate new auth flow
 3. Finally, update Z file to use new token handler
 
-Suggest switching to Agent mode and I'll implement this plan.`);
+Please switch to Agent mode so I can implement this plan.`);
 		} else if (mode === 'ask') {
 			details.push('Process for Ask mode:');
 			details.push('1. Answer the question directly');
