@@ -710,14 +710,14 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 
 
 const nameOfChatMode = {
-	'normal': 'Minimal',
-	'gather': 'Ask',
+	'ask': 'Ask',
+	'plan': 'Plan',
 	'agent': 'Agent',
 }
 
 const detailOfChatMode = {
-	'normal': 'Can only chat',
-	'gather': 'Reads files, but can\'t edit',
+	'ask': 'Answers only',
+	'plan': 'Plans with tools, no editing',
 	'agent': 'Edits files and uses tools',
 }
 
@@ -728,7 +728,7 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 	const voidSettingsService = accessor.get('IVoidSettingsService')
 	const settingsState = useSettingsState()
 
-	const options: ChatMode[] = useMemo(() => ['normal', 'gather', 'agent'], [])
+	const options: ChatMode[] = useMemo(() => ['ask', 'plan', 'agent'], [])
 
 	const onChangeOption = useCallback((newVal: ChatMode) => {
 		voidSettingsService.setGlobalSetting('chatMode', newVal)

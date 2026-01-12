@@ -96,20 +96,6 @@ RULES: Always inspect before creating. Always read before editing. Always make o
 // ======================================================== tools ========================================================
 
 
-const chatSuggestionDiffExample = `\
-${tripleTick[0]}typescript
-/Users/username/Dekstop/my_project/app.ts
-// ... existing code ...
-// {{change 1}}
-// ... existing code ...
-// {{change 2}}
-// ... existing code ...
-// {{change 3}}
-// ... existing code ...
-${tripleTick[1]}`
-
-
-
 export type InternalToolInfo = {
 	name: string,
 	description: string,
@@ -331,13 +317,13 @@ export const isABuiltinToolName = (toolName: string): toolName is BuiltinToolNam
 
 export const availableTools = (chatMode: ChatMode | null, mcpTools: InternalToolInfo[] | undefined) => {
 
-	const builtinToolNames: BuiltinToolName[] | undefined = chatMode === 'normal' ? undefined
-		: chatMode === 'gather' ? (Object.keys(builtinTools) as BuiltinToolName[]).filter(toolName => !(toolName in approvalTypeOfBuiltinToolName))
+	const builtinToolNames: BuiltinToolName[] | undefined = chatMode === 'ask' ? undefined
+		: chatMode === 'plan' ? (Object.keys(builtinTools) as BuiltinToolName[]).filter(toolName => !(toolName in approvalTypeOfBuiltinToolName))
 			: chatMode === 'agent' ? Object.keys(builtinTools) as BuiltinToolName[]
 				: undefined
 
 	const effectiveBuiltinTools = builtinToolNames?.map(toolName => builtinTools[toolName]) ?? undefined
-	const effectiveMCPTools = chatMode === 'agent' ? mcpTools : undefined
+	const effectiveMCPTools = (chatMode === 'agent' || chatMode === 'plan') ? mcpTools : undefined
 
 	const tools: InternalToolInfo[] | undefined = !(builtinToolNames || mcpTools) ? undefined
 		: [
@@ -458,8 +444,8 @@ export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, pe
 export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
 	const header = `You are an expert coding assistant helping with programming tasks.
 
-${mode === 'gather' ? 'Your role: Understand requests, gather information, and create clear plans. Outline steps before proceeding.'
-			: mode === 'normal' ? 'Your role: Assist with coding tasks using available tools.'
+${mode === 'plan' ? 'Your role: Understand requests, gather information, and create clear plans. Use tools to read files and explore the codebase. DO NOT edit or create any files. After creating a detailed plan, suggest switching to Agent mode for implementation.'
+			: mode === 'ask' ? 'Your role: Answer questions about code. No tool access available.'
 				: 'Your role: Autonomous coding agent that completes tasks independently.'}
 
 You may receive selected files (SELECTIONS) for context. Assist the user with their query.`;
@@ -485,10 +471,10 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 	details.push('• ALWAYS inspect directories before creating files');
 	details.push('• If file missing: create first, then edit');
 
-	if (mode === 'gather') {
-		details.push('In gather mode: Create files and edit as needed. Be proactive with file operations. Use Tools step-by-step. Analyze codebase starting with directory structure, then key files.');
-	} else if (mode === 'normal') {
-		details.push('In normal mode: Can ask users for context by having them reference files with @ symbol.');
+	if (mode === 'plan') {
+		details.push('In plan mode: READ-ONLY - Use tools to explore codebase, understand structure, and create detailed plans. DO NOT create or edit files. After creating a plan, suggest switching to Agent mode for implementation.');
+	} else if (mode === 'ask') {
+		details.push('In ask mode: ANSWER ONLY - No tool access available. Can only provide explanations and answer questions about code.');
 	}
 
 	if (mode !== 'agent') {
@@ -506,11 +492,8 @@ Starting with lint command:
 (run_command: npm run lint)`;
 		details.push(example);
 
-		if (mode === 'gather' || mode === 'normal') {
-			details.push(`For file edits, use code blocks with format:
-${chatSuggestionDiffExample}
-
-The system handles formatting differences automatically with intelligent matching.`);
+		if (mode === 'plan') {
+			details.push(`IMPORTANT: Since you are in plan mode, focus on ANALYSIS and PLANNING. Use tools to read and explore, but DO NOT edit files. Describe what changes should be made and suggest switching to Agent mode for implementation.`);
 		}
 	}
 
