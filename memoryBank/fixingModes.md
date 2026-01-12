@@ -1,5 +1,130 @@
 # Chat Modes Refactoring
 
+## Changes Made (2025-01-13)
+
+### Summary
+Enhanced system prompts for clearer mode awareness and stricter tool restrictions in Plan and Ask modes.
+
+### Changes to prompts.ts - System Message Header
+**Path**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+**Lines**: 445-458
+
+**ENHANCED HEADER:**
+```typescript
+${mode === 'plan' ? `YOUR CURRENT MODE: PLAN
+You CAN use tools to READ, CHECK, VERIFY, and EXPLORE the codebase.
+You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE any files or logic.
+MCP tools are available but ONLY for read operations (search, read, get info) - NOT for modifications.
+Your goal: Analyze, understand, and create detailed implementation plans.
+After creating a plan, suggest switching to Agent mode for implementation.`
+: mode === 'ask' ? `YOUR CURRENT MODE: ASK
+NO tool access available (no builtin tools, no MCP tools).
+Your goal: Answer questions about code and provide explanations.
+Available modes:
+- ASK: Answer questions only (no tools)
+- PLAN: Read/analyze codebase, create plans (has read tools)
+- AGENT: Full tool access (read, edit, create files)`
+: 'Your role: Autonomous coding agent that completes tasks independently.'}
+```
+
+### Changes to prompts.ts - Mode Details Section
+**Path**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+**Lines**: 469-525
+
+**KEY CHANGES:**
+
+1. **File Operations Rules** - Now only shown for Agent mode:
+```typescript
+// BEFORE
+details.push('File Operations:');
+details.push('• Folders end with "/" (/path/folder/)');
+// ... (shown for all modes)
+
+// AFTER
+if (mode === 'agent') {
+  details.push('File Operations:');
+  details.push('• Folders end with "/" (/path/folder/)');
+  // ... (only shown for agent)
+}
+```
+
+2. **Plan Mode Details** - Enhanced with explicit restrictions:
+```typescript
+if (mode === 'plan') {
+  details.push(`CURRENT MODE: PLAN
+• You CAN use tools to READ, CHECK, VERIFY, and EXPLORE
+• You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE anything
+• MCP tools available for read operations ONLY
+• After creating a detailed plan, suggest switching to Agent mode`);
+}
+```
+
+3. **Ask Mode Details** - Added mode awareness:
+```typescript
+else if (mode === 'ask') {
+  details.push(`CURRENT MODE: ASK
+• NO tool access (no builtin tools, no MCP tools)
+• Answer questions and provide explanations only
+• If user asks to read/edit files, explain you cannot do that`);
+}
+```
+
+4. **Process Instructions** - Rewrote for each mode:
+
+**Plan Mode Process:**
+```typescript
+details.push('Process for Plan mode:');
+details.push('1. READ and ANALYZE codebase using tools');
+details.push('2. Create detailed implementation plan');
+details.push('3. List files that need changes');
+details.push('4. Describe exact changes needed');
+details.push('5. Suggest switching to Agent mode for implementation');
+
+// With example response format
+details.push(`Example Plan response:
+User: How should I refactor the authentication system?
+AI: Here's my analysis and plan...
+
+## Current State
+The auth system is in files X, Y, Z. I found issues A, B, C.
+
+## Implementation Plan
+1. First, update X file to add new validation
+2. Then, modify Y file to integrate new auth flow
+3. Finally, update Z file to use new token handler
+
+Suggest switching to Agent mode and I'll implement this plan.`);
+```
+
+**Ask Mode Process:**
+```typescript
+details.push('Process for Ask mode:');
+details.push('1. Answer the question directly');
+details.push('2. Provide code examples if helpful');
+details.push('3. Explain concepts clearly');
+details.push('4. If asked to use tools, explain you cannot access them');
+```
+
+## Mode Behavior Summary (Updated)
+
+| Mode | Builtin Tools | MCP Tools | File Editing | Description |
+|------|--------------|-----------|--------------|-------------|
+| **ask** | None | None | No | Answers only, no tools. Knows about PLAN and AGENT modes. |
+| **plan** | Read-only (no approval tools) | Yes (read-only) | No | Read files, use MCP for analysis ONLY, create plans, suggest Agent mode. |
+| **agent** | All (including approval) | Yes | Yes | Full access to all tools and file editing. |
+
+## Key Changes
+
+1. **Explicit Mode Notification**: Each mode now starts with "YOUR CURRENT MODE: [MODE]" for immediate awareness.
+
+2. **Plan Mode MCP Restrictions**: MCP tools are available but ONLY for read operations. The prompt explicitly states "NOT for modifications".
+
+3. **Ask Mode Awareness**: Added information about all available modes so AI knows PLAN mode exists for reading/analyzing.
+
+4. **Removed Irrelevant Instructions**: File operation rules no longer shown to non-agent modes.
+
+5. **Process Clarity**: Each mode now has specific step-by-step process instructions relevant to its capabilities.
+
 ## Changes Made (2025-01-12)
 
 ### Summary

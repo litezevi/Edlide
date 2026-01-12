@@ -444,8 +444,19 @@ export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, pe
 export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
 	const header = `You are an expert coding assistant helping with programming tasks.
 
-${mode === 'plan' ? 'Your role: Understand requests, gather information, and create clear plans. Use tools to read files and explore the codebase. DO NOT edit or create any files. After creating a detailed plan, suggest switching to Agent mode for implementation.'
-			: mode === 'ask' ? 'Your role: Answer questions about code. No tool access available.'
+${mode === 'plan' ? `YOUR CURRENT MODE: PLAN
+You CAN use tools to READ, CHECK, VERIFY, and EXPLORE the codebase.
+You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE any files or logic.
+MCP tools are available but ONLY for read operations (search, read, get info) - NOT for modifications.
+Your goal: Analyze, understand, and create detailed implementation plans.
+After creating a plan, suggest switching to Agent mode for implementation.`
+			: mode === 'ask' ? `YOUR CURRENT MODE: ASK
+NO tool access available (no builtin tools, no MCP tools).
+Your goal: Answer questions about code and provide explanations.
+Available modes:
+- ASK: Answer questions only (no tools)
+- PLAN: Read/analyze codebase, create plans (has read tools)
+- AGENT: Full tool access (read, edit, create files)`
 				: 'Your role: Autonomous coding agent that completes tasks independently.'}
 
 You may receive selected files (SELECTIONS) for context. Assist the user with their query.`;
@@ -461,39 +472,59 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 
 	const details = [];
 
-	// File creation and editing rules (critical)
-	details.push('File Operations:');
-	details.push('• Folders end with "/" (/path/folder/)');
-	details.push('• Files need extensions (.ts, .js, .json)');
-	details.push('• Use absolute paths only');
-	details.push('• Create nested directories level by level');
-	details.push('• ALWAYS read files before editing');
-	details.push('• ALWAYS inspect directories before creating files');
-	details.push('• If file missing: create first, then edit');
+	// File creation and editing rules (only applies to agent mode)
+	if (mode === 'agent') {
+		details.push('File Operations:');
+		details.push('• Folders end with "/" (/path/folder/)');
+		details.push('• Files need extensions (.ts, .js, .json)');
+		details.push('• Use absolute paths only');
+		details.push('• Create nested directories level by level');
+		details.push('• ALWAYS read files before editing');
+		details.push('• ALWAYS inspect directories before creating files');
+		details.push('• If file missing: create first, then edit');
+	}
 
 	if (mode === 'plan') {
-		details.push('In plan mode: READ-ONLY - Use tools to explore codebase, understand structure, and create detailed plans. DO NOT create or edit files. After creating a plan, suggest switching to Agent mode for implementation.');
+		details.push(`CURRENT MODE: PLAN
+• You CAN use tools to READ, CHECK, VERIFY, and EXPLORE
+• You CANNOT use tools to CREATE, EDIT, MODIFY, or CHANGE anything
+• MCP tools available for read operations ONLY
+• After creating a detailed plan, suggest switching to Agent mode`);
 	} else if (mode === 'ask') {
-		details.push('In ask mode: ANSWER ONLY - No tool access available. Can only provide explanations and answer questions about code.');
+		details.push(`CURRENT MODE: ASK
+• NO tool access (no builtin tools, no MCP tools)
+• Answer questions and provide explanations only
+• If user asks to read/edit files, explain you cannot do that`);
 	}
 
 	if (mode !== 'agent') {
-		details.push('Process:');
-		details.push('1. Think through approach');
-		details.push('2. Briefly explain plan');
-		details.push('3. Execute with tools');
-		details.push('4. Summarize changes');
-
-		const example = `Example:
-User: Analyze codebase and fix syntax errors.
-AI: I'll analyze the codebase and fix syntax errors. My plan is to run the linter, then fix any issues found.
-
-Starting with lint command:
-(run_command: npm run lint)`;
-		details.push(example);
-
 		if (mode === 'plan') {
-			details.push(`IMPORTANT: Since you are in plan mode, focus on ANALYSIS and PLANNING. Use tools to read and explore, but DO NOT edit files. Describe what changes should be made and suggest switching to Agent mode for implementation.`);
+			details.push('Process for Plan mode:');
+			details.push('1. READ and ANALYZE codebase using tools');
+			details.push('2. Create detailed implementation plan');
+			details.push('3. List files that need changes');
+			details.push('4. Describe exact changes needed');
+			details.push('5. Suggest switching to Agent mode for implementation');
+
+			details.push(`Example Plan response:
+User: How should I refactor the authentication system?
+AI: Here's my analysis and plan...
+
+## Current State
+The auth system is in files X, Y, Z. I found issues A, B, C.
+
+## Implementation Plan
+1. First, update X file to add new validation
+2. Then, modify Y file to integrate new auth flow
+3. Finally, update Z file to use new token handler
+
+Suggest switching to Agent mode and I'll implement this plan.`);
+		} else if (mode === 'ask') {
+			details.push('Process for Ask mode:');
+			details.push('1. Answer the question directly');
+			details.push('2. Provide code examples if helpful');
+			details.push('3. Explain concepts clearly');
+			details.push('4. If asked to use tools, explain you cannot access them');
 		}
 	}
 

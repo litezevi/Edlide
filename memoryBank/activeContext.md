@@ -2,6 +2,39 @@
 
 ## Current Work Focus
 
+### 🎯 **LATEST - Enhanced System Prompts for Chat Modes (2025-01-13)**
+
+**✅ ENHANCED MODE AWARENESS AND TOOL RESTRICTIONS:**
+
+**Changes to prompts.ts:**
+
+1. **Explicit Mode Notification** - Each mode now starts with clear "YOUR CURRENT MODE: [MODE]" label
+
+2. **Plan Mode Restrictions**:
+   - MCP tools available ONLY for read operations (search, read, get info)
+   - Explicitly states "NOT for modifications"
+   - Clear distinction: CAN read/check/verify, CANNOT create/edit/modify
+
+3. **Ask Mode Awareness** - Added information about all modes:
+   ```
+   Available modes:
+   - ASK: Answer questions only (no tools)
+   - PLAN: Read/analyze codebase, create plans (has read tools)
+   - AGENT: Full tool access (read, edit, create files)
+   ```
+
+4. **Removed Irrelevant Instructions** - File operation rules now only shown for Agent mode
+
+5. **Mode-Specific Process Instructions**:
+   - **Plan mode**: 5-step process with example plan response format
+   - **Ask mode**: 4-step process for answering questions
+
+**File Modified**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+**Status: PROMPTS ENHANCED** ✅
+
+---
+
 ### 🎯 **LATEST FIX - Windows Installation Icon & Edlide Provider API Key Issues (2025-01-20)**
 
 **✅ WINDOWS-ONLY BUGS FIXED - Icon Issues and API Key Request:**
