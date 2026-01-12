@@ -30,7 +30,7 @@ import { IEditCodeService } from './editCodeServiceInterface.js';
 import { VoidFileSnapshot } from '../common/editCodeServiceTypes.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { truncate } from '../../../../base/common/strings.js';
-import { THREAD_STORAGE_KEY } from '../common/storageKeys.js';
+import { getThreadStorageKey } from '../common/storageKeys.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
 import { timeout } from '../../../../base/common/async.js';
 import { deepClone } from '../../../../base/common/objects.js';
@@ -114,27 +114,28 @@ type WhenMounted = {
 
 
 export type ThreadType = {
-	id: string; // store the id here too
-	createdAt: string; // ISO string
-	lastModified: string; // ISO string
+	id: string;
+	createdAt: string;
+	lastModified: string;
+
+	workspaceId: string; // workspace this thread belongs to
 
 	messages: ChatMessage[];
 	filesWithUserChanges: Set<string>;
 
-	// this doesn't need to go in a state object, but feels right
 	state: {
-		currCheckpointIdx: number | null; // the latest checkpoint we're at (null if not at a particular checkpoint, like if the chat is streaming, or chat just finished and we haven't clicked on a checkpt)
+		currCheckpointIdx: number | null;
 
 		stagingSelections: StagingSelectionItem[];
-		focusedMessageIdx: number | undefined; // index of the user message that is being edited (undefined if none)
+		focusedMessageIdx: number | undefined;
 
-		linksOfMessageIdx: { // eg. link = linksOfMessageIdx[4]['RangeFunction']
+		linksOfMessageIdx: {
 			[messageIdx: number]: {
 				[codespanName: string]: CodespanLocationLink
 			}
 		}
 
-		isCompacted?: boolean; // indicates if this thread was compacted and a new thread was created with summary
+		isCompacted?: boolean;
 
 		mountedInfo?: {
 			whenMounted: Promise<WhenMounted>
@@ -209,12 +210,13 @@ export type ThreadStreamState = {
 	}
 }
 
-const newThreadObject = () => {
+const newThreadObject = (workspaceId: string) => {
 	const now = new Date().toISOString()
 	return {
 		id: generateUuid(),
 		createdAt: now,
 		lastModified: now,
+		workspaceId,
 		messages: [],
 		state: {
 			currCheckpointIdx: null,
@@ -350,6 +352,13 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 		// always be in a thread
 		this.openNewThread()
 
+		// Listen for workspace changes to reload threads for the new workspace
+		this._register(
+			this._workspaceContextService.onDidChangeWorkbenchState(() => {
+				this._reloadThreadsForCurrentWorkspace();
+			})
+		);
+
 
 		// keep track of user-modified files
 		// const disposablesOfModelId: { [modelId: string]: IDisposable[] } = {}
@@ -366,6 +375,28 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 		// 	disposablesOfModelId[e.id].forEach(d => d.dispose())
 		// }))
 
+	}
+
+	private _reloadThreadsForCurrentWorkspace() {
+		const readThreads = this._readAllThreads() || {};
+		const allThreads = readThreads;
+
+		// If no threads exist for this workspace, create a new one
+		if (Object.keys(allThreads).length === 0) {
+			this.state = {
+				allThreads: {},
+				currentThreadId: null as unknown as string,
+			};
+			this.openNewThread();
+		} else {
+			// Switch to the first available thread
+			const firstThreadId = Object.keys(allThreads)[0];
+			this.state = {
+				allThreads,
+				currentThreadId: firstThreadId,
+			};
+			this._onDidChangeCurrentThread.fire();
+		}
 	}
 
 	async focusCurrentChat() {
@@ -410,20 +441,51 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 		});
 	}
 
+	private _getCurrentWorkspaceId(): string {
+		return this._workspaceContextService.getWorkspace().id;
+	}
+
 	private _readAllThreads(): ChatThreads | null {
-		const threadsStr = this._storageService.get(THREAD_STORAGE_KEY, StorageScope.APPLICATION);
+		const storageKey = getThreadStorageKey(this._getCurrentWorkspaceId());
+		const threadsStr = this._storageService.get(storageKey, StorageScope.APPLICATION);
 		if (!threadsStr) {
 			return null
 		}
 		const threads = this._convertThreadDataFromStorage(threadsStr);
 
-		return threads
+		const workspaceId = this._getCurrentWorkspaceId();
+		const filteredThreads: ChatThreads = {};
+		let hasMigrated = false;
+
+		for (const threadId in threads) {
+			const thread = threads[threadId];
+			if (!thread) continue;
+
+			// Migrate threads without workspaceId to current workspace
+			if (!thread.workspaceId) {
+				thread.workspaceId = workspaceId;
+				hasMigrated = true;
+			}
+
+			// Only include threads belonging to current workspace
+			if (thread.workspaceId === workspaceId) {
+				filteredThreads[threadId] = thread;
+			}
+		}
+
+		// If we migrated any threads, save them
+		if (hasMigrated) {
+			this._storeAllThreads(filteredThreads);
+		}
+
+		return filteredThreads;
 	}
 
 	private _storeAllThreads(threads: ChatThreads) {
+		const storageKey = getThreadStorageKey(this._getCurrentWorkspaceId());
 		const serializedThreads = JSON.stringify(threads);
 		this._storageService.store(
-			THREAD_STORAGE_KEY,
+			storageKey,
 			serializedThreads,
 			StorageScope.APPLICATION,
 			StorageTarget.USER
@@ -1721,17 +1783,22 @@ We only need to do it for files that were edited since `from`, ie files between 
 			return;
 		}
 
-		// if a thread with 0 messages already exists, switch to it
+		// Get current workspace ID
+		const workspace = this._workspaceContextService.getWorkspace();
+		const workspaceId = workspace.id;
+
+		// if a thread with 0 messages already exists for this workspace, switch to it
 		const { allThreads: currentThreads } = this.state
 		for (const threadId in currentThreads) {
-			if (currentThreads[threadId]!.messages.length === 0) {
-				// switch to the existing empty thread and exit
-				this.switchToThread(threadId)
-				return
+			const thread = currentThreads[threadId];
+			if (thread && thread.workspaceId === workspaceId && thread.messages.length === 0) {
+				this.switchToThread(threadId);
+				return;
 			}
 		}
+
 		// otherwise, start a new thread
-		const newThread = newThreadObject()
+		const newThread = newThreadObject(workspaceId);
 
 		// update state
 		const newThreads: ChatThreads = {
@@ -1759,9 +1826,11 @@ We only need to do it for files that were edited since `from`, ie files between 
 		const { allThreads: currentThreads } = this.state
 		const threadToDuplicate = currentThreads[threadId]
 		if (!threadToDuplicate) return
+		const workspaceId = this._getCurrentWorkspaceId();
 		const newThread = {
 			...deepClone(threadToDuplicate),
 			id: generateUuid(),
+			workspaceId,
 		}
 		const newThreads = {
 			...currentThreads,

@@ -19,5 +19,9 @@ export const VOID_SETTINGS_STORAGE_KEY = 'void.settingsServiceStorageII'
 export const THREAD_STORAGE_KEY = 'void.chatThreadStorageII'
 
 
+export function getThreadStorageKey(workspaceId: string): string {
+	return `${THREAD_STORAGE_KEY}.${workspaceId}`
+}
+
 
 export const OPT_OUT_KEY = 'void.app.optOutAll'
