@@ -38,6 +38,6 @@
 	},
 	"builtInExtensions": [],
 	"linkProtectionTrustedDomains": [
-		"http://localhost:3000"
+		"https://edlide.com"
 	]
 }
