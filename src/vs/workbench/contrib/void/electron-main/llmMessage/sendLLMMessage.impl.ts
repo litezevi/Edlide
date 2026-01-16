@@ -176,7 +176,7 @@ const newOpenAICompatibleSDK = async ({ settingsOfProvider, providerName, includ
 
 		// Use Vercel backend with user's Supabase access token
 		return new OpenAI({
-			baseURL: 'https://edlide.com/api/ai-proxy',
+			baseURL: 'http://localhost:3000/api/ai-proxy',
 			apiKey: supabaseAccessToken,
 			defaultHeaders: {
 				'Authorization': `Bearer ${supabaseAccessToken}`,

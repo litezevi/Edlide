@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         data: {
           full_name: fullName,
         },
-        emailRedirectTo: `${process.env.NEXTAUTH_URL || 'https://edlide.com'}/account`,
+        emailRedirectTo: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/account`,
       },
     })
 

@@ -148,7 +148,7 @@ Security:
 - **API Routes**: `/api/auth/signup`, `/api/auth/signin`, `/api/auth/refresh`
 - **Google OAuth Redirect URIs**:
   - Local: `http://localhost:3000/auth/v1/callback`
-  - Production: `https://edlide.com/auth/v1/callback`
+  - Production: `http://localhost:3000/auth/v1/callback`
 
 #### Secondary: Chutes OAuth Integration (LINKED to Supabase)
 - **Provider**: Chutes.ai Identity Provider
@@ -325,7 +325,7 @@ Security:
 1. User clicks "Continue with Google" on Sign In or Sign Up page
 2. Redirect to `https://kvftejfolyrfdxppbcqk.supabase.co/auth/v1/authorize?provider=google`
 3. User authenticates with Google
-4. Google redirects to `http://localhost:3000/auth/v1/callback` or `https://edlide.com/auth/v1/callback`
+4. Google redirects to `http://localhost:3000/auth/v1/callback` or `http://localhost:3000/auth/v1/callback`
 5. Supabase creates session + user account automatically
 6. Redirects to `/account` with session active
 7. Google user metadata (name, avatar) stored in `auth.users.user_metadata`

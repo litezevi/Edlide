@@ -6,8 +6,8 @@
 
 ## Token Encryption Implementation
 
-**Last performed:** Dec 25, 2025  
-**Complexity:** High  
+**Last performed:** Dec 25, 2025
+**Complexity:** High
 **When needed:** Securing OAuth tokens in database storage
 
 **Files created/modified:**
@@ -158,8 +158,8 @@ UPDATE database with new encrypted data
 
 ## OAuth2 Authentication Implementation
 
-**Last performed:** Dec 23, 2025  
-**Complexity:** High  
+**Last performed:** Dec 23, 2025
+**Complexity:** High
 **When needed:** Setting up OAuth2 with Chutes.ai or similar providers
 
 **Files created/modified:**
@@ -181,10 +181,10 @@ curl -s -XPOST "https://api.chutes.ai/idp/apps" \
     "name": "Edlide Multi-Domain",
     "description": "Edlide IDE - Production + Local",
     "redirect_uris": [
-      "https://edlide.com/auth/chutes/callback",
+      "http://localhost:3000/auth/chutes/callback",
       "http://localhost:3000/auth/chutes/callback"
     ],
-    "homepage_url": "https://edlide.com",
+    "homepage_url": "http://localhost:3000",
     "allowed_scopes": ["openid", "profile", "chutes:invoke", "account:read"]
   }'
 ```
@@ -199,9 +199,9 @@ CHUTES_CLIENT_SECRET=csc_xxxxxxxxxxxxxxxxxxxx
 NEXTAUTH_URL=http://localhost:3000
 
 # Production (Vercel)
-NEXT_PUBLIC_CHUTES_CLIENT_ID=cid_xxxxxxxxxxxxxx  
+NEXT_PUBLIC_CHUTES_CLIENT_ID=cid_xxxxxxxxxxxxxx
 CHUTES_CLIENT_SECRET=csc_xxxxxxxxxxxxxxxxxxxx
-NEXTAUTH_URL=https://edlide.com
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 **Important Implementation Notes:**
@@ -230,8 +230,8 @@ NEXTAUTH_URL=https://edlide.com
 
 ## Color Scheme Implementation
 
-**Last performed:** Dec 21, 2024  
-**Complexity:** Medium  
+**Last performed:** Dec 21, 2024
+**Complexity:** Medium
 **When needed:** When launching new pages or adjusting design elements
 
 **Files to modify:**
@@ -254,8 +254,8 @@ NEXTAUTH_URL=https://edlide.com
 
 ## Navigation Layout Implementation
 
-**Last performed:** Dec 21, 2024  
-**Complexity:** Easy  
+**Last performed:** Dec 21, 2024
+**Complexity:** Easy
 **When needed:** Adjusting navbar layout or adding new items
 
 **Files to modify:**
@@ -279,8 +279,8 @@ NEXTAUTH_URL=https://edlide.com
 
 ## UI Component Creation Pattern
 
-**Last performed:** Dec 21, 2024  
-**Complexity:** Medium  
+**Last performed:** Dec 21, 2024
+**Complexity:** Medium
 **When needed:** Creating new reusable UI components
 
 **Files to modify:**
@@ -325,8 +325,8 @@ Button.displayName = "Button"
 
 ## Next.js App Router Page Structure
 
-**Last performed:** Dec 21, 2024  
-**Complexity:** Easy  
+**Last performed:** Dec 21, 2024
+**Complexity:** Easy
 **When needed:** Adding new pages or routes
 
 **Files to modify:**
@@ -353,8 +353,8 @@ Button.displayName = "Button"
 
 ## Tailwind Color Updates
 
-**Last performed:** Dec 21, 2024  
-**Complexity:** Easy  
+**Last performed:** Dec 21, 2024
+**Complexity:** Easy
 **When needed:** Adjusting colors or creating new variants
 
 **Files to modify:**

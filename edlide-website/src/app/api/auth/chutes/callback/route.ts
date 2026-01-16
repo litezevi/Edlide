@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 async function exchangeCodeForToken(code: string) {
   const clientId = process.env.NEXT_PUBLIC_CHUTES_CLIENT_ID
   const clientSecret = process.env.CHUTES_CLIENT_SECRET
-  const redirectUri = `${process.env.NEXTAUTH_URL || 'https://edlide.com'}/auth/chutes/callback`
+  const redirectUri = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/chutes/callback`
 
   const response = await fetch('https://api.chutes.ai/idp/token', {
     method: 'POST',

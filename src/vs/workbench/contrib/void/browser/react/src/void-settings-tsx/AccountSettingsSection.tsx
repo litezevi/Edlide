@@ -46,7 +46,7 @@ export const AccountSettingsSection = () => {
 			console.log('[AccountSettings] Starting connection with state_id:', stateId);
 
 			// Open browser with authorization URL
-			const ideConnectUrl = `https://edlide.com/ide-connect?state=${encodeURIComponent(stateId)}`;
+			const ideConnectUrl = `http://localhost:3000/ide-connect?state=${encodeURIComponent(stateId)}`;
 			console.log('[AccountSettings] Opening browser:', ideConnectUrl);
 			await openerService.open(URI.parse(ideConnectUrl), { openExternal: true });
 
@@ -59,7 +59,7 @@ export const AccountSettingsSection = () => {
 
 				try {
 					console.log(`[AccountSettings] Polling attempt ${attempts + 1}/60...`);
-					const response = await fetch(`https://edlide.com/api/ide/tokens?state=${encodeURIComponent(stateId)}`);
+					const response = await fetch(`http://localhost:3000/api/ide/tokens?state=${encodeURIComponent(stateId)}`);
 					console.log('[AccountSettings] Response status:', response.status);
 
 					const data = await response.json();

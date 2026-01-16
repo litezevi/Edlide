@@ -154,7 +154,7 @@ console.log('Auth URL:', auth.getAuthorizationUrl(state))
 # .env.local
 NEXT_PUBLIC_CHUTES_CLIENT_ID=chutes_prod_1234567890abcdef
 CHUTES_CLIENT_SECRET=chutes_secret_1234567890abcdef1234567890abcdef
-NEXTAUTH_URL=https://edlide.com
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 Make sure to replace the placeholder values with your actual credentials from the Chutes developer dashboard.
