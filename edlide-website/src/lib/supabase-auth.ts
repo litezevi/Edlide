@@ -1,6 +1,7 @@
 /**
  * Supabase Authentication Hook
  * Handles sign in, sign up, sign out, and session management
+ * Session persistence: 30 days
  */
 
 'use client'
@@ -26,7 +27,14 @@ function getSupabaseClient() {
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        storageKey: 'edlide-supabase-session',
+      }
+    })
   }
   return supabaseInstance
 }

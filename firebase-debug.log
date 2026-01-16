@@ -11513,3 +11513,439 @@
 [debug] [2026-01-16T21:42:24.765Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
 [debug] [2026-01-16T21:42:24.767Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
 [debug] [2026-01-16T21:42:24.767Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:46:50.698Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:46:50.699Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:46:50.700Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:50.700Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:50.700Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:46:50.700Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:46:50.700Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:50.700Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:50.701Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:46:50.719Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:46:51.355Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:46:51.355Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:46:51.359Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.359Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.359Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.359Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.365Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.365Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.365Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.365Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.365Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.365Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.366Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.366Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.366Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.366Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.367Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:46:51.367Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.543Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:46:51.543Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:46:51.543Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.543Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.543Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.543Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.545Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.545Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.545Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.545Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:51.545Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.545Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.545Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.545Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.546Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:46:51.546Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:51.546Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:46:51.546Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:46:52.514Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:46:52.514Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:46:52.614Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:46:52.614Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:46:52.623Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:46:52.623Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:46:52.635Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:46:52.635Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:46:52.638Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:46:52.638Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:46:52.638Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:52.638Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:46:52.638Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:46:53.072Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:46:53.073Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:46:53.075Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:46:53.076Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:46:53.132Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:46:53.132Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:46:53.363Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:46:53.363Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:46:53.364Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:46:53.364Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:46:53.432Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:46:53.432Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:44.455Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:48:44.457Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:48:44.463Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:44.464Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:44.464Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:48:44.464Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:48:44.464Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:44.464Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:44.465Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:48:44.487Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:48:44.998Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:48:44.998Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:48:45.007Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.007Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.007Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.007Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.017Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.018Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.018Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.018Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.018Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.018Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.019Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.019Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.020Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.020Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.021Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:48:45.021Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.426Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:48:45.427Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:48:45.427Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.427Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.428Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.428Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.430Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.430Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.430Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.430Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:45.430Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.430Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.431Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.431Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.431Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:48:45.431Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:45.432Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:48:45.432Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:48:46.024Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:48:46.024Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:48:46.140Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:48:46.140Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.141Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:48:46.141Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.160Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:48:46.161Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.427Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:48:46.427Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:48:46.534Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:48:46.534Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.540Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:48:46.540Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.540Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:48:46.540Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:48:46.542Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:48:46.542Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:48:46.542Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:46.542Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:48:46.542Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:48:46.815Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:48:46.815Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:48:46.816Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:48:46.816Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:49:26.161Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:49:26.162Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:49:26.163Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.163Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.163Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:49:26.163Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:49:26.163Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.163Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.164Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:49:26.187Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:49:26.727Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:49:26.728Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:49:26.731Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.731Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.731Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.731Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.738Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.738Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.738Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.738Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:26.738Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:49:26.738Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:26.739Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:49:26.739Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:26.740Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:49:26.740Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:26.740Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:49:26.740Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:27.159Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:49:27.159Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:49:27.160Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.160Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.160Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.160Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.161Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.161Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.161Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.161Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:27.161Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:49:27.161Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:27.162Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:49:27.162Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:27.163Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:49:27.163Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:27.163Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:49:27.163Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:49:27.733Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:49:27.733Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:49:27.852Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:49:27.852Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:27.862Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:49:27.862Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:27.864Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:49:27.864Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:28.180Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:49:28.180Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:49:28.288Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:49:28.289Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:28.289Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:49:28.289Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:28.308Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:49:28.308Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:49:28.310Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:49:28.310Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:49:28.310Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:28.310Z] Checked if tokens are valid: true, expires at: 1768601125957
+[debug] [2026-01-16T21:49:28.310Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:49:29.029Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:49:29.029Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:49:29.031Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:49:29.031Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:58:52.118Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:58:52.120Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:58:52.121Z] Checked if tokens are valid: false, expires at: 1768601125957
+[debug] [2026-01-16T21:58:52.121Z] Checked if tokens are valid: false, expires at: 1768601125957
+[debug] [2026-01-16T21:58:52.121Z] > refreshing access token with scopes: []
+[debug] [2026-01-16T21:58:52.122Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-01-16T21:58:52.122Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-16T21:58:52.150Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:58:52.150Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:58:52.150Z] Checked if tokens are valid: false, expires at: 1768601125957
+[debug] [2026-01-16T21:58:52.150Z] Checked if tokens are valid: false, expires at: 1768601125957
+[debug] [2026-01-16T21:58:52.150Z] > refreshing access token with scopes: []
+[debug] [2026-01-16T21:58:52.150Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-01-16T21:58:52.150Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-16T21:58:52.634Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-01-16T21:58:52.634Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-16T21:58:52.649Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:58:52.650Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-01-16T21:58:52.650Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-16T21:58:52.662Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:58:53.267Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:58:53.267Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:58:53.275Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.275Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.275Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.275Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.287Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.287Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.287Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.287Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.287Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.287Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.289Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.289Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.290Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.290Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.290Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:58:53.291Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.447Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:58:53.447Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:58:53.448Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.448Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.448Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.448Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.449Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.449Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.449Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.449Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:53.449Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.449Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.450Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.450Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.450Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T21:58:53.450Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:53.451Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T21:58:53.451Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T21:58:54.440Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:58:54.440Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:58:54.441Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T21:58:54.441Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T21:58:54.558Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:58:54.558Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.558Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T21:58:54.558Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.563Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:58:54.564Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.579Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:58:54.579Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.581Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T21:58:54.581Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.694Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T21:58:54.694Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T21:58:54.696Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:58:54.696Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T21:58:54.696Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:54.696Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T21:58:54.696Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T21:58:55.059Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T21:58:55.059Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T21:58:55.060Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T21:58:55.060Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:02:43.197Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:02:43.198Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:02:43.199Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:43.199Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:43.199Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:02:43.199Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:02:43.199Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:43.199Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:43.200Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:02:43.216Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:02:44.226Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:02:44.227Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:02:44.232Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.232Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.233Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.233Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.241Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.241Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.242Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.242Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.242Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.242Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.243Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T22:02:44.243Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.340Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:02:44.340Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:02:44.341Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.341Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.341Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.341Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.343Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.343Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.343Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.343Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:44.343Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.343Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.344Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.344Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.344Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T22:02:44.344Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:44.345Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T22:02:44.345Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:02:45.309Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T22:02:45.309Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T22:02:45.407Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T22:02:45.407Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T22:02:45.539Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T22:02:45.539Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:45.549Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T22:02:45.549Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:45.550Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T22:02:45.550Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:45.551Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T22:02:45.551Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:45.554Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T22:02:45.554Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:45.557Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:02:45.557Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:02:45.557Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:45.557Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:02:45.557Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:02:45.567Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T22:02:45.567Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T22:02:46.257Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:02:46.257Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:02:46.259Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:02:46.259Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:04:25.818Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:04:25.820Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:04:25.821Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:25.821Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:25.821Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:04:25.821Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:04:25.821Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:25.821Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:25.822Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:04:25.859Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:04:26.819Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:04:26.819Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:04:26.823Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.823Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.823Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.823Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.829Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.829Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.830Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.830Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:26.830Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T22:04:26.830Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:26.831Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T22:04:26.831Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:26.831Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T22:04:26.831Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:26.832Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T22:04:26.832Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:27.051Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:04:27.052Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:04:27.054Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.055Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.055Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.056Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.061Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.061Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.061Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.061Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:27.061Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [none]
+[debug] [2026-01-16T22:04:27.061Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:27.063Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-16T22:04:27.063Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:27.063Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-16T22:04:27.064Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:27.064Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [none]
+[debug] [2026-01-16T22:04:27.064Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com x-goog-quota-user=projects/dosewise-41849
+[debug] [2026-01-16T22:04:27.934Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T22:04:27.935Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T22:04:28.066Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com 403
+[debug] [2026-01-16T22:04:28.067Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseio.com [omitted]
+[debug] [2026-01-16T22:04:28.098Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T22:04:28.098Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.164Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T22:04:28.164Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.178Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T22:04:28.178Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.198Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-16T22:04:28.198Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.201Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-16T22:04:28.201Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.236Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com 200
+[debug] [2026-01-16T22:04:28.237Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dosewise-41849/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-16T22:04:28.240Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:04:28.240Z] > authorizing via signed-in user (litezevin@gmail.com)
+[debug] [2026-01-16T22:04:28.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:28.240Z] Checked if tokens are valid: true, expires at: 1768604331650
+[debug] [2026-01-16T22:04:28.240Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo [none]
+[debug] [2026-01-16T22:04:29.009Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo 200
+[debug] [2026-01-16T22:04:29.010Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/dosewise-41849/billingInfo {"name":"projects/dosewise-41849/billingInfo","projectId":"dosewise-41849","billingAccountName":"billingAccounts/01F023-5937B0-988C69","billingEnabled":true}
+[debug] [2026-01-16T22:04:29.011Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-16T22:04:29.011Z] > authorizing via signed-in user (litezevin@gmail.com)

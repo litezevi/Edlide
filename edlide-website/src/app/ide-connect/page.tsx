@@ -7,36 +7,106 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { SupabaseSignInForm } from '@/components/auth/supabase-signin-button'
 
+async function insertTokens(session: any, stateId: string | null) {
+  if (!stateId) {
+    console.error('[IDE Connect] ERROR: No state ID provided')
+    return false
+  }
+
+  if (!session?.access_token) {
+    console.error('[IDE Connect] ERROR: No access_token in session', session)
+    return false
+  }
+
+  const expiresAtDateTime = typeof session.expires_at === 'number'
+    ? new Date(session.expires_at * 1000).toISOString()
+    : session.expires_at
+
+  console.log('[IDE Connect] Inserting tokens for state:', stateId, {
+    user_id: session.user?.id,
+    user_email: session.user?.email,
+    expires_at: expiresAtDateTime
+  })
+
+  const { error } = await supabase.from('ide_pending_tokens').insert({
+    state_id: stateId,
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: expiresAtDateTime,
+    user_id: session.user?.id,
+    user_email: session.user?.email
+  })
+
+  if (error) {
+    console.error('[IDE Connect] ERROR inserting tokens:', JSON.stringify(error, null, 2))
+    console.error('[IDE Connect] Full error details:', error)
+    return false
+  }
+
+  console.log('[IDE Connect] Tokens inserted successfully for state:', stateId)
+  return true
+}
+
 export default function IDEConnectPage() {
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
   const [stateId, setStateId] = useState<string | null>(null)
+  const [inserted, setInserted] = useState(false)
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const state = urlParams.get('state')
     setStateId(state)
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('[IDE Connect] Initial session:', session ? 'found' : 'none')
       setSession(session)
       setLoading(false)
-    })
+
+      if (session && state) {
+        const success = await insertTokens(session, state)
+        if (success) {
+          setInserted(true)
+          setTimeout(() => window.close(), 500)
+        }
+      }
+    }
+
+    initAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        console.log('[IDE Connect] Auth state changed:', event, session ? 'has session' : 'no session')
+        if (event === 'SIGNED_IN' && session && stateId && !inserted) {
           setSession(session)
+          const success = await insertTokens(session, stateId)
+          if (success) {
+            setInserted(true)
+            setTimeout(() => window.close(), 500)
+          }
         }
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [stateId, inserted])
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
         <LoadingSpinner />
+      </div>
+    )
+  }
+
+  if (inserted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
+        <Card className="p-8 max-w-md w-full text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Connected Successfully!</h1>
+          <p className="text-gray-400">You can close this window.</p>
+        </Card>
       </div>
     )
   }
@@ -66,19 +136,11 @@ export default function IDEConnectPage() {
         <p className="text-gray-400 mb-6">{session.user?.email}</p>
         <Button
           onClick={async () => {
-            const expiresAtDateTime = typeof session.expires_at === 'number'
-              ? new Date(session.expires_at * 1000).toISOString()
-              : session.expires_at
-
-            await supabase.from('ide_pending_tokens').insert({
-              state_id: stateId,
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-              expires_at: expiresAtDateTime,
-              user_id: session.user?.id,
-              user_email: session.user?.email
-            })
-            window.close()
+            const success = await insertTokens(session, stateId)
+            if (success) {
+              setInserted(true)
+              setTimeout(() => window.close(), 500)
+            }
           }}
           className="w-full"
         >
