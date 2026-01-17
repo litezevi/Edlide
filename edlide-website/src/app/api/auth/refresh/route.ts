@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const { data: sessionData, error: sessionError } = await adminSupabase
       .from('user_sessions')
-      .select('refresh_token, expires_at')
+      .select('refresh_token, expires_at, user_email')
       .eq('user_id', user_id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -137,7 +137,8 @@ export async function POST(request: NextRequest) {
         access_token: newTokens.access_token,
         refresh_token: newTokens.refresh_token,
         expires_at: newExpiresAt,
-        user_id: user_id
+        user_id: user_id,
+        user_email: sessionData?.user_email || null
       }
     }))
 

@@ -48,6 +48,7 @@ async function insertTokens(session: any, stateId: string | null) {
   const expiresAt = new Date(Date.now() + (session.expires_in || 3600) * 1000).toISOString()
   const { error: sessionError } = await supabase.from('user_sessions').insert({
     user_id: session.user?.id,
+    user_email: session.user?.email,
     access_token: session.access_token,
     refresh_token: session.refresh_token,
     expires_at: expiresAt,

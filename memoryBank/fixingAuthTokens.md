@@ -72,6 +72,7 @@ async function insertTokens(session: any, stateId: string | null) {
   const expiresAt = new Date(Date.now() + (session.expires_in || 3600) * 1000).toISOString()
   await supabase.from('user_sessions').insert({
     user_id: session.user?.id,
+    user_email: session.user?.email,  -- ← Added to show "Connected as {email}"
     access_token: session.access_token,
     refresh_token: session.refresh_token,
     expires_at: expiresAt,
@@ -110,7 +111,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 ---
 
-### 4. Database: user_sessions Table (January 17, 2026)
+### 4. Database: user_sessions Table (January 17, 2026, Updated: January 18, 2026)
 
 **New table for persistent session management**:
 
@@ -118,6 +119,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 CREATE TABLE IF NOT EXISTS public.user_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL,
+  user_email TEXT,  -- ← Added for "Connected as email" display
   access_token TEXT NOT NULL,
   refresh_token TEXT NOT NULL,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -159,6 +161,23 @@ WITH CHECK (auth.uid()::text = user_id);
 ```
 
 **Purpose**: Stores active sessions for token refresh. `refresh_token` is NEVER exposed to IDE.
+
+**Why `user_email` is needed**:
+- Display "Connected as {email}" in IDE settings
+- Previously sessions were created without email, causing "Connected as Unknown"
+- Fix: Always save `user_email` when creating new session
+
+**Migration applied** (January 18, 2026):
+```sql
+ALTER TABLE public.user_sessions ADD COLUMN IF NOT EXISTS user_email TEXT;
+
+-- Update existing sessions with email from auth.users
+UPDATE public.user_sessions us
+SET user_email = (
+  SELECT email FROM auth.users WHERE auth.users.id::TEXT = us.user_id
+)
+WHERE us.user_email IS NULL;
+```
 
 ---
 
