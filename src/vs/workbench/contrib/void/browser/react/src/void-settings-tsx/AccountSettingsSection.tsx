@@ -52,13 +52,13 @@ export const AccountSettingsSection = () => {
 
 			// Poll for tokens from website
 			const pollTokens = async (attempts = 0): Promise<boolean> => {
-				if (attempts >= 60) { // 2 minutes timeout
-					console.error('[AccountSettings] Timeout after 60 attempts');
+				if (attempts >= 10) { // 10 seconds timeout (10 attempts × 1 second)
+					console.error('[AccountSettings] Timeout after 10 attempts');
 					return false;
 				}
 
 				try {
-					console.log(`[AccountSettings] Polling attempt ${attempts + 1}/60...`);
+					console.log(`[AccountSettings] Polling attempt ${attempts + 1}/10...`);
 					const response = await fetch(`https://edlide.com/api/ide/tokens?state=${encodeURIComponent(stateId)}`);
 					console.log('[AccountSettings] Response status:', response.status);
 
@@ -79,9 +79,9 @@ export const AccountSettingsSection = () => {
 						return true;
 					}
 
-					// Tokens not ready yet, wait 2 seconds
-					console.log('[AccountSettings] Tokens not ready yet, waiting 2 seconds...');
-					await new Promise(resolve => setTimeout(resolve, 2000));
+					// Tokens not ready yet, wait 1 second
+					console.log('[AccountSettings] Tokens not ready yet, waiting 1 second...');
+					await new Promise(resolve => setTimeout(resolve, 1000));
 					return pollTokens(attempts + 1);
 				} catch (error) {
 					console.error('[AccountSettings] Error polling tokens:', error);
