@@ -2,6 +2,66 @@
 
 ## Current Work Focus
 
+### 🎯 **LATEST - Parent Folder Verification (2025-01-18)**
+
+**✅ FIXED - File appears in chat but doesn't exist on disk:**
+
+**Problem**: AI created files in non-existent folders - file showed in chat but not on disk.
+
+**Root Cause**: AI called `get_dir_tree` on parent but didn't check if target folder exists.
+
+**Solution**: Added parent folder verification step:
+
+**❌ WRONG - File in chat = FAKE, file on disk = MISSING:**
+```
+get_dir_tree on /project/src/ (doesn't show /components/)
+→ create_file_or_folder({ uri: "/project/src/components/Button/Button.tsx" })
+→ File in chat but NOT on disk!
+```
+
+**✅ CORRECT - File in chat = REAL, file on disk = EXISTS:**
+```
+get_dir_tree on /project/src/ → Check if /components/ exists
+→ If NO: create_file_or_folder({ uri: "/project/src/components/" })
+→ create_file_or_folder({ uri: "/project/src/components/Button/Button.tsx" })
+→ File actually exists!
+```
+
+**Changes to prompts.ts - 2 locations:**
+1. `toolCallXMLGuidelines` - FILE CREATION PROTOCOL: 7 steps with parent verification
+2. `agentSystemMessageText` - FILE CREATION section: 7 steps with parent verification
+
+**Files Modified**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+**Status: PARENT FOLDER VERIFICATION ADDED** ✅
+
+---
+
+### 🎯 **LATEST - edit_file vs rewrite_file Rule (2025-01-18)**
+
+**✅ FIXED - Critical edit tool selection:**
+
+**Problem**: AI kept planning to use `rewrite_file` for editing existing code.
+
+**Solution**: Added clear table and GOLDEN RULE:
+
+| Tool | When to Use | When NOT to Use |
+|------|-------------|-----------------|
+| **edit_file** | 99% of cases - edit ANY existing code | Creating new files |
+| **rewrite_file** | Only for new empty files | Editing existing files |
+
+**🚨 GOLDEN RULE: If file already exists → ALWAYS use edit_file!**
+
+**Changes to prompts.ts - 2 locations:**
+1. `createOpenCodeToolCalls_systemMessage` - Added table + examples
+2. `agentSystemMessageText` - Added same table in MODIFYING section
+
+**Files Modified**: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+**Status: EDIT TOOL SELECTION CLARIFIED** ✅
+
+---
+
 ### 🎯 **LATEST - Enhanced System Prompts for Chat Modes (2025-01-13)**
 
 **✅ ENHANCED MODE AWARENESS AND TOOL RESTRICTIONS:**

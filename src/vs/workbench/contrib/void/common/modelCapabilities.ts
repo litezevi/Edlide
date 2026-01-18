@@ -1132,7 +1132,7 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 const edlideModelOptions = {
 	'zai-org/GLM-4.6-TEE:THINKING': {
 		contextWindow: 202_752,
-		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
+		reservedOutputTokenSpace: 20_000, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1142,7 +1142,7 @@ const edlideModelOptions = {
 	},
 	'deepseek-ai/DeepSeek-V3.2': {
 		contextWindow: 163_840,
-		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 95% of context
+		reservedOutputTokenSpace: 16_000, // Reduced from 32768 to use 95% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1152,7 +1152,7 @@ const edlideModelOptions = {
 	},
 	'MiniMaxAI/MiniMax-M2:THINKING': {
 		contextWindow: 196_608,
-		reservedOutputTokenSpace: 8_192,
+		reservedOutputTokenSpace: 19_608,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1162,7 +1162,7 @@ const edlideModelOptions = {
 	},
 	'MiniMaxAI/MiniMax-M2.1-TEE': {
 		contextWindow: 196_608,
-		reservedOutputTokenSpace: 8_192,
+		reservedOutputTokenSpace: 19_608,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1183,7 +1183,7 @@ const edlideModelOptions = {
 	},
 	'zai-org/GLM-4.7-TEE:THINKING': {
 		contextWindow: 202_752,
-		reservedOutputTokenSpace: 8_192,
+		reservedOutputTokenSpace: 20_752,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
@@ -1193,7 +1193,7 @@ const edlideModelOptions = {
 	},
 	'XiaomiMiMo/MiMo-V2-Flash': {
 		contextWindow: 256_000,
-		reservedOutputTokenSpace: 8_192, // Reduced from 32768 to use 96% of context
+		reservedOutputTokenSpace: 25_600, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
