@@ -159,7 +159,6 @@ const getEnhancedEnv = (serverEnv?: Record<string, string>): Record<string, stri
 	const systemPaths: string[] = [];
 
 	if (process.platform === 'darwin') {
-		// macOS paths
 		systemPaths.push(
 			'/opt/homebrew/bin',
 			'/usr/local/bin',
@@ -173,32 +172,44 @@ const getEnhancedEnv = (serverEnv?: Record<string, string>): Record<string, stri
 			);
 		}
 	} else if (process.platform === 'win32') {
-		// Windows paths
 		const programFiles = process.env.PROGRAMFILES || 'C:\\Program Files';
 		const programFiles86 = process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)';
 		const appData = process.env.APPDATA || `${process.env.USERPROFILE}\\AppData\\Roaming`;
 		const localAppData = process.env.LOCALAPPDATA || `${process.env.USERPROFILE}\\AppData\\Local`;
+		const userProfile = process.env.USERPROFILE || 'C:\\Users\\Default';
 
+		// Add npm global bin path first - this is critical for npx to find packages
+		const npmGlobal = `${appData}\\npm`;
+		systemPaths.push(npmGlobal);
+
+		// Add other Node.js paths
 		systemPaths.push(
-			`${appData}\\npm`,
 			`${localAppData}\\npm-cache`,
 			`${programFiles}\\nodejs`,
 			`${programFiles86}\\nodejs`,
 			`${localAppData}\\nvs\\node`,
 			`${localAppData}\\volta\\bin`,
+			`${userProfile}\\AppData\\Local\\Programs\\nodejs`,
+		);
+
+		// Also add common AppData paths for npm
+		const appDataRoaming = process.env.APPDATA || 'C:\\Users\\Public\\AppData\\Roaming';
+		const appDataLocal = process.env.LOCALAPPDATA || 'C:\\Users\\Public\\AppData\\Local';
+
+		systemPaths.push(
+			`${appDataRoaming}\\npm`,
+			`${appDataLocal}\\Microsoft\\Windows\\Start Menu\\Programs\\Node.js`,
 		);
 	}
 
-	// Create comprehensive PATH
 	const currentPath = env.PATH || '';
 	const pathSeparator = process.platform === 'win32' ? ';' : ':';
 	const currentPaths = currentPath.split(pathSeparator);
 
-	// Add system paths to the beginning if not already present
-	const additionalPaths = systemPaths.filter(p => !currentPaths.includes(p));
+	const additionalPaths = systemPaths.filter(p => p && !currentPaths.includes(p));
 	if (additionalPaths.length > 0) {
 		env.PATH = additionalPaths.join(pathSeparator) + pathSeparator + currentPath;
-		console.log(`MCP: Enhanced PATH for ${process.platform}:`, env.PATH);
+		console.log(`MCP: Enhanced PATH for ${process.platform}:`, env.PATH?.substring(0, 300) + '...');
 	}
 
 	return env;
@@ -436,8 +447,9 @@ export class MCPChannel implements IServerChannel {
 				}
 			}
 
-			// Check if MCP tools are available before attempting connection
-			if (!isMCPAvailable()) {
+			// Skip availability check on Windows - let the transport try to start
+			// The check fails because GUI apps have different PATH than terminal
+			if (process.platform !== 'win32' && !isMCPAvailable()) {
 				console.warn('MCP: Tools not available, skipping transport creation');
 				throw new Error(`MCP tools not available for command: ${command}`);
 			}
