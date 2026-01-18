@@ -3,6 +3,8 @@
  * Implements Sign in with Chutes functionality
  */
 
+import { createClient } from '@supabase/supabase-js'
+
 export interface ChutesUser {
   sub: string          // User ID
   username: string     // Username
@@ -191,10 +193,27 @@ export function useChutesAuth() {
 
   const signIn = () => {
     if (typeof window === 'undefined') return
-    
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storageKey: 'edlide-supabase-session',
+      }
+    })
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        sessionStorage.setItem('supabase_session_token', data.session.access_token)
+        console.log('Saved Supabase session token to sessionStorage for Chutes linking')
+      } else {
+        console.warn('No Supabase session found when initiating Chutes OAuth')
+      }
+    })
+
     const state = generateRandomString(32)
     localStorage.setItem('chutes_oauth_state', state)
-    
+
     const url = auth.getAuthorizationUrl(state)
     window.location.href = url
   }

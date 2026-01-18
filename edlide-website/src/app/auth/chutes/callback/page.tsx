@@ -21,12 +21,31 @@ function ChutesCallbackPageContent() {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-      const { data: { session } } = await supabase.auth.getSession()
+      let accessTokenSupabase = ''
 
-      if (!session) {
-        console.log('No Supabase session, skipping database save')
+      const supabaseSessionToken = sessionStorage.getItem('supabase_session_token')
+      if (supabaseSessionToken) {
+        accessTokenSupabase = supabaseSessionToken
+        console.log('Got Supabase session from sessionStorage')
+      }
+
+      if (!accessTokenSupabase) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: {
+            storageKey: 'edlide-supabase-session',
+          }
+        })
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          accessTokenSupabase = session.access_token
+          console.log('Got Supabase session from localStorage')
+        }
+      }
+
+      if (!accessTokenSupabase) {
+        console.log('No Supabase session available, skipping database save')
         return
       }
 
@@ -34,7 +53,7 @@ function ChutesCallbackPageContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${accessTokenSupabase}`,
         },
         body: JSON.stringify({
           accessToken,
@@ -51,6 +70,7 @@ function ChutesCallbackPageContent() {
         return
       }
 
+      sessionStorage.removeItem('supabase_session_token')
       console.log('Chutes token saved to database successfully')
     } catch (error) {
       console.error('Error saving chutes token to database:', error)
@@ -58,7 +78,6 @@ function ChutesCallbackPageContent() {
   }
 
   useEffect(() => {
-    // Prevent multiple processing
     if (processed) {
       return
     }
@@ -84,16 +103,12 @@ function ChutesCallbackPageContent() {
           return
         }
 
-        // Mark as processed to prevent multiple attempts
         setProcessed(true)
 
-        // Handle the OAuth callback
         const authenticatedUser = await handleCallback(code, state || undefined)
 
-        // Store user information in localStorage (for backward compatibility)
         localStorage.setItem('chutes_user', JSON.stringify(authenticatedUser))
 
-        // Save token to Supabase database
         const accessToken = localStorage.getItem('chutes_access_token')
         const refreshToken = localStorage.getItem('chutes_refresh_token')
         const expiresIn = parseInt(localStorage.getItem('chutes_expires_in') || '3600', 10)
@@ -102,7 +117,6 @@ function ChutesCallbackPageContent() {
         setUser(authenticatedUser)
         setStatus('success')
 
-        // Redirect to account page after a short delay
         setTimeout(() => {
           router.push('/account')
         }, 2000)

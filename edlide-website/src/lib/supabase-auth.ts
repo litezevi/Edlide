@@ -104,16 +104,19 @@ export function useSupabaseAuth() {
 
   const signOut = async () => {
     const supabase = getSupabaseClient()
-    
-    const { error } = await supabase.auth.signOut()
-    
-    if (error) {
-      throw error
+
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Supabase signOut exception:', err)
     }
 
-    localStorage.removeItem('chutes_access_token')
-    localStorage.removeItem('chutes_refresh_token')
-    localStorage.removeItem('chutes_user')
+    localStorage.clear()
+    sessionStorage.clear()
+
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
   }
 
   const resetPassword = async (email: string) => {

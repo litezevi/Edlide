@@ -18,7 +18,11 @@ export function useChutesIntegration() {
   const [error, setError] = useState<string | null>(null)
 
   const getSupabaseSession = async () => {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storageKey: 'edlide-supabase-session',
+      }
+    })
     const { data: { session } } = await supabase.auth.getSession()
     return session
   }

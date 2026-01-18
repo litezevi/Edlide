@@ -1,6 +1,64 @@
 # Active Context: Edlide Website
 
 ## Current Focus
+Chutes OAuth Email/Password Fix - **COMPLETE!** Fixed session persistence issue during Chutes OAuth flow!
+
+### Chutes OAuth Email/Password Session Fix (Jan 18, 2026) ✅
+**Problem:**
+- Google OAuth worked - session restored from URL after redirect
+- Email/password didn't work - session lost after Chutes OAuth redirect
+- Error: "No Supabase session, skipping database save" or "Invalid authentication token"
+
+**Root Cause:**
+- Multiple Supabase clients with different `storageKey` settings
+- `supabase-auth.ts` used `storageKey: 'edlide-supabase-session'`
+- `callback/page.tsx` and `chutes-integration.ts` used default key
+- Email/password session stored in one key, checked in another
+- Redirect to Chutes and back lost the localStorage reference
+
+**Solution Implemented:**
+1. **Unified storageKey**: All Supabase clients now use `storageKey: 'edlide-supabase-session'`
+2. **sessionStorage for OAuth**: Supabase session token saved to `sessionStorage` before redirect, restored after callback
+3. **Improved signOut**: Clears all localStorage + sessionStorage, redirects to home
+
+**Files Modified:**
+- `src/app/auth/chutes/callback/page.tsx` - Restores session from sessionStorage, unified storageKey
+- `src/lib/chutes-integration.ts` - Added `storageKey` to Supabase client
+- `src/lib/chutes-auth.ts` - Saves session token to sessionStorage before Chutes redirect
+- `src/app/account/reset-password/page.tsx` - Added `storageKey` to Supabase clients
+- `src/lib/supabase-auth.ts` - Improved signOut with full cleanup + redirect
+
+**Updated Linking Flow:**
+```
+User logged in via email/password (Supabase session in localStorage)
+         ↓
+Click "Link Chutes Account"
+         ↓
+signIn() saves session.access_token to sessionStorage['supabase_session_token']
+         ↓
+OAuth redirect to Chutes.ai/idp/authorize
+         ↓
+User authenticates with Chutes
+         ↓
+Chutes redirects back with code
+         ↓
+callback/page.tsx loads
+         ↓
+getSession from sessionStorage → GOT IT!
+         ↓
+POST /api/auth/chutes/save with valid token → 200 OK
+         ↓
+sessionStorage cleared, UI shows Chutes linked ✅
+```
+
+**Verification:**
+- Google OAuth: Still works (uses URL session restoration)
+- Email/Password: Now works (uses sessionStorage)
+- Sign Out: Clears everything, redirects properly
+
+---
+
+## Previous Work
 Versioned Downloads UI - **COMPLETE!** Added version v1.0.0 and release date January 9, 2026 to download page!
 
 ### Versioned Downloads UI (NEW - Jan 9, 2026) ✅
