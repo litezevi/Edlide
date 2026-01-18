@@ -18,6 +18,7 @@ import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { MCPUserStateOfName } from '../common/voidSettingsTypes.js';
 import * as childProcess from 'child_process';
+import * as fs from 'fs';
 
 const getClientConfig = (serverName: string) => {
 	return {
@@ -70,7 +71,6 @@ const findNpxPath = (): string => {
 		systemPaths.push(...currentPaths);
 	}
 
-	const fs = require('fs');
 	const pathSeparator = process.platform === 'win32' ? ';' : ':';
 	const currentPath = process.env.PATH || '';
 	const comprehensivePATH = [
