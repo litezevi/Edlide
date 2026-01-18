@@ -19,6 +19,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { MCPUserStateOfName } from '../common/voidSettingsTypes.js';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 
 const getClientConfig = (serverName: string) => {
 	return {
@@ -210,11 +211,19 @@ const isMCPAvailable = (): boolean => {
 		const npxPath = findNpxPath();
 		console.log(`MCP: Checking availability of npx at: ${npxPath}`);
 
-		// For Windows, wrap in cmd.exe to properly execute .cmd/.bat scripts
+		// For Windows, wrap in cmd.exe with proper quoting for paths with spaces
 		if (process.platform === 'win32') {
-			const result = childProcess.spawnSync('cmd.exe', ['/c', npxPath, '--version'], {
+			// Ensure PATH includes the directory containing npx
+			const npxDir = path.dirname(npxPath);
+			const enhancedEnv = { ...process.env };
+			if (!enhancedEnv.PATH?.includes(npxDir)) {
+				enhancedEnv.PATH = npxDir + ';' + (enhancedEnv.PATH || '');
+			}
+
+			// Wrap path in quotes for cmd.exe (handles spaces in Program Files)
+			const result = childProcess.spawnSync('cmd.exe', ['/c', `"${npxPath}"`, '--version'], {
 				stdio: 'pipe',
-				env: process.env,
+				env: enhancedEnv,
 				timeout: 5000
 			});
 			const available = result.status === 0;
@@ -430,17 +439,18 @@ export class MCPChannel implements IServerChannel {
 			}
 
 			// Check if MCP tools are available before attempting connection
-			if (!isMCPAvailable()) {
+			// Skip check on Windows - let the transport try to start
+			if (process.platform !== 'win32' && !isMCPAvailable()) {
 				console.warn('MCP: Tools not available, skipping transport creation');
 				throw new Error(`MCP tools not available for command: ${command}`);
 			}
 
 			try {
-				// On Windows, wrap .cmd/.bat scripts with cmd.exe
+				// On Windows, wrap .cmd/.bat scripts with cmd.exe and quote paths with spaces
 				if (process.platform === 'win32' && (command.endsWith('.cmd') || command.endsWith('.bat'))) {
 					transport = new StdioClientTransport({
 						command: 'cmd.exe',
-						args: ['/c', command, ...(server.args || [])],
+						args: ['/c', `"${command}"`, ...(server.args || [])],
 						env: env,
 					});
 				} else {
