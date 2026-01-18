@@ -19,7 +19,6 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { MCPUserStateOfName } from '../common/voidSettingsTypes.js';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 
 const getClientConfig = (serverName: string) => {
 	return {
@@ -211,17 +210,10 @@ const isMCPAvailable = (): boolean => {
 		const npxPath = findNpxPath();
 		console.log(`MCP: Checking availability of npx at: ${npxPath}`);
 
-		// For Windows, wrap in cmd.exe with proper quoting for paths with spaces
 		if (process.platform === 'win32') {
-			// Ensure PATH includes the directory containing npx
-			const npxDir = path.dirname(npxPath);
-			const enhancedEnv = { ...process.env };
-			if (!enhancedEnv.PATH?.includes(npxDir)) {
-				enhancedEnv.PATH = npxDir + ';' + (enhancedEnv.PATH || '');
-			}
-
-			// Wrap path in quotes for cmd.exe (handles spaces in Program Files)
-			const result = childProcess.spawnSync('cmd.exe', ['/c', `"${npxPath}"`, '--version'], {
+			// On Windows, just check if 'npx' works with enhanced PATH
+			const enhancedEnv = getEnhancedEnv();
+			const result = childProcess.spawnSync('npx', ['--version'], {
 				stdio: 'pipe',
 				env: enhancedEnv,
 				timeout: 5000
@@ -430,36 +422,32 @@ export class MCPChannel implements IServerChannel {
 			let command = server.command;
 			const env = getEnhancedEnv(server.env);
 
-			// Special handling for npx on all platforms (GUI apps often lack proper PATH)
-			if (server.command === 'npx') {
-				command = findNpxPath();
-				if (command !== 'npx') {
+			// On Windows, always use 'npx' command with enhanced PATH - don't use full path
+			// This avoids issues with spaces and cmd.exe wrapping
+			if (process.platform === 'win32' && server.command === 'npx') {
+				command = 'npx'; // Use plain npx, let PATH resolution handle it
+				console.log(`MCP: Using 'npx' command with enhanced PATH for Windows`);
+			} else if (server.command === 'npx') {
+				// macOS/Linux - use resolved path
+				const resolvedPath = findNpxPath();
+				if (resolvedPath !== 'npx') {
+					command = resolvedPath;
 					console.log(`MCP: Using resolved npx path: ${command}`);
 				}
 			}
 
 			// Check if MCP tools are available before attempting connection
-			// Skip check on Windows - let the transport try to start
-			if (process.platform !== 'win32' && !isMCPAvailable()) {
+			if (!isMCPAvailable()) {
 				console.warn('MCP: Tools not available, skipping transport creation');
 				throw new Error(`MCP tools not available for command: ${command}`);
 			}
 
 			try {
-				// On Windows, wrap .cmd/.bat scripts with cmd.exe and quote paths with spaces
-				if (process.platform === 'win32' && (command.endsWith('.cmd') || command.endsWith('.bat'))) {
-					transport = new StdioClientTransport({
-						command: 'cmd.exe',
-						args: ['/c', `"${command}"`, ...(server.args || [])],
-						env: env,
-					});
-				} else {
-					transport = new StdioClientTransport({
-						command: command,
-						args: server.args,
-						env: env,
-					});
-				}
+				transport = new StdioClientTransport({
+					command: command,
+					args: server.args,
+					env: env,
+				});
 			} catch (error) {
 				console.error('MCP: Failed to create transport:', error);
 				throw new Error(`Failed to create MCP transport for ${command}: ${error.message}`);
