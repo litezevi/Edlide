@@ -207,16 +207,30 @@ const getEnhancedEnv = (serverEnv?: Record<string, string>): Record<string, stri
 // Check if MCP is available and working (cross-platform)
 const isMCPAvailable = (): boolean => {
 	try {
-		// Try to run npx with our enhanced environment
-		const enhancedEnv = getEnhancedEnv();
 		const npxPath = findNpxPath();
+		console.log(`MCP: Checking availability of npx at: ${npxPath}`);
 
-		const result = childProcess.spawnSync(npxPath, ['--version'], {
-			stdio: 'pipe',
-			env: enhancedEnv,
-			timeout: 5000
-		});
-		return result.status === 0;
+		// For Windows, wrap in cmd.exe to properly execute .cmd/.bat scripts
+		if (process.platform === 'win32') {
+			const result = childProcess.spawnSync('cmd.exe', ['/c', npxPath, '--version'], {
+				stdio: 'pipe',
+				env: process.env,
+				timeout: 5000
+			});
+			const available = result.status === 0;
+			console.log(`MCP: npx availability check result: ${available}`);
+			return available;
+		} else {
+			const enhancedEnv = getEnhancedEnv();
+			const result = childProcess.spawnSync(npxPath, ['--version'], {
+				stdio: 'pipe',
+				env: enhancedEnv,
+				timeout: 5000
+			});
+			const available = result.status === 0;
+			console.log(`MCP: npx availability check result: ${available}`);
+			return available;
+		}
 	} catch (e) {
 		console.warn('MCP: npx not available:', e);
 		return false;
@@ -420,13 +434,22 @@ export class MCPChannel implements IServerChannel {
 				console.warn('MCP: Tools not available, skipping transport creation');
 				throw new Error(`MCP tools not available for command: ${command}`);
 			}
-			
+
 			try {
-				transport = new StdioClientTransport({
-					command: command,
-					args: server.args,
-					env: env,
-				});
+				// On Windows, wrap .cmd/.bat scripts with cmd.exe
+				if (process.platform === 'win32' && (command.endsWith('.cmd') || command.endsWith('.bat'))) {
+					transport = new StdioClientTransport({
+						command: 'cmd.exe',
+						args: ['/c', command, ...(server.args || [])],
+						env: env,
+					});
+				} else {
+					transport = new StdioClientTransport({
+						command: command,
+						args: server.args,
+						env: env,
+					});
+				}
 			} catch (error) {
 				console.error('MCP: Failed to create transport:', error);
 				throw new Error(`Failed to create MCP transport for ${command}: ${error.message}`);
