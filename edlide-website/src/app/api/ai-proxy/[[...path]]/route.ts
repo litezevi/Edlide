@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { ChutesTokenManager } from '@/lib/chutes-token-manager'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Получаем пользовательский JWT токен из Authorization header
     const authHeader = request.headers.get('Authorization')
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Missing or invalid Authorization header' },
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userToken = authHeader.substring(7)
-    
+
     // 2. Валидируем JWT токен через Supabase
     const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user }, error: userError } = await supabase.auth.getUser(userToken)
@@ -35,19 +36,36 @@ export async function POST(request: NextRequest) {
       email: user.email
     })
 
-    // 3. Получаем тело запроса от IDE (OpenAI-compatible формат)
+    // 3. Проверяем и обновляем Chutes токен если нужно
+    console.log('[AI Proxy] Checking and refreshing Chutes token if needed...')
+    const tokenResult = await ChutesTokenManager.getValidAccessToken(user.id)
+
+    if (!tokenResult) {
+      console.error('[AI Proxy] No valid Chutes token found for user:', user.id)
+      return NextResponse.json(
+        { error: 'Chutes account not linked. Please link your Chutes account first.' },
+        { status: 403 }
+      )
+    }
+
+    const { accessToken: freshAccessToken, refreshed } = tokenResult
+    console.log(`[AI Proxy] Chutes token ready, refreshed: ${refreshed}, length: ${freshAccessToken.length}`)
+
+    // 4. Получаем тело запроса от IDE (OpenAI-compatible формат)
     const requestBody = await request.json()
-    
-    // 4. Логирование запроса (опционально)
+
+    // 5. Логирование запроса
     console.log('[AI Proxy] AI request from user:', {
       user_id: user.id,
       model: requestBody.model,
-      provider: 'edlide'
+      provider: 'edlide',
+      tokenRefreshed: refreshed
     })
 
-    // 5. Проксируем в Supabase Edge Function с СПЕЦИАЛЬНЫМИ HEADERS
+    // 6. Проксируем в Supabase Edge Function с СПЕЦИАЛЬНЫМИ HEADERS
+    // Передаем СВЕЖИЙ токен напрямую, чтобы Edge Function использовала его вместо чтения из базы
     const supabaseFunctionUrl = `${supabaseUrl}/functions/v1/ai-proxy`
-    
+
     const response = await fetch(supabaseFunctionUrl, {
       method: 'POST',
       headers: {
@@ -56,7 +74,8 @@ export async function POST(request: NextRequest) {
         'x-user-id': user.id,
         'x-user-email': user.email!,
         'x-request-source': 'ide',
-        'x-edlide-client': 'electron'
+        'x-edlide-client': 'electron',
+        'x-chutes-access-token': freshAccessToken
       },
       body: JSON.stringify(requestBody)
     })

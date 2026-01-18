@@ -28,34 +28,26 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('chutes_tokens')
-      .select('*')
+      .select('chutes_user_id, username, expires_at')
       .eq('user_id', user.id)
       .single()
 
     if (error || !data) {
       return NextResponse.json(
-        { error: 'Chutes token not found' },
+        { error: 'Chutes account not linked' },
         { status: 404 }
       )
     }
 
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: 'Chutes token expired' },
-        { status: 401 }
-      )
-    }
-
     return NextResponse.json({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_at: data.expires_at,
       chutes_user_id: data.chutes_user_id,
       username: data.username,
+      expires_at: data.expires_at,
+      linked: true
     })
 
   } catch (error) {
-    console.error('Get chutes token error:', error)
+    console.error('Get chutes token status error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

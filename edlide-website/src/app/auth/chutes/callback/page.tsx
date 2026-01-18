@@ -96,7 +96,8 @@ function ChutesCallbackPageContent() {
         // Save token to Supabase database
         const accessToken = localStorage.getItem('chutes_access_token')
         const refreshToken = localStorage.getItem('chutes_refresh_token')
-        await saveChutesTokenToDatabase(authenticatedUser, accessToken!, refreshToken || undefined, 3600)
+        const expiresIn = parseInt(localStorage.getItem('chutes_expires_in') || '3600', 10)
+        await saveChutesTokenToDatabase(authenticatedUser, accessToken!, refreshToken || undefined, expiresIn)
 
         setUser(authenticatedUser)
         setStatus('success')

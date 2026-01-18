@@ -194,13 +194,22 @@ Deno.serve(async (req) => {
 		});
 		
 		try {
-			const decryptedToken = await decryptToken(
-				chutesData.encrypted_access_token,
-				chutesData.encryption_iv || '',
-				encryptionKey
-			);
-			
-			console.log('[AI Proxy] Token decryption successful');
+			let decryptedToken: string
+
+			const passedToken = req.headers.get('x-chutes-access-token')
+			if (passedToken) {
+				console.log('[AI Proxy] Using token from request header (pre-refreshed by website)')
+				decryptedToken = passedToken
+			} else {
+				console.log('[AI Proxy] Decrypting token from database')
+				decryptedToken = await decryptToken(
+					chutesData.encrypted_access_token,
+					chutesData.encryption_iv || '',
+					encryptionKey
+				);
+			}
+
+			console.log('[AI Proxy] Token ready, length:', decryptedToken.length);
 			
 			const aiBaseUrl = Deno.env.get('ai_base_url');
 			if (!aiBaseUrl) {

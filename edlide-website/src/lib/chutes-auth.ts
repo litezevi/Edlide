@@ -234,6 +234,9 @@ export function useChutesAuth() {
     if (tokenData.refresh_token) {
       localStorage.setItem('chutes_refresh_token', tokenData.refresh_token)
     }
+    if (tokenData.expires_in) {
+      localStorage.setItem('chutes_expires_in', String(tokenData.expires_in))
+    }
 
     return user
   }

@@ -1,34 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { TokenEncryption } from '@/lib/token-encryption'
+import { ChutesTokenManager } from '@/lib/chutes-token-manager'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const clientId = process.env.NEXT_PUBLIC_CHUTES_CLIENT_ID!
-const clientSecret = process.env.CHUTES_CLIENT_SECRET!
-
-async function refreshChutesToken(refreshToken: string): Promise<{ access_token: string; expires_in: number; refresh_token?: string }> {
-  const response = await fetch('https://idp.chutes.ai/idp/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Token refresh failed: ${response.status} - ${errorText}`)
-  }
-
-  return response.json()
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,103 +35,18 @@ export async function POST(request: NextRequest) {
 
     console.log('Supabase user authenticated:', user.id)
 
-    const { data: chutesData, error: chutesError } = await supabase
-      .from('chutes_tokens')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
+    const tokenResult = await ChutesTokenManager.getValidAccessToken(user.id)
 
-    if (chutesError || !chutesData) {
-      console.log('No Chutes token found for user:', user.id)
+    if (!tokenResult) {
+      console.log('No valid Chutes token found for user:', user.id)
       return NextResponse.json(
         { error: 'Chutes account not linked. Please link your Chutes account first.' },
         { status: 403 }
       )
     }
 
-    console.log('=== CHUTES TOKEN DECRYPTION ===')
-    console.log('Decrypting token from database...')
-    console.log('- Has encrypted token:', !!chutesData.encrypted_access_token)
-    console.log('- Has encryption IV:', !!chutesData.encryption_iv)
-
-    let accessToken = TokenEncryption.decrypt(chutesData.encrypted_access_token, chutesData.encryption_iv || '')
-
-    console.log('- Decryption successful, token length:', accessToken.length)
-
-    // PROACTIVE REFRESH: Always refresh if token is older than 15 minutes (prevents expiry completely)
-    const createdOrUpdatedAt = chutesData.updated_at ? new Date(chutesData.updated_at) : new Date(chutesData.created_at!)
-    const now = new Date()
-    
-    const tokenAgeMs = now.getTime() - createdOrUpdatedAt.getTime()
-    const REFRESH_EVERY_15_MIN = 15 * 60 * 1000 // 15 minutes
-    const shouldRefresh = tokenAgeMs >= REFRESH_EVERY_15_MIN
-
-    console.log('- Token last updated:', createdOrUpdatedAt.toISOString())
-    console.log('- Token age (minutes):', Math.floor(tokenAgeMs / 60000))
-    console.log('- Should refresh (age >= 15min):', shouldRefresh)
-
-    // Refresh if token is older than 15 minutes (proactive refresh)
-    if (shouldRefresh && chutesData.encrypted_refresh_token) {
-      console.log('Token age >= 15min, refreshing...')
-
-      const decryptedRefreshToken = TokenEncryption.decrypt(chutesData.encrypted_refresh_token, chutesData.encryption_iv || '')
-
-      if (!decryptedRefreshToken) {
-        console.error('Failed to decrypt refresh token')
-        return NextResponse.json(
-          { error: 'Failed to refresh token. Please re-link your Chutes account.' },
-          { status: 401 }
-        )
-      }
-
-      try {
-        const newTokens = await refreshChutesToken(decryptedRefreshToken)
-
-        const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
-
-        const { encrypted: newEncryptedAccess, iv: newIv } = TokenEncryption.encrypt(newTokens.access_token)
-        const { encrypted: newEncryptedRefresh } = TokenEncryption.encrypt(newTokens.refresh_token || decryptedRefreshToken, Buffer.from(newIv, 'base64'))
-
-        const { error: updateError } = await adminSupabase
-          .from('chutes_tokens')
-          .update({
-            encrypted_access_token: newEncryptedAccess,
-            encrypted_refresh_token: newEncryptedRefresh,
-            encryption_iv: newIv,
-            expires_at: new Date(Date.now() + newTokens.expires_in * 1000).toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id)
-
-        if (updateError) {
-          console.error('Failed to update token in database:', updateError)
-        } else {
-          accessToken = newTokens.access_token
-          console.log('Token refreshed and re-encrypted successfully')
-        }
-      } catch (refreshError) {
-        console.error('Failed to refresh token:', refreshError)
-
-        const errorMessage = refreshError instanceof Error ? refreshError.message : String(refreshError)
-
-        if (errorMessage.includes('invalid_grant')) {
-          return NextResponse.json(
-            {
-              error: 'Your Chutes session has expired. Please re-link your Chutes account to continue.',
-              code: 'RELINK_REQUIRED'
-            },
-            { status: 403 }
-          )
-        }
-
-        return NextResponse.json(
-          { error: 'Failed to refresh Chutes token. Please re-link your Chutes account.' },
-          { status: 401 }
-        )
-      }
-    }
-
-    console.log('Using Chutes token, length:', accessToken.length)
+    const { accessToken, refreshed } = tokenResult
+    console.log(`Using Chutes token, length: ${accessToken.length}, refreshed: ${refreshed}`)
 
     const userInfoResponse = await fetch('https://idp.chutes.ai/idp/userinfo', {
       headers: {
