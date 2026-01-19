@@ -20,11 +20,28 @@ const MAX_DIFF_LENGTH = 8000
 const MAX_DIFF_FILES = 10
 
 const git = async (command: string, path: string): Promise<string> => {
-	const { stdout, stderr } = await exec(`LC_ALL=C ${command}`, { cwd: path })
-	if (stderr) {
-		throw new Error(stderr)
+	// Force UTF-8 encoding for Windows to handle Cyrillic and other characters
+	const execOptions: any = {
+		cwd: path,
+		encoding: 'utf8',
+		env: {
+			...process.env,
+			// Add common Git paths for Windows
+			PATH: process.env.PATH + ';C:\\Program Files\\Git\\cmd;C:\\Program Files (x86)\\Git\\cmd'
+		},
+		// Add maxBuffer to handle large git outputs
+		maxBuffer: 1024 * 1024 * 10, // 10MB
+		shell: true
 	}
-	return stdout.trim()
+
+	const { stdout, stderr } = await exec(command, execOptions)
+	const stdoutStr = typeof stdout === 'string' ? stdout : stdout.toString('utf8')
+	const stderrStr = typeof stderr === 'string' ? stderr : stderr.toString('utf8')
+
+	if (stderrStr) {
+		throw new Error(stderrStr)
+	}
+	return stdoutStr.trim()
 }
 
 const getNumStat = async (path: string, useStagedChanges: boolean): Promise<NumStat[]> => {
