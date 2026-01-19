@@ -91,9 +91,19 @@ create_file_or_folder({ uri: "/types.ts" })
 read_file({ uri: "/types.ts" }) // ✅ VERIFY FIRST!
 rewrite_file({ uri, new_content: "..." }) // Only after verify!
 
-## FOLDER vs FILE
-- FOLDER: ends with "/" → "/src/components/"
-- FILE: has extension → "/src/components/Button.tsx"
+## CRITICAL: FOLDER vs FILE - MUST ADD SLASH!
+
+FOLDER = ends with "/" → create_file_or_folder({ uri: "/app/ide-connect-v2/" })
+FILE = has extension → create_file_or_folder({ uri: "/app/page.ts" })
+
+❌ WRONG - creates FILE instead of FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2" }) // No slash = FILE!
+
+✅ CORRECT - creates FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
+
+Without slash: "ide-connect-v2" is a FILE without extension
+With slash: "ide-connect-v2/" is a FOLDER
 
 ## old_string RULES
 - Must be unique (5+ lines context)
@@ -238,9 +248,16 @@ export const builtinTools: {
 		name: 'create_file_or_folder',
 		description: `Create empty file or folder. For existing files, use edit_file!
 
-FOLDER vs FILE:
-- FOLDER: ends with "/" → "/src/components/"
-- FILE: has extension → "/src/components/Button.tsx"
+CRITICAL: FOLDER vs FILE - MUST ADD SLASH!
+
+FOLDER = ends with "/" → create_file_or_folder({ uri: "/app/ide-connect-v2/" })
+FILE = has extension → create_file_or_folder({ uri: "/app/page.ts" })
+
+❌ WRONG - creates FILE instead of FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2" }) // No slash = FILE!
+
+✅ CORRECT - creates FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
 
 CREATE NEW FILE - 4 STEPS:
 1. create_file_or_folder({ uri: "/path/file.ts" })
@@ -428,20 +445,19 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
 
-## CRITICAL ERROR - SKIPPING VERIFICATION!
+## CRITICAL: FOLDER vs FILE - MUST ADD SLASH!
 
-WRONG:
-create_file_or_folder({ uri: "/types.ts" })
-rewrite_file({ uri, new_content: "..." }) // ❌ SKIPPED!
+FOLDER = ends with "/" → create_file_or_folder({ uri: "/app/ide-connect-v2/" })
+FILE = has extension → create_file_or_folder({ uri: "/app/page.ts" })
 
-CORRECT:
-create_file_or_folder({ uri: "/types.ts" })
-read_file({ uri: "/types.ts" }) // ✅ VERIFY!
-rewrite_file({ uri, new_content: "..." })
+❌ WRONG - creates FILE instead of FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2" }) // No slash = FILE!
 
-## FOLDER vs FILE
-- FOLDER: ends with "/" → "/src/components/"
-- FILE: has extension → "/src/components/Button.tsx"`)
+✅ CORRECT - creates FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
+
+Without slash: "ide-connect-v2" is a FILE without extension
+With slash: "ide-connect-v2/" is a FOLDER`)
 
 	return `\
     ${toolXMLDefinitions}
@@ -495,9 +511,19 @@ create_file_or_folder({ uri: "/types.ts" })
 read_file({ uri: "/types.ts" }) // ✅ VERIFY FIRST!
 rewrite_file({ uri, new_content: "..." }) // Only after verify!
 
-## FOLDER vs FILE
-- FOLDER: ends with "/" → "/src/components/"
-- FILE: has extension → "/src/components/Button.tsx"
+## CRITICAL: FOLDER vs FILE - MUST ADD SLASH!
+
+FOLDER = ends with "/" → create_file_or_folder({ uri: "/app/ide-connect-v2/" })
+FILE = has extension → create_file_or_folder({ uri: "/app/page.ts" })
+
+❌ WRONG - creates FILE instead of FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2" }) // No slash = FILE!
+
+✅ CORRECT - creates FOLDER:
+create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
+
+Without slash: "ide-connect-v2" is a FILE without extension
+With slash: "ide-connect-v2/" is a FOLDER
 
 ## old_string RULES
 - Must be unique (5+ lines context)
