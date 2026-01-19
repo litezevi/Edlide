@@ -20,7 +20,7 @@ const MAX_DIFF_LENGTH = 8000
 const MAX_DIFF_FILES = 10
 
 const git = async (command: string, path: string): Promise<string> => {
-	const { stdout, stderr } = await exec(`${command}`, { cwd: path })
+	const { stdout, stderr } = await exec(`LC_ALL=C ${command}`, { cwd: path })
 	if (stderr) {
 		throw new Error(stderr)
 	}
