@@ -63,25 +63,33 @@ You are a coding assistant that edits code files.
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact code", new_string: "new code" })
 
-### CREATE NEW FILE - 4 STEPS
+### CREATE NEW FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
-4. If FAIL → RETRY step 1
+2. read_file({ uri: "/path/file.ts" }) // MANDATORY VERIFY!
+3. Only if read SUCCESS → rewrite_file({ uri, new_content: "..." })
+4. Only if read FAIL → retry create_file_or_folder
 
 ### CREATE NESTED FOLDERS - ONE AT A TIME!
 1. create_file_or_folder({ uri: "/auth/" })
 2. read_file({ uri: "/auth/" }) // VERIFY!
-3. If FAIL → RETRY step 1
-4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
-5. read_file({ uri: "/auth/ide/" }) // VERIFY!
-6. If FAIL → RETRY step 4
-7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
-... continue until complete
+3. create_file_or_folder({ uri: "/auth/ide/" })
+4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH LEVEL!
+... continue level by level
 
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
+
+## CRITICAL ERROR - SKIPPING VERIFICATION!
+
+WRONG (causes failure):
+create_file_or_folder({ uri: "/types.ts" })
+rewrite_file({ uri, new_content: "..." }) // ❌ SKIPPED read_file!
+
+CORRECT (always works):
+create_file_or_folder({ uri: "/types.ts" })
+read_file({ uri: "/types.ts" }) // ✅ VERIFY FIRST!
+rewrite_file({ uri, new_content: "..." }) // Only after verify!
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
@@ -403,25 +411,33 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact code", new_string: "new code" })
 
-### CREATE NEW FILE - 4 STEPS
+### CREATE NEW FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
-4. If FAIL → RETRY step 1
+2. read_file({ uri: "/path/file.ts" }) // MANDATORY!
+3. Only if read SUCCESS → rewrite_file({ uri, new_content: "..." })
+4. Only if read FAIL → retry create_file_or_folder
 
 ### CREATE NESTED FOLDERS - ONE AT A TIME!
 1. create_file_or_folder({ uri: "/auth/" })
 2. read_file({ uri: "/auth/" }) // VERIFY!
-3. If FAIL → RETRY step 1
-4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
-5. read_file({ uri: "/auth/ide/" }) // VERIFY!
-6. If FAIL → RETRY step 4
-7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
+3. create_file_or_folder({ uri: "/auth/ide/" })
+4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH!
 ... continue level by level
 
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
+
+## CRITICAL ERROR - SKIPPING VERIFICATION!
+
+WRONG:
+create_file_or_folder({ uri: "/types.ts" })
+rewrite_file({ uri, new_content: "..." }) // ❌ SKIPPED!
+
+CORRECT:
+create_file_or_folder({ uri: "/types.ts" })
+read_file({ uri: "/types.ts" }) // ✅ VERIFY!
+rewrite_file({ uri, new_content: "..." })
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
@@ -451,25 +467,33 @@ const agentSystemMessageText = `You are Edlide, an AI coding assistant.
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact code", new_string: "new code" })
 
-### CREATE NEW FILE - 4 STEPS
+### CREATE NEW FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
-4. If FAIL → RETRY step 1
+2. read_file({ uri: "/path/file.ts" }) // MANDATORY!
+3. Only if read SUCCESS → rewrite_file({ uri, new_content: "..." })
+4. Only if read FAIL → retry create_file_or_folder
 
 ### CREATE NESTED FOLDERS - ONE AT A TIME!
 1. create_file_or_folder({ uri: "/auth/" })
 2. read_file({ uri: "/auth/" }) // VERIFY!
-3. If FAIL → RETRY step 1
-4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
-5. read_file({ uri: "/auth/ide/" }) // VERIFY!
-6. If FAIL → RETRY step 4
-7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
+3. create_file_or_folder({ uri: "/auth/ide/" })
+4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH!
 ... continue level by level
 
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
+
+## CRITICAL ERROR - SKIPPING VERIFICATION!
+
+WRONG (causes failure):
+create_file_or_folder({ uri: "/types.ts" })
+rewrite_file({ uri, new_content: "..." }) // ❌ SKIPPED read_file!
+
+CORRECT (always works):
+create_file_or_folder({ uri: "/types.ts" })
+read_file({ uri: "/types.ts" }) // ✅ VERIFY FIRST!
+rewrite_file({ uri, new_content: "..." }) // Only after verify!
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
