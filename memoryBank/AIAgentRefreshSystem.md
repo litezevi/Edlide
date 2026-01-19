@@ -1,7 +1,7 @@
 # AI Agent Refresh System
 
 **Date**: 2025-01-19
-**Status**: Implemented - Phase 1 Complete
+**Status**: Phase 1 Complete - Optimized for Open-Source LLM
 **Author**: Edlide Development Team
 
 ---
@@ -22,12 +22,12 @@
 
 ### 1.2 Editing Tools (Create/Delete/Modify)
 
-| Tool | Description | Speed |
-|------|-------------|-------|
-| **edit_file** | Edit file content. old_string MUST be unique with surrounding context. | FAST |
-| **rewrite_file** | Replace entire file content. For NEW files OR 90%+ changes. | SLOW |
-| **create_file_or_folder** | Create file or folder. Folders end with '/', files have extensions. | - |
-| **delete_file_or_folder** | Delete file or folder at given path. | - |
+| Tool | Description | When | Speed |
+|------|-------------|------|-------|
+| **edit_file** | Edit file content. old_string MUST be unique with surrounding context. | Modify existing code | FAST |
+| **rewrite_file** | Replace entire file content. For NEW files OR 90%+ changes. | NEW file OR 90%+ changes | SLOW |
+| **create_file_or_folder** | Create file or folder. Folders end with '/', files have extensions. | Create empty file/folder | - |
+| **delete_file_or_folder** | Delete file or folder at given path. | - | - |
 
 ### 1.3 Terminal Tools
 
@@ -40,165 +40,196 @@
 
 ---
 
-## 2. KEY IMPROVEMENTS IMPLEMENTED
+## 2. Open-Source LLM Principles Applied
 
-### 2.1 Simplified Workflows
+### 2.1 Key Design Decisions
 
-**BEFORE**: Complex multi-step instructions with "always inspect", "always verify"
-**AFTER**: Simple numbered workflows with clear order
+| Principle | Application |
+|-----------|-------------|
+| **TASK first** | All prompts start with "TASK:" |
+| **# headers** | For GLM - imperative style |
+| **Short tables** | No unnecessary explanations |
+| **WORKFLOW steps** | Step-by-step instructions |
+| **NO emojis** | No decorative elements |
+| **Direct language** | "If uncertain: say I don't know" |
+| **Absolute paths ONLY** | Explicit rule |
+| **NO hallucinations** | Explicit rule added |
 
-```
-### CREATE NEW FILE - MUST FOLLOW ORDER!
-1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // MANDATORY!
-3. Only if read SUCCESS → rewrite_file({ uri, new_content: "..." })
-4. Only if read FAIL → retry create_file_or_folder
-```
-
-### 2.2 Mandatory Verification (Critical Fix)
-
-**Problem**: Agent skipped read_file after create_file_or_folder, causing write to non-existent file.
-
-**Solution**: 4-STEP PROCESS with verification
+### 2.2 Prompt Structure
 
 ```
-WRONG (causes failure):
-create_file_or_folder({ uri: "/types.ts" })
-rewrite_file({ uri, new_content: "..." }) // ❌ SKIPPED read_file!
-
-CORRECT (always works):
-create_file_or_folder({ uri: "/types.ts" })
-read_file({ uri: "/types.ts" }) // ✅ VERIFY FIRST!
-rewrite_file({ uri, new_content: "..." }) // Only after verify!
-```
-
-### 2.3 FOLDER vs FILE - Trailing Slash Required
-
-**Problem**: Agent created `ide-connect-v2` as FILE instead of FOLDER.
-
-**Solution**: Explicit examples with WRONG/CORRECT patterns
-
-```
-## CRITICAL: FOLDER vs FILE - MUST ADD SLASH!
-
-FOLDER = ends with "/" → create_file_or_folder({ uri: "/app/ide-connect-v2/" })
-FILE = has extension → create_file_or_folder({ uri: "/app/page.ts" })
-
-❌ WRONG - creates FILE instead of FOLDER:
-create_file_or_folder({ uri: "/app/ide-connect-v2" }) // No slash = FILE!
-
-✅ CORRECT - creates FOLDER:
-create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
-```
-
-### 2.4 Nested Folders - One At A Time
-
-**Problem**: Agent tried to create `auth/ide/refresh/` in one call.
-
-**Solution**: Explicit step-by-step with verification
-
-```
-### CREATE NESTED FOLDERS - ONE AT A TIME!
-1. create_file_or_folder({ uri: "/auth/" }) // MUST END WITH /
-2. read_file({ uri: "/auth/" }) // VERIFY!
-3. create_file_or_folder({ uri: "/auth/ide/" }) // MUST END WITH /
-4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH!
-... continue level by level
-```
-
-### 2.5 edit_file vs rewrite_file Priority
-
-**Problem**: Agent used rewrite_file for small changes.
-
-**Solution**: Clear speed comparison
-
-```
-## TOOL SUMMARY
-| Tool | When | Speed |
-|------|------|-------|
-| **edit_file** | Any modification | FAST |
-| **rewrite_file** | NEW file OR 90%+ changes | SLOW |
+TASK: [what to do]
+# TOOL SUMMARY [table]
+# WORKFLOW: [step-by-step]
+# CRITICAL [important errors]
+# RULES [rules]
+# STARTUP [first action]
 ```
 
 ---
 
-## 3. IMPLEMENTED WORKFLOWS
+## 3. KEY IMPROVEMENTS IMPLEMENTED
 
-### 3.1 EDIT EXISTING FILE (99%)
+### 3.1 edit_file FIRST for Existing Files (Critical)
 
-```
-1. read_file({ uri: "/path/file.ts" })
-2. edit_file({ uri, old_string: "exact code", new_string: "new code" })
-```
+**Problem**: Agent used rewrite_file for small changes to existing files.
 
-### 3.2 CREATE NEW FILE
+**Solution**: Explicit priority rule
 
 ```
-1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // MANDATORY!
-3. Only if read SUCCESS → rewrite_file({ uri, new_content: "..." })
-4. Only if read FAIL → retry create_file_or_folder
+# CRITICAL: edit_file FIRST for existing files!
+- If file EXISTS → use edit_file (FAST)
+- If file NEW → use rewrite_file (after create_file_or_folder)
+- If 90%+ content changes → use rewrite_file
 ```
 
-### 3.3 CREATE NESTED FOLDERS
+### 3.2 rewrite_file DOES NOT CREATE FILES (Critical)
+
+**Problem**: Agent called rewrite_file on non-existent files.
+
+**Solution**: Explicit warning with WRONG/CORRECT examples
 
 ```
-1. create_file_or_folder({ uri: "/auth/" })
+# CRITICAL: rewrite_file DOES NOT CREATE FILES!
+
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
+```
+
+### 3.3 Mandatory Verification (Critical)
+
+**Problem**: Agent skipped read_file after create_file_or_folder.
+
+**Solution**: 4-STEP PROCESS with verification
+
+```
+# WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
+1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
+4. If FAIL → retry step 1
+```
+
+### 3.4 FOLDER vs FILE - Trailing Slash Required
+
+**Problem**: Agent created `ide-connect-v2` as FILE instead of FOLDER.
+
+**Solution**: Explicit examples
+
+```
+# CRITICAL: FOLDER vs FILE
+FOLDER: ends with "/" → "/app/ide-connect-v2/"
+FILE: has extension → "/app/page.ts"
+
+WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
+CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
+```
+
+### 3.5 Nested Folders - One At A Time
+
+**Problem**: Agent tried to create `auth/ide/refresh/` in one call.
+
+**Solution**: Step-by-step with verification
+
+```
+# WORKFLOW: CREATE FOLDERS (ONE LEVEL AT A TIME)
+1. create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!
 2. read_file({ uri: "/auth/" }) // VERIFY!
 3. create_file_or_folder({ uri: "/auth/ide/" })
 4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH!
 ... continue level by level
 ```
 
-### 3.4 COMPLETE RESTRUCTURE (90%+)
+---
+
+## 4. IMPLEMENTED WORKFLOWS
+
+### 4.1 EDIT EXISTING FILE (99%)
 
 ```
+# WORKFLOW: EDIT EXISTING FILE
+1. read_file({ uri: "/path/file.ts" })
+2. edit_file({ uri, old_string: "exact", new_string: "new" })
+```
+
+### 4.2 CREATE NEW FILE
+
+```
+# WORKFLOW: CREATE NEW FILE - MUST FOLLOW ORDER!
+1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
+4. If FAIL → retry step 1
+```
+
+### 4.3 CREATE NESTED FOLDERS
+
+```
+# WORKFLOW: CREATE FOLDERS (ONE LEVEL AT A TIME)
+1. create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!
+2. read_file({ uri: "/auth/" }) // VERIFY!
+3. create_file_or_folder({ uri: "/auth/ide/" })
+4. read_file({ uri: "/auth/ide/" }) // VERIFY EACH!
+... continue level by level
+```
+
+### 4.4 COMPLETE RESTRUCTURE (90%+)
+
+```
+# WORKFLOW: COMPLETE RESTRUCTURE
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
 ```
 
 ---
 
-## 4. COMMON ERRORS & SOLUTIONS
+## 5. COMMON ERRORS & SOLUTIONS
 
-### 4.1 Error: Skipping Verification
+### 5.1 Error: rewrite_file on Non-Existent File
+
+```
+❌ WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })
+✅ CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
+```
+
+### 5.2 Error: Skipping Verification
 
 ```
 ❌ WRONG: create_file_or_folder → rewrite_file (no read_file)
 ✅ CORRECT: create_file_or_folder → read_file → rewrite_file
 ```
 
-### 4.2 Error: No Trailing Slash for Folders
+### 5.3 Error: No Trailing Slash for Folders
 
 ```
 ❌ WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" })
 ✅ CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" })
 ```
 
-### 4.3 Error: No Extension for Files
+### 5.4 Error: No Extension for Files
 
 ```
 ❌ WRONG: create_file_or_folder({ uri: "/app/types" })
 ✅ CORRECT: create_file_or_folder({ uri: "/app/types.ts" })
 ```
 
-### 4.4 Error: rewrite_file for Small Changes
+### 5.5 Error: rewrite_file for Small Changes
 
 ```
 ❌ WRONG: rewrite_file({ new_content: "..." }) for 5 line change
 ✅ CORRECT: edit_file({ old_string: "...", new_string: "..." })
 ```
 
-### 4.5 Error: old_string Not Unique
+### 5.6 Error: old_string Not Unique
 
 ```
 ❌ WRONG: edit_file({ old_string: "const add = (a, b) =>" })
-✅ CORRECT: edit_file({ old_string: "// Math helpers\nconst add = (a, b) => {\n..." })
+✅ CORRECT: edit_file({ old_string: "// Section\nconst add = (a, b) => {\n  return a + b;\n}\nconst multiply" })
 ```
 
 ---
 
-## 5. Tool Usage Matrix by Mode
+## 6. Tool Usage Matrix by Mode
 
 | Tool | Plan Mode | Ask Mode | Agent Mode |
 |------|-----------|----------|------------|
@@ -218,28 +249,14 @@ create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // Slash = FOLDER!
 
 ---
 
-## 6. old_string Rules
+## 7. RULES Summary
 
-- Must be unique (5+ lines context)
-- Too short = "multiple matches" error
-- Include surrounding lines to make unique
-
-```
-WRONG: "const add = (a, b) =>" (too short)
-CORRECT: "// Section\nconst add = (a, b) => {\n  return a + b;\n}\nconst multiply"
-```
-
----
-
-## 7. Success Metrics
-
-| Metric | Before | After Target |
-|--------|--------|--------------|
-| File creation success rate | 70% | 95%+ |
-| File edit success rate | 85% | 99%+ |
-| Verification compliance | 0% | 100% |
-| Folder/file syntax errors | Common | 0% |
-| Nested folder creation | Failed | 100% |
+- **old_string**: 5+ lines context, MUST be unique
+- **If uncertain**: say "I don't know"
+- **Absolute paths ONLY**
+- **NO hallucinations**
+- **If request unclear**: ask clarification
+- **STARTUP**: get_dir_tree on workspace root first
 
 ---
 
@@ -251,20 +268,24 @@ CORRECT: "// Section\nconst add = (a, b) => {\n  return a + b;\n}\nconst multipl
    - `agentSystemMessageText`
    - `create_file_or_folder` description
    - `rewrite_file` description
-   - `chat_systemMessage` agent section
+   - `edit_file` description
+   - `chat_systemMessage` agent section (details.push)
 
 ---
 
 ## 9. Key Principles
 
-1. **VERIFICATION IS MANDATORY** - Always read_file after create_file_or_folder
-2. **FOLDERS END WITH /** - "/app/ide-connect-v2/" not "/app/ide-connect-v2"
-3. **FILES HAVE EXTENSIONS** - "types.ts" not "types"
-4. **edit_file IS FASTER** - Use for 99% of modifications
-5. **NESTED FOLDERS ONE AT A TIME** - Verify each level
-6. **old_string MUST BE UNIQUE** - 5+ lines context
+1. **edit_file FIRST** - Use for existing files (FAST)
+2. **rewrite_file ONLY for new files or 90%+ changes**
+3. **rewrite_file DOES NOT CREATE FILES** - Must create first!
+4. **VERIFICATION IS MANDATORY** - Always read_file after create_file_or_folder
+5. **FOLDERS END WITH /** - "/app/ide-connect-v2/" not "/app/ide-connect-v2"
+6. **FILES HAVE EXTENSIONS** - "types.ts" not "types"
+7. **NESTED FOLDERS ONE AT A TIME** - Verify each level
+8. **old_string MUST BE UNIQUE** - 5+ lines context
 
 ---
 
 **Document Status**: Phase 1 Implementation Complete
-**Next Action**: Phase 2 - Add more examples and test cases
+**Status**: Optimized for DeepSeek, GLM, MiniMax
+**Next Action**: Phase 2 - Testing and validation

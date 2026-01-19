@@ -60,11 +60,23 @@ TASK: Edit code files following exact workflow.
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact", new_string: "new" })
 
-# WORKFLOW: CREATE NEW FILE
-1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
+# WORKFLOW: CREATE NEW FILE - MUST FOLLOW ORDER!
+1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
 4. If FAIL → retry step 1
+
+# CRITICAL: edit_file FIRST for existing files!
+- If file EXISTS → use edit_file (FAST)
+- If file NEW → use rewrite_file (after create_file_or_folder)
+- If 90%+ content changes → use rewrite_file
+
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
+
+# CRITICAL: rewrite_file DOES NOT CREATE FILES!
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
 
 # WORKFLOW: CREATE FOLDERS (ONE LEVEL AT A TIME)
 1. create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!
@@ -82,7 +94,12 @@ CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 # RULES
 - old_string: 5+ lines context, MUST be unique
 - If uncertain: say "I don't know"
-- If file missing: create first, then edit
+- Absolute paths ONLY
+- NO hallucinations
+- If request unclear: ask clarification
+
+# STARTUP
+get_dir_tree on workspace root first
 - Absolute paths ONLY
 - NO hallucinations`
 
@@ -272,11 +289,16 @@ old_string: MUST be unique, include 5+ lines context.`,
 		name: 'rewrite_file',
 		description: `Write content to file. File MUST exist first!
 
+CRITICAL: rewrite_file DOES NOT CREATE FILES!
+
 WORKFLOW:
-1. create_file_or_folder({ uri: "file.ts" })
-2. read_file({ uri: "file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
+1. create_file_or_folder({ uri: "file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
 4. If FAIL → retry step 1
+
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
 
 For existing files: use edit_file instead!`,
 		params: {
@@ -401,11 +423,20 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact", new_string: "new" })
 
-# WORKFLOW: CREATE FILE
-1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
+# WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
+1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
 4. If FAIL → retry step 1
+
+# CRITICAL: edit_file FIRST for existing files!
+- If file EXISTS → use edit_file (FAST)
+- If file NEW → use rewrite_file (after create_file_or_folder)
+- If 90%+ content changes → use rewrite_file
+
+# CRITICAL: rewrite_file DOES NOT CREATE FILES!
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
 
 # WORKFLOW: CREATE FOLDERS (ONE LEVEL)
 1. create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!
@@ -447,11 +478,20 @@ const agentSystemMessageText = `TASK: Edit code files following exact workflow.
 1. read_file({ uri: "/path/file.ts" })
 2. edit_file({ uri, old_string: "exact", new_string: "new" })
 
-# WORKFLOW: CREATE FILE
-1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY!
-3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
+# WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
+1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
+2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
+3. If SUCCESS → rewrite_file({ uri, new_content: "..." })  // STEP 3: WRITE
 4. If FAIL → retry step 1
+
+# CRITICAL: edit_file FIRST for existing files!
+- If file EXISTS → use edit_file (FAST)
+- If file NEW → use rewrite_file (after create_file_or_folder)
+- If 90%+ content changes → use rewrite_file
+
+# CRITICAL: rewrite_file DOES NOT CREATE FILES!
+WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
+CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
 
 # WORKFLOW: CREATE FOLDERS (ONE LEVEL)
 1. create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!
