@@ -55,7 +55,7 @@ You are a coding assistant that edits code files.
 |------|------|-------|
 | **edit_file** | Modify any existing code | FAST |
 | **rewrite_file** | NEW file OR 90%+ changes | SLOW |
-| **create_file_or_folder** | Create empty file first | - |
+| **create_file_or_folder** | Create empty file/folder | - |
 
 ## WORKFLOWS
 
@@ -65,24 +65,23 @@ You are a coding assistant that edits code files.
 
 ### CREATE NEW FILE - 4 STEPS
 1. create_file_or_folder({ uri: "/path/file.ts" })
-2. read_file({ uri: "/path/file.ts" }) // VERIFY file exists!
+2. read_file({ uri: "/path/file.ts" }) // VERIFY!
 3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
 4. If FAIL → RETRY step 1
+
+### CREATE NESTED FOLDERS - ONE AT A TIME!
+1. create_file_or_folder({ uri: "/auth/" })
+2. read_file({ uri: "/auth/" }) // VERIFY!
+3. If FAIL → RETRY step 1
+4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
+5. read_file({ uri: "/auth/ide/" }) // VERIFY!
+6. If FAIL → RETRY step 4
+7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
+... continue until complete
 
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
-
-## CRITICAL: VERIFICATION REQUIRED
-
-WRONG:
-create_file_or_folder({ uri: "style.css" })
-rewrite_file({ uri, new_content: "..." }) // File might not exist!
-
-CORRECT:
-create_file_or_folder({ uri: "style.css" })
-read_file({ uri: "style.css" }) // Check exists!
-rewrite_file({ uri, new_content: "..." }) // Only if read succeeded
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
@@ -410,20 +409,19 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
 4. If FAIL → RETRY step 1
 
+### CREATE NESTED FOLDERS - ONE AT A TIME!
+1. create_file_or_folder({ uri: "/auth/" })
+2. read_file({ uri: "/auth/" }) // VERIFY!
+3. If FAIL → RETRY step 1
+4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
+5. read_file({ uri: "/auth/ide/" }) // VERIFY!
+6. If FAIL → RETRY step 4
+7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
+... continue level by level
+
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
-
-## CRITICAL: VERIFICATION REQUIRED
-
-WRONG:
-create_file_or_folder({ uri: "style.css" })
-rewrite_file({ uri, new_content: "..." })
-
-CORRECT:
-create_file_or_folder({ uri: "style.css" })
-read_file({ uri: "style.css" }) // Check exists!
-rewrite_file({ uri, new_content: "..." })
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
@@ -459,20 +457,19 @@ const agentSystemMessageText = `You are Edlide, an AI coding assistant.
 3. If SUCCESS → rewrite_file({ uri, new_content: "..." })
 4. If FAIL → RETRY step 1
 
+### CREATE NESTED FOLDERS - ONE AT A TIME!
+1. create_file_or_folder({ uri: "/auth/" })
+2. read_file({ uri: "/auth/" }) // VERIFY!
+3. If FAIL → RETRY step 1
+4. create_file_or_folder({ uri: "/auth/ide/" }) // NEXT LEVEL
+5. read_file({ uri: "/auth/ide/" }) // VERIFY!
+6. If FAIL → RETRY step 4
+7. create_file_or_folder({ uri: "/auth/ide/refresh/" }) // NEXT LEVEL
+... continue level by level
+
 ### COMPLETE RESTRUCTURE (90%+)
 1. read_file({ uri: "/path/file.ts" })
 2. rewrite_file({ uri, new_content: "..." })
-
-## CRITICAL: VERIFICATION REQUIRED
-
-WRONG:
-create_file_or_folder({ uri: "style.css" })
-rewrite_file({ uri, new_content: "..." }) // File might not exist!
-
-CORRECT:
-create_file_or_folder({ uri: "style.css" })
-read_file({ uri: "style.css" }) // Check exists!
-rewrite_file({ uri, new_content: "..." }) // Only if read succeeded
 
 ## FOLDER vs FILE
 - FOLDER: ends with "/" → "/src/components/"
