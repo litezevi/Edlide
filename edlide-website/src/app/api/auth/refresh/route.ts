@@ -1,19 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import * as jose from 'jose'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-function extractUserIdFromToken(token: string): string | null {
+let jwksCache: jose.JWTVerifyGetKey | null = null
+
+async function getJwks() {
+  if (jwksCache) return jwksCache
+
+  const jwks = jose.createRemoteJWKSet(
+    new URL(`${supabaseUrl}/auth/v1/jwks`)
+  )
+  jwksCache = jwks
+  return jwks
+}
+
+async function verifyAndExtractUserId(token: string): Promise<string | null> {
   try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
+    const jwks = await getJwks()
 
-    const payload = Buffer.from(parts[1], 'base64url').toString('utf8')
-    const decoded = JSON.parse(payload)
-    return decoded.sub || decoded.user_id || null
-  } catch (e) {
+    const { payload } = await jose.jwtVerify(token, jwks, {
+      issuer: `${supabaseUrl}/auth/v1`,
+      audience: supabaseAnonKey
+    })
+
+    return (payload.sub as string) || (payload.user_id as string) || null
+  } catch (error) {
+    console.error('[Auth Refresh] JWT verification failed:', error)
     return null
   }
 }
@@ -44,16 +60,16 @@ export async function POST(request: NextRequest) {
       console.log('[Auth Refresh] Using user_id from query param:', user_id)
     } else {
       const accessToken = authHeader!.substring(7)
-      console.log('[Auth Refresh] Token received, extracting user_id...')
+      console.log('[Auth Refresh] Token received, verifying JWT...')
 
-      const extractedUserId = extractUserIdFromToken(accessToken)
+      const extractedUserId = await verifyAndExtractUserId(accessToken)
 
       if (extractedUserId) {
         user_id = extractedUserId
-        console.log('[Auth Refresh] Extracted user_id from token:', user_id)
+        console.log('[Auth Refresh] JWT verified, user_id:', user_id)
       } else {
-        console.log('[Auth Refresh] Failed to extract user_id from token')
-        return addCorsHeaders(NextResponse.json({ error: 'Invalid token format' }, { status: 401 }))
+        console.log('[Auth Refresh] JWT verification failed')
+        return addCorsHeaders(NextResponse.json({ error: 'Invalid token', code: 'INVALID_TOKEN' }, { status: 401 }))
       }
     }
 
@@ -61,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     const { data: sessionData, error: sessionError } = await adminSupabase
       .from('user_sessions')
-      .select('refresh_token, expires_at, user_email')
+      .select('status, user_email')
       .eq('user_id', user_id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -70,40 +86,32 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !sessionData) {
       console.log('[Auth Refresh] No active session found for user:', user_id)
-      return addCorsHeaders(NextResponse.json({ error: 'No active session' }, { status: 404 }))
+      return addCorsHeaders(NextResponse.json({ error: 'No active session', code: 'SESSION_NOT_FOUND' }, { status: 404 }))
     }
 
-    const expiresAt = new Date(sessionData.expires_at)
-    const now = new Date()
-    const isExpired = expiresAt <= now
+    console.log('[Auth Refresh] Active session found, refreshing via Admin API...')
 
-    console.log('[Auth Refresh] Session expires at:', expiresAt.toISOString(), 'isExpired:', isExpired)
-
-    console.log('[Auth Refresh] Refreshing tokens for user:', user_id)
-
-    const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+    const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users/${user_id}/refresh_token`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseAnonKey
-      },
-      body: JSON.stringify({
-        refresh_token: sessionData.refresh_token
-      })
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      }
     })
 
     if (!refreshResponse.ok) {
       const errorText = await refreshResponse.text()
-      console.log('[Auth Refresh] Supabase refresh failed:', refreshResponse.status, errorText)
+      console.log('[Auth Refresh] Admin API refresh failed:', refreshResponse.status, errorText)
 
-      if (refreshResponse.status === 400 && errorText.includes('invalid_grant')) {
+      if (refreshResponse.status === 400 || refreshResponse.status === 404) {
+        console.log('[Auth Refresh] User not found or invalid, revoking session...')
         await adminSupabase
           .from('user_sessions')
           .update({ status: 'revoked', updated_at: new Date().toISOString() })
           .eq('user_id', user_id)
           .eq('status', 'active')
 
-        return addCorsHeaders(NextResponse.json({ error: 'Session expired, please reconnect', code: 'SESSION_REVOKED' }, { status: 401 }))
+        return addCorsHeaders(NextResponse.json({ error: 'User not found or session expired', code: 'USER_NOT_FOUND' }, { status: 401 }))
       }
 
       return addCorsHeaders(NextResponse.json({ error: 'Failed to refresh token' }, { status: 400 }))
@@ -114,22 +122,7 @@ export async function POST(request: NextRequest) {
     const expiresIn = newTokens.expires_in || 3600
     const newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
 
-    const { error: updateError } = await adminSupabase
-      .from('user_sessions')
-      .update({
-        access_token: newTokens.access_token,
-        refresh_token: newTokens.refresh_token,
-        expires_at: newExpiresAt,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user_id)
-      .eq('status', 'active')
-
-    if (updateError) {
-      console.error('[Auth Refresh] Failed to update session:', updateError)
-    }
-
-    console.log('[Auth Refresh] Tokens refreshed successfully for user:', user_id)
+    console.log('[Auth Refresh] Tokens refreshed successfully via Admin API for user:', user_id)
 
     return addCorsHeaders(NextResponse.json({
       success: true,
