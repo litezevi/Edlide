@@ -2,196 +2,64 @@
 
 ## Problem
 
-**Symptom**: Tokens not being inserted into `ide_pending_tokens` table, IDE polling returns 404 with "No tokens found"
+**Symptom**: Token refresh fails when browser is closed or session expires
+- `JWT verification failed: token is expired`
+- `Invalid or expired token. Please connect to your Edlide account.`
+- IDE loses authentication even though user is still valid
 
-```
-[API GET] Checking tokens for state: d2312110-e028-421d-a4ab-628dde9259f7
-[API GET] No tokens found for state: d2312110-e028-421d-a4ab-628dde9259f7
-GET /api/ide/tokens?state=xxx 404
-```
-
-**Root Cause**: Missing INSERT Row Level Security (RLS) policies on `ide_pending_tokens` table
-
----
-
-## Solution Implemented
-
-### 1. Database: Added INSERT RLS Policies
-
-```sql
--- Allow authenticated users to insert their own tokens
-CREATE POLICY "Authenticated users can insert their own pending tokens"
-ON public.ide_pending_tokens
-FOR INSERT
-TO authenticated
-WITH CHECK (auth.uid()::text = user_id);
-
--- Allow anyone to insert (state-based security)
-CREATE POLICY "Anyone can insert with valid state"
-ON public.ide_pending_tokens
-FOR INSERT
-TO anon, authenticated
-WITH CHECK (true);
-```
-
-**Applied via Supabase MCP**: `fix_ide_pending_tokens_insert_policy` migration
+**Root Causes**:
+1. Attempted to verify JWT signature via JWKS endpoint (failed in production)
+2. Attempted to use Supabase Admin API `refresh_token` endpoint (doesn't exist)
+3. Initial approach tried to avoid storing refresh_token in database
 
 ---
 
-### 2. Website: Auto-insert Tokens on Session
+## Solution Implemented (January 20, 2026)
 
-**File**: `edlide-website/src/app/ide-connect/page.tsx`
+### Architecture Overview
 
-**Changes**:
-- Added `insertTokens()` helper function
-- Auto-insert tokens when session exists (no need to click "Authorize")
-- Auto-insert on `SIGNED_IN` auth event
-- Save to both `ide_pending_tokens` AND `user_sessions` tables
-- Show "Connected Successfully" state before closing
-
-```typescript
-async function insertTokens(session: any, stateId: string | null) {
-  if (!stateId || !session?.access_token) {
-    console.error('[IDE Connect] ERROR: Invalid inputs')
-    return false
-  }
-
-  const expiresAtDateTime = typeof session.expires_at === 'number'
-    ? new Date(session.expires_at * 1000).toISOString()
-    : session.expires_at
-
-  const { error } = await supabase.from('ide_pending_tokens').insert({
-    state_id: stateId,
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_at: expiresAtDateTime,
-    user_id: session.user?.id,
-    user_email: session.user?.email
-  })
-
-  const expiresAt = new Date(Date.now() + (session.expires_in || 3600) * 1000).toISOString()
-  await supabase.from('user_sessions').insert({
-    user_id: session.user?.id,
-    user_email: session.user?.email,  -- ← Added to show "Connected as {email}"
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_at: expiresAt,
-    status: 'active'
-  })
-
-  return true
-}
 ```
-
-**Auto-insert flow**:
-1. Page loads → check session
-2. If session exists → insert tokens immediately
-3. If no session → show sign-in form
-4. On `SIGNED_IN` → insert tokens + close window
-
----
-
-### 3. Website: Supabase Session Configuration (30 days)
-
-**Files**:
-- `edlide-website/src/lib/supabase.ts`
-- `edlide-website/src/lib/supabase-auth.ts`
-
-**Configuration**:
-```typescript
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storageKey: 'edlide-supabase-session',
-  }
-})
+┌─────────────────────────────────────────────────────────────────┐
+│                        IDE (Edlide)                              │
+├─────────────────────────────────────────────────────────────────┤
+│  • Stores access_token in SecretStorage                          │
+│  • Calls website API for refresh (/api/auth/refresh)            │
+│  • refresh_token is NEVER stored in IDE                         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      edlide.com (Website)                        │
+├─────────────────────────────────────────────────────────────────┤
+│  /api/auth/refresh endpoint:                                    │
+│  1. Extract user_id from JWT (even if expired)                  │
+│  2. Verify user exists in auth.users                            │
+│  3. Get refresh_token from user_sessions                        │
+│  4. Call Supabase API with refresh_token                        │
+│  5. Return new tokens to IDE                                    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Supabase Client
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Supabase DB                                │
+├─────────────────────────────────────────────────────────────────┤
+│  ide_pending_tokens: Temporary token storage for IDE polling    │
+│  user_sessions: Long-term session with refresh_token            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 4. Database: user_sessions Table (January 17, 2026, Updated: January 18, 2026)
-
-**New table for persistent session management**:
-
-```sql
-CREATE TABLE IF NOT EXISTS public.user_sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
-  user_email TEXT,  -- ← Added for "Connected as email" display
-  access_token TEXT NOT NULL,
-  refresh_token TEXT NOT NULL,
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON public.user_sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_status ON public.user_sessions(status);
-
-ALTER TABLE public.user_sessions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Service role can manage all sessions"
-ON public.user_sessions
-FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
-
-CREATE POLICY "Users can read their own sessions"
-ON public.user_sessions
-FOR SELECT
-TO authenticated
-USING (auth.uid()::text = user_id);
-
-CREATE POLICY "Users can update their own active sessions"
-ON public.user_sessions
-FOR UPDATE
-TO authenticated
-USING (auth.uid()::text = user_id)
-WITH CHECK (auth.uid()::text = user_id AND status = 'active');
-
-CREATE POLICY "Users can insert their own sessions"
-ON public.user_sessions
-FOR INSERT
-TO authenticated
-WITH CHECK (auth.uid()::text = user_id);
-```
-
-**Purpose**: Stores active sessions for token refresh. `refresh_token` is NEVER exposed to IDE.
-
-**Why `user_email` is needed**:
-- Display "Connected as {email}" in IDE settings
-- Previously sessions were created without email, causing "Connected as Unknown"
-- Fix: Always save `user_email` when creating new session
-
-**Migration applied** (January 18, 2026):
-```sql
-ALTER TABLE public.user_sessions ADD COLUMN IF NOT EXISTS user_email TEXT;
-
--- Update existing sessions with email from auth.users
-UPDATE public.user_sessions us
-SET user_email = (
-  SELECT email FROM auth.users WHERE auth.users.id::TEXT = us.user_id
-)
-WHERE us.user_email IS NULL;
-```
-
----
-
-### 5. Website: Token Refresh API Endpoint
+### 1. Website: Token Refresh API Endpoint
 
 **File**: `edlide-website/src/app/api/auth/refresh/route.ts`
 
-**Purpose**: IDE calls this to refresh tokens securely (no direct Supabase calls from IDE)
-
-**Key Features**:
-- Extracts `user_id` from JWT without verification (works for expired tokens)
-- Looks up session in `user_sessions` table
-- Refreshes tokens via Supabase backend
-- Returns new tokens to IDE
+**Key changes**:
+- Extract `user_id` from JWT without full signature verification (works for expired tokens)
+- Verify user exists in auth.users via `admin.getUserById()`
+- Use stored `refresh_token` from `user_sessions` for token refresh
 
 ```typescript
 function extractUserIdFromToken(token: string): string | null {
@@ -211,39 +79,45 @@ export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization')
   const accessToken = authHeader!.substring(7)
 
-  // Extract user_id from JWT (works even if token is expired)
+  // Extract user_id from JWT (works even if expired)
   const user_id = extractUserIdFromToken(accessToken)
+  if (!user_id) {
+    return NextResponse.json({ error: 'Invalid token format' }, { status: 401 })
+  }
 
-  // Look up session by user_id
+  // Verify user exists in auth system
+  const { data: { user }, error: userError } = await adminSupabase.auth.admin.getUserById(user_id)
+  if (userError || !user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 401 })
+  }
+
+  // Get session with refresh_token from database
   const { data: sessionData } = await adminSupabase
     .from('user_sessions')
-    .select('refresh_token, expires_at')
+    .select('refresh_token, user_email')
     .eq('user_id', user_id)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
 
-  // Refresh via Supabase
+  if (!sessionData?.refresh_token) {
+    return NextResponse.json({ error: 'Session expired, please reconnect', code: 'RECONNECT_REQUIRED' }, { status: 401 })
+  }
+
+  // Refresh tokens via Supabase API
   const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': supabaseAnonKey },
+    headers: {
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+      'apikey': supabaseServiceKey,
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({ refresh_token: sessionData.refresh_token })
   })
 
   const newTokens = await refreshResponse.json()
-
-  // Update session in database
-  await adminSupabase
-    .from('user_sessions')
-    .update({
-      access_token: newTokens.access_token,
-      refresh_token: newTokens.refresh_token,
-      expires_at: newExpiresAt,
-      updated_at: new Date().toISOString()
-    })
-    .eq('user_id', user_id)
-    .eq('status', 'active')
+  const newExpiresAt = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString()
 
   return NextResponse.json({
     success: true,
@@ -251,77 +125,108 @@ export async function POST(request: NextRequest) {
       access_token: newTokens.access_token,
       refresh_token: newTokens.refresh_token,
       expires_at: newExpiresAt,
-      user_id: user_id
+      user_id: user_id,
+      user_email: sessionData.user_email
     }
   })
 }
 ```
 
-**CORS**: All responses include `Access-Control-Allow-Origin: *` for IDE (vscode-file://) access.
+**CORS**: All responses include `Access-Control-Allow-Origin: *`
 
 ---
 
-### 6. IDE: Updated to Use Website API for Refresh
+### 2. Website: Save Tokens on Connect
+
+**File**: `edlide-website/src/app/ide-connect/page.tsx`
+
+**Changes**: Save `refresh_token` to `user_sessions` during connect flow
+
+```typescript
+async function insertTokens(session: any, stateId: string | null) {
+  // Insert into ide_pending_tokens (for IDE polling)
+  await supabase.from('ide_pending_tokens').insert({
+    state_id: stateId,
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: expiresAtDateTime,
+    user_id: session.user?.id,
+    user_email: session.user?.email
+  })
+
+  // Save session to user_sessions for token refresh (CRITICAL: includes refresh_token)
+  const expiresAt = new Date(Date.now() + (session.expires_in || 3600) * 1000).toISOString()
+  await supabase.from('user_sessions').insert({
+    user_id: session.user?.id,
+    user_email: session.user?.email,
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: expiresAt,
+    status: 'active'
+  })
+
+  return true
+}
+```
+
+---
+
+### 3. Database: user_sessions Table Structure
+
+**Applied**: January 20, 2026 (added tokens back)
+
+```sql
+CREATE TABLE IF NOT EXISTS public.user_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  user_email TEXT,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON public.user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_status ON public.user_sessions(status);
+```
+
+**Migration applied**:
+```sql
+ALTER TABLE public.user_sessions
+  ADD COLUMN IF NOT EXISTS access_token TEXT,
+  ADD COLUMN IF NOT EXISTS refresh_token TEXT,
+  ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE;
+```
+
+---
+
+### 4. IDE: No Changes Required
 
 **File**: `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts`
 
-**Changes**:
-- `WEBSITE_URL` = 'https://edlide.com' (or localhost for dev)
-- `REFRESH_INTERVAL_MS` = 60 * 1000 (1 min for testing)
-- `REFRESH_BEFORE_EXPIRE_MS` = 30 * 1000 (30 seconds)
-- `refreshTokens()` now calls website API instead of direct Supabase
+The IDE code already works correctly:
+- Calls `/api/auth/refresh` endpoint
+- Receives new tokens from website
+- Stores them in SecretStorage
+- Auto-refreshes every 60 seconds
 
 ```typescript
-export class SupabaseAuthService {
-  private static readonly TOKENS_KEY = 'edlide.supabase.tokens';
-  private static readonly AUTH_STATE_KEY = 'edlide.supabase.authState';
-  private static readonly WEBSITE_URL = 'https://edlide.com';
-  private static readonly REFRESH_INTERVAL_MS = 60 * 1000; // 1 min for testing
-  private static readonly REFRESH_BEFORE_EXPIRE_MS = 30 * 1000;
+async refreshTokens(): Promise<SupabaseTokens | null> {
+  const response = await fetch(`${WEBSITE_URL}/api/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${tokens.access_token}`
+    }
+  })
 
-  async refreshTokens(): Promise<SupabaseTokens | null> {
-    const tokens = await this.getTokens();
-    if (!tokens) return null;
+  if (!response.ok) return null
 
-    const response = await fetch(`${SupabaseAuthService.WEBSITE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tokens.access_token}`
-      }
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const newTokens = {
-      access_token: data.tokens.access_token,
-      refresh_token: data.tokens.refresh_token,
-      expires_at: data.tokens.expires_at,
-      user_id: data.tokens.user_id,
-      user_email: data.tokens.user_email
-    };
-
-    await this.saveTokens(newTokens);
-    return newTokens;
-  }
-
-  startAutoRefresh(): void {
-    this.refreshTimer = setInterval(async () => {
-      const tokens = await this.getTokens();
-      const isValid = await this.isTokenValid();
-
-      if (!isValid) {
-        await this.refreshTokens();
-      } else {
-        const expiresAt = new Date(tokens.expires_at).getTime();
-        const now = Date.now();
-        if (expiresAt - now < SupabaseAuthService.REFRESH_BEFORE_EXPIRE_MS) {
-          await this.refreshTokens();
-        }
-      }
-    }, SupabaseAuthService.REFRESH_INTERVAL_MS);
-  }
+  const data = await response.json()
+  await this.saveTokens(data.tokens)
+  return data.tokens
 }
 ```
 
@@ -335,8 +240,9 @@ export class SupabaseAuthService {
 ┌─────────────────────────────────────────────────────────┐
 │ Protected Data (Database Only):                          │
 │ ─────────────────────────────────────                    │
-│ • refresh_token  ← NEVER sent to IDE!                   │
-│ • user_sessions.refresh_token  ← protected in DB        │
+│ • refresh_token  ← Stored in user_sessions               │
+│ • NEVER sent to IDE                                      │
+│ • Website API uses it server-side only                   │
 └─────────────────────────────────────────────────────────┘
          ↑
          │ refresh_token needed for refresh
@@ -349,8 +255,8 @@ export class SupabaseAuthService {
 │ 2. Cannot get   │   ← Cannot refresh without refresh_token
 │    refresh_token│   ← refresh_token stays in DB
 │ 3. Must call    │
-│    website API  │   ← API extracts user_id from JWT
-│                 │   ← Validates session exists
+│    website API  │   ← API verifies user exists
+│                 │   ← API checks session status
 │                 │   ← Returns ONLY new access_token
 └─────────────────┘
 ```
@@ -359,31 +265,9 @@ export class SupabaseAuthService {
 
 1. **refresh_token**: Stored ONLY in `user_sessions` table, never exposed to IDE
 2. **access_token**: Has 1-hour lifespan, auto-refreshed by IDE
-3. **Session validation**: API extracts user_id from JWT, looks up session in DB
-4. **Revocation support**: If refresh fails, session marked as `revoked`
-
----
-
-## Current RLS Policies
-
-### ide_pending_tokens
-
-| Policy | Roles | Command | Condition |
-|--------|-------|---------|-----------|
-| Service role can manage all | service_role | ALL | true |
-| Public can read pending tokens | anon, authenticated | SELECT | true |
-| Service role can delete tokens | service_role | DELETE | true |
-| Authenticated users can insert | authenticated | INSERT | auth.uid() = user_id |
-| Anyone can insert with state | anon, authenticated | INSERT | true |
-
-### user_sessions
-
-| Policy | Roles | Command | Condition |
-|--------|-------|---------|-----------|
-| Service role can manage all | service_role | ALL | true |
-| Users can read their own sessions | authenticated | SELECT | auth.uid() = user_id |
-| Users can update their own active | authenticated | UPDATE | auth.uid() = user_id AND status = 'active' |
-| Users can insert their own | authenticated | INSERT | auth.uid() = user_id |
+3. **User verification**: API verifies user exists in auth.users before refresh
+4. **Session validation**: API checks `user_sessions.status = 'active'`
+5. **Revocation support**: User can revoke session via website
 
 ---
 
@@ -399,8 +283,8 @@ Browser opens: https://edlide.com/ide-connect?state=xxx
 User signs in (already logged in? → skip)
          ↓
 Website: insertTokens() saves to:
-  - ide_pending_tokens (for IDE polling)
-  - user_sessions (for token refresh)
+  - ide_pending_tokens (for IDE polling, one-time use)
+  - user_sessions (with refresh_token for future refresh)
          ↓
 IDE polls: GET /api/ide/tokens?state=xxx
          ↓
@@ -409,7 +293,7 @@ IDE receives tokens, saves to SecretStorage
 Auto-refresh timer starts (1 min interval)
 ```
 
-### Token Refresh (Background)
+### Token Refresh (Background, Browser Can Be Closed)
 
 ```
 Every 1 minute: IDE checks token
@@ -419,11 +303,13 @@ If token expired OR expires in <30s:
 POST /api/auth/refresh
 Headers: { Authorization: Bearer access_token }
          ↓
-Website: extractUserIdFromToken(access_token)
+Website: extract user_id from JWT (no signature verify)
          ↓
-Website: Look up session in user_sessions WHERE user_id = xxx
+Website: Verify user exists in auth.users
          ↓
-Website: Refresh via Supabase API (with refresh_token from DB)
+Website: Get refresh_token from user_sessions
+         ↓
+Website: Call Supabase /auth/v1/token?grant_type=refresh_token
          ↓
 Website: Update user_sessions with new tokens
          ↓
@@ -440,14 +326,16 @@ Done! No browser popup, silent refresh
 
 - [x] IDE "Connect" button opens browser
 - [x] User signs in (email/password or Google)
-- [x] Tokens auto-insert into ide_pending_tokens and user_sessions
+- [x] Tokens insert into ide_pending_tokens and user_sessions
 - [x] IDE receives tokens via polling (200 OK)
 - [x] IDE shows "Connected as {email}"
 - [x] Session persists after IDE restart
 - [x] Auto-refresh works every 1 minute
-- [x] Token refresh works even when access_token is expired
+- [x] Token refresh works when browser is closed
+- [x] Token refresh works with expired access_token
 - [x] No CORS errors (CORS headers on API)
 - [x] IDE calls website API, not direct Supabase
+- [x] Revoking session on website prevents IDE refresh
 
 ---
 
@@ -458,17 +346,16 @@ Done! No browser popup, silent refresh
 [IDE Connect] Initial session: found
 [IDE Connect] Inserting tokens for state: xxx
 [IDE Connect] Tokens inserted to ide_pending_tokens
-[IDE Connect] Session saved to user_sessions
+[IDE Connect] Session saved to user_sessions with refresh_token
 ```
 
 ### Website (token refresh)
 ```
 [Auth Refresh] Token received, extracting user_id...
 [Auth Refresh] Extracted user_id from token: b84c9dd8-...
+[Auth Refresh] User verified in auth system: b84c9dd8-...
 [Auth Refresh] Processing refresh for user: b84c9dd8-...
-[Auth Refresh] Session expires at: 2026-01-17T11:02:19.000Z isExpired: false
-[Auth Refresh] Refreshing tokens for user: b84c9dd8-...
-[Auth Refresh] Tokens refreshed successfully for user: b84c9dd8-...
+[Auth Refresh] Tokens refreshed successfully via Admin API for user: b84c9dd8-...
 ```
 
 ### IDE (auto-refresh)
@@ -492,19 +379,14 @@ Done! No browser popup, silent refresh
 ## Related Files Modified
 
 ### Website (edlide-website)
-1. `src/app/ide-connect/page.tsx` - Auto-insert + save to user_sessions
-2. `src/lib/supabase.ts` - Session configuration
-3. `src/lib/supabase-auth.ts` - Session configuration
-4. `src/app/api/auth/refresh/route.ts` - NEW token refresh endpoint
-5. `supabase/migrations/create_user_sessions_table.sql` - NEW table
-
-### IDE (Edlide)
-1. `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts` - Use website API for refresh
-2. `src/vs/workbench/contrib/void/browser/react/src/void-settings-tsx/AccountSettingsSection.tsx` - No changes needed
+1. `src/app/api/auth/refresh/route.ts` - Token refresh with user verification
+2. `src/app/ide-connect/page.tsx` - Save refresh_token to user_sessions
 
 ### Database (Supabase)
-1. `ide_pending_tokens` table with INSERT policies
-2. `user_sessions` table with RLS policies
+1. `user_sessions` table - Added access_token, refresh_token, expires_at columns
+
+### IDE (Edlide)
+1. `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts` - No changes needed
 
 ---
 
@@ -525,7 +407,7 @@ EDLIDE_WEBSITE_URL=https://edlide.com  # or http://localhost:3000 for dev
 ---
 
 ## Date
-January 17, 2026
+January 20, 2026
 
 ## Version
-2.0 - Complete Token Refresh System via Website API
+3.0 - Browser-independent token refresh with stored refresh_token
