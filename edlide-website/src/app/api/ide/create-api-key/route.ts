@@ -52,21 +52,44 @@ export async function POST(request: NextRequest) {
     console.log('[Create API Key] Creating API key for user:', user_id)
 
     const apiKey = generateApiKey()
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
-    const { error: keyError } = await adminSupabase
+    const { error: selectError } = await adminSupabase
       .from('user_sessions')
-      .upsert({
-        user_id: user_id,
-        user_email: user_email,
-        api_key: apiKey,
-        api_key_expires_at: expiresAt,
-        status: 'active',
-        is_ide_device: true
-      }, {
-        onConflict: 'user_id',
-        ignoreDuplicates: false
-      })
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('is_ide_device', true)
+      .single()
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      console.error('[Create API Key] Failed to check existing session:', selectError)
+      return addCorsHeaders(NextResponse.json({ error: 'Database error' }, { status: 500 }))
+    }
+
+    const sessionData = {
+      user_id: user_id,
+      user_email: user_email,
+      api_key: apiKey,
+      api_key_expires_at: expiresAt,
+      status: 'active' as const,
+      is_ide_device: true,
+      updated_at: new Date().toISOString()
+    }
+
+    let keyError
+    if (selectError && selectError.code === 'PGRST116') {
+      console.log('[Create API Key] No existing session, inserting new...')
+      const { error } = await adminSupabase.from('user_sessions').insert(sessionData)
+      keyError = error
+    } else {
+      console.log('[Create API Key] Updating existing session...')
+      const { error } = await adminSupabase
+        .from('user_sessions')
+        .update(sessionData)
+        .eq('user_id', user_id)
+        .eq('is_ide_device', true)
+      keyError = error
+    }
 
     if (keyError) {
       console.error('[Create API Key] Failed to save API key:', keyError)

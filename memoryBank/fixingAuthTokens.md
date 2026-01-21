@@ -5,14 +5,14 @@
 **Symptom**: IDE loses authentication when:
 - User logs out from edlide.com
 - Browser session is closed/expired
-- Internet connection is lost
+- Internet connection is lost during refresh
 
-**Root Cause**: IDE was using the same `refresh_token` as the browser session.
+**Root Cause**: IDE was using the same OAuth refresh_token as the browser session.
 When user logs out from website, Supabase revokes ALL refresh_tokens for that user.
 
 ---
 
-## Solution Implemented (January 20, 2026) - Final Version
+## Solution Implemented (January 21, 2026) - Final Version
 
 ### Architecture Overview
 
@@ -20,9 +20,9 @@ When user logs out from website, Supabase revokes ALL refresh_tokens for that us
 ┌─────────────────────────────────────────────────────────────────┐
 │                        IDE (Edlide)                              │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Stores access_token in SecretStorage                          │
-│  • Calls website API for refresh (/api/auth/refresh)            │
-│  • refresh_token is NEVER stored in IDE                         │
+│  • Stores API key in SecretStorage (OS-level encryption)        │
+│  • Uses API key for all authentication requests                 │
+│  • Calls /api/ide/get-access-token to get fresh tokens          │
 │  • Works completely INDEPENDENT of browser session               │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -31,11 +31,11 @@ When user logs out from website, Supabase revokes ALL refresh_tokens for that us
 ┌─────────────────────────────────────────────────────────────────┐
 │                      edlide.com (Website)                        │
 ├─────────────────────────────────────────────────────────────────┤
-│  /api/auth/create-ide-session: Creates independent IDE tokens   │
-│  /api/auth/refresh: Refreshes IDE tokens via Admin API          │
+│  /api/ide/create-api-key: Creates independent API key for IDE   │
+│  /api/ide/get-access-token: Returns access token via API key    │
 │                                                                   │
-│  Key difference: IDE tokens are created via Admin API           │
-│  They are NOT linked to browser session!                        │
+│  API key is NOT tied to browser session!                         │
+│  Browser logout does NOT revoke API key                          │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               │ Supabase Client (service_role)
@@ -44,115 +44,146 @@ When user logs out from website, Supabase revokes ALL refresh_tokens for that us
 │                       Supabase DB                                │
 ├─────────────────────────────────────────────────────────────────┤
 │  ide_pending_tokens: Temporary token storage for IDE polling    │
-│  user_sessions: Long-term session with is_ide_device=true       │
+│  user_sessions: API key + access tokens (is_ide_device=true)    │
 │  auth.users: User accounts (separate from IDE tokens)           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Insight: Independent IDE Tokens
+### Key Insight: API Key Authentication
 
 When user connects IDE:
 1. User authenticates in browser (normal session)
-2. Website calls Supabase Admin API to create NEW, INDEPENDENT tokens for IDE
-3. These tokens are stored in `user_sessions` with `is_ide_device=true`
-4. When user logs out from website → browser session is revoked, IDE tokens remain!
-5. IDE tokens can only be refreshed via Admin API
+2. Website generates a random API key (`edlide_xxx...`)
+3. API key is stored in `user_sessions` with `is_ide_device=true`
+4. IDE receives API key and uses it for all future requests
+5. When user logs out from website → browser session is revoked, **API key remains!**
+6. IDE uses API key to get fresh access tokens from website
 
 ---
 
-### 1. Website: Create IDE Session Endpoint
+### 1. Website: Create API Key Endpoint
 
-**File**: `edlide-website/src/app/api/auth/create-ide-session/route.ts`
+**File**: `edlide-website/src/app/api/ide/create-api-key/route.ts`
 
-**Creates independent tokens for IDE via Supabase Admin API**
+**Creates independent API key for IDE**
 
 ```typescript
+function generateApiKey(): string {
+  return `edlide_${randomBytes(32).toString('hex')}`
+}
+
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization')
   const accessToken = authHeader!.substring(7)
 
-  // Verify user exists via getUser (validates browser session)
-  const { data: { user }, error: userError } = await adminSupabase.auth.getUser(accessToken)
-  if (userError || !user) {
+  // Verify user exists via getUser
+  const { data: { user } } = await adminSupabase.auth.getUser(accessToken)
+  if (!user) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
   }
 
-  // Create NEW independent tokens via Admin API
-  const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users/${user_id}/refresh_token`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${supabaseServiceKey}`,
-      'apikey': supabaseServiceKey,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({})
-  })
+  const user_id = user.id
+  const user_email = user.email
 
-  const newTokens = await refreshResponse.json()
-  const expiresAt = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString()
+  // Generate random API key
+  const apiKey = generateApiKey()
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Save to user_sessions with is_ide_device=true
-  await adminSupabase.from('user_sessions').upsert({
-    user_id: user_id,
-    user_email: user_email,
-    access_token: newTokens.access_token,
-    refresh_token: newTokens.refresh_token,
-    expires_at: expiresAt,
-    status: 'active',
-    is_ide_device: true  // CRITICAL: Marks these as IDE-specific
-  })
+  // Check if user already has IDE session
+  const { data: existing } = await adminSupabase
+    .from('user_sessions')
+    .select('id')
+    .eq('user_id', user_id)
+    .eq('is_ide_device', true)
+    .single()
+
+  if (existing) {
+    // Update existing session
+    await adminSupabase.from('user_sessions')
+      .update({
+        user_email,
+        api_key: apiKey,
+        api_key_expires_at: expiresAt,
+        status: 'active',
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user_id)
+      .eq('is_ide_device', true)
+  } else {
+    // Insert new session
+    await adminSupabase.from('user_sessions').insert({
+      user_id,
+      user_email,
+      api_key: apiKey,
+      api_key_expires_at: expiresAt,
+      status: 'active',
+      is_ide_device: true
+    })
+  }
 
   return NextResponse.json({
     success: true,
-    tokens: {
-      access_token: newTokens.access_token,
-      refresh_token: newTokens.refresh_token,
-      expires_at: expiresAt,
-      user_id: user_id,
-      user_email: user_email
-    }
+    api_key: apiKey,
+    expires_at: expiresAt,
+    user_id,
+    user_email
   })
 }
 ```
 
 ---
 
-### 2. Website: Token Refresh API Endpoint
+### 2. Website: Get Access Token Endpoint
 
-**File**: `edlide-website/src/app/api/auth/refresh/route.ts`
+**File**: `edlide-website/src/app/api/ide/get-access-token/route.ts`
 
-**Refreshes IDE tokens (browser-independent)**
+**Returns access token using API key (browser-independent)**
 
 ```typescript
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization')
-  const accessToken = authHeader!.substring(7)
+  const apiKey = request.headers.get('X-API-Key')
 
-  // Extract user_id from JWT
-  const user_id = extractUserIdFromToken(accessToken)
-
-  // Verify user exists in auth.users (NOT checking session!)
-  const { data: { user }, error: userError } = await adminSupabase.auth.admin.getUserById(user_id)
-  if (userError || !user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 401 })
-  }
-
-  // Get IDE session from user_sessions
-  const { data: sessionData } = await adminSupabase
+  // Look up API key in user_sessions
+  const { data: sessionData, error } = await adminSupabase
     .from('user_sessions')
-    .select('refresh_token, user_email')
-    .eq('user_id', user_id)
+    .select('user_id, user_email, access_token, refresh_token, expires_at, api_key_expires_at')
+    .eq('api_key', apiKey)
+    .eq('is_ide_device', true)
     .eq('status', 'active')
-    .eq('is_ide_device', true)  // Get IDE-specific session
-    .order('created_at', { ascending: false })
-    .limit(1)
     .single()
 
-  if (!sessionData?.refresh_token) {
-    return NextResponse.json({ error: 'Session expired, please reconnect', code: 'RECONNECT_REQUIRED' }, { status: 401 })
+  if (error || !sessionData) {
+    return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
   }
 
-  // Refresh tokens via Supabase API
+  // Check if API key expired
+  if (sessionData.api_key_expires_at) {
+    const expiresAt = new Date(sessionData.api_key_expires_at)
+    if (expiresAt < new Date()) {
+      return NextResponse.json({ error: 'API key expired' }, { status: 401 })
+    }
+  }
+
+  const userId = sessionData.user_id
+  const userEmail = sessionData.user_email
+  const storedExpiresAt = sessionData.expires_at
+
+  // Check if stored token is still valid
+  const expiresAt = storedExpiresAt ? new Date(storedExpiresAt) : null
+  if (expiresAt && expiresAt > new Date()) {
+    return NextResponse.json({
+      success: true,
+      tokens: {
+        access_token: sessionData.access_token,
+        refresh_token: sessionData.refresh_token,
+        expires_at: storedExpiresAt,
+        user_id: userId,
+        user_email: userEmail
+      }
+    })
+  }
+
+  // Token expired, refresh it
   const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
     method: 'POST',
     headers: {
@@ -163,16 +194,30 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({ refresh_token: sessionData.refresh_token })
   })
 
+  if (!refreshResponse.ok) {
+    // Refresh token revoked, user needs to reconnect
+    await adminSupabase.from('user_sessions')
+      .update({ status: 'revoked' })
+      .eq('api_key', apiKey)
+
+    return NextResponse.json({
+      error: 'Session revoked',
+      code: 'RECONNECT_REQUIRED'
+    }, { status: 401 })
+  }
+
   const newTokens = await refreshResponse.json()
   const newExpiresAt = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString()
 
-  // Update user_sessions with new tokens
-  await adminSupabase.from('user_sessions').update({
-    access_token: newTokens.access_token,
-    refresh_token: newTokens.refresh_token,
-    expires_at: newExpiresAt,
-    updated_at: new Date().toISOString()
-  })
+  // Update stored tokens
+  await adminSupabase.from('user_sessions')
+    .update({
+      access_token: newTokens.access_token,
+      refresh_token: newTokens.refresh_token,
+      expires_at: newExpiresAt,
+      updated_at: new Date().toISOString()
+    })
+    .eq('api_key', apiKey)
 
   return NextResponse.json({
     success: true,
@@ -180,8 +225,8 @@ export async function POST(request: NextRequest) {
       access_token: newTokens.access_token,
       refresh_token: newTokens.refresh_token,
       expires_at: newExpiresAt,
-      user_id: user_id,
-      user_email: sessionData.user_email
+      user_id: userId,
+      user_email: userEmail
     }
   })
 }
@@ -193,12 +238,11 @@ export async function POST(request: NextRequest) {
 
 **File**: `edlide-website/src/app/ide-connect/page.tsx`
 
-**Creates IDE-specific tokens on connect**
+**Creates API key and passes to IDE via polling**
 
 ```typescript
 async function insertTokens(session: any, stateId: string | null) {
-  // Call create-ide-session to generate independent tokens
-  const response = await fetch('/api/auth/create-ide-session', {
+  const response = await fetch('/api/ide/create-api-key', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -209,35 +253,79 @@ async function insertTokens(session: any, stateId: string | null) {
   const data = await response.json()
   if (!data.success) return false
 
-  const { access_token, refresh_token, expires_at, user_email } = data.tokens
+  const { api_key, expires_at, user_email } = data
 
-  // Insert into ide_pending_tokens (for IDE polling)
+  // Insert API key into ide_pending_tokens (for IDE polling)
   await supabase.from('ide_pending_tokens').insert({
     state_id: stateId,
-    access_token: access_token,
-    refresh_token: refresh_token,
+    access_token: api_key,
+    refresh_token: api_key,
     expires_at: expires_at,
     user_id: session.user?.id,
     user_email: user_email
   })
 
-  console.log('[IDE Connect] IDE session is INDEPENDENT of browser session')
+  console.log('[IDE Connect] API key inserted to ide_pending_tokens')
+  console.log('[IDE Connect] IDE will use API key (INDEPENDENT of browser session)')
+
   return true
 }
 ```
 
 ---
 
-### 4. Database: user_sessions Table Structure
+### 4. IDE: SupabaseAuthService
+
+**File**: `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts`
+
+**Uses API key for authentication instead of OAuth tokens**
+
+```typescript
+async refreshTokens(supabaseUrl: string): Promise<SupabaseTokens | null> {
+  const tokens = await this.getTokens()
+  if (!tokens) return null
+
+  // Use API key to get fresh access token
+  const response = await fetch(`https://edlide.com/api/ide/get-access-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': tokens.access_token  // API key instead of access token!
+    }
+  })
+
+  if (!response.ok) return null
+
+  const data = await response.json()
+  if (!data.success || !data.tokens) return null
+
+  const newTokens: SupabaseTokens = {
+    access_token: data.tokens.access_token,
+    refresh_token: data.tokens.refresh_token,
+    expires_at: data.tokens.expires_at,
+    user_id: data.tokens.user_id,
+    user_email: data.tokens.user_email
+  }
+
+  await this.saveTokens(newTokens)
+  return newTokens
+}
+```
+
+---
+
+### 5. Database: user_sessions Table Structure
 
 ```sql
 CREATE TABLE IF NOT EXISTS public.user_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL,
   user_email TEXT,
-  access_token TEXT NOT NULL,
-  refresh_token TEXT NOT NULL,
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  access_token TEXT,
+  refresh_token TEXT,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  api_key TEXT,
+  api_key_expires_at TIMESTAMP WITH TIME ZONE,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
   is_ide_device BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -246,12 +334,14 @@ CREATE TABLE IF NOT EXISTS public.user_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON public.user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_status ON public.user_sessions(status);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_ide_device ON public.user_sessions(is_ide_device) WHERE is_ide_device = TRUE;
+CREATE INDEX IF NOT EXISTS idx_user_sessions_api_key ON public.user_sessions(api_key) WHERE api_key IS NOT NULL;
 ```
 
 **Migration applied**:
 ```sql
-ALTER TABLE public.user_sessions ADD COLUMN IF NOT EXISTS is_ide_device BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.user_sessions
+  ADD COLUMN IF NOT EXISTS api_key TEXT,
+  ADD COLUMN IF NOT EXISTS api_key_expires_at TIMESTAMP WITH TIME ZONE;
 ```
 
 ---
@@ -267,42 +357,38 @@ Browser opens: https://edlide.com/ide-connect?state=xxx
          ↓
 User signs in (browser session created)
          ↓
-Website: call /api/auth/create-ide-session
+Website: call /api/ide/create-api-key
          ↓
-Supabase Admin API: creates NEW tokens (independent of browser!)
+Website: generates random API key (edlide_xxx...)
          ↓
-Website: save to user_sessions (is_ide_device=true)
+Website: save API key to user_sessions (is_ide_device=true)
          ↓
 Website: also insert to ide_pending_tokens (for polling)
          ↓
 IDE polls: GET /api/ide/tokens?state=xxx
          ↓
-IDE receives INDEPENDENT tokens, saves to SecretStorage
+IDE receives API key, saves to SecretStorage
          ↓
 Auto-refresh timer starts (1 min interval)
          ↓
 DONE! IDE is now independent of browser
 ```
 
-### Token Refresh (Background, Browser Can Be Closed or Logged Out)
+### Token Refresh (Background, Browser Can Be Closed OR Logged Out)
 
 ```
 Every 1 minute: IDE checks token
          ↓
 If token expired OR expires in <30s:
          ↓
-POST /api/auth/refresh
-Headers: { Authorization: Bearer access_token }
+POST /api/ide/get-access-token
+Headers: { X-API-Key: edlide_xxx... }
          ↓
-Website: extract user_id from JWT
+Website: lookup API key in user_sessions
          ↓
-Website: verify user exists in auth.users (NOT checking session!)
+Website: verify API key is active and not expired
          ↓
-Website: get refresh_token from user_sessions (is_ide_device=true)
-         ↓
-Website: call Supabase /auth/v1/token?grant_type=refresh_token
-         ↓
-Supabase: returns new tokens (IDE session, NOT browser session)
+Website: if access_token expired, refresh via Supabase API
          ↓
 Website: update user_sessions with new tokens
          ↓
@@ -322,11 +408,25 @@ Supabase: revokes browser session tokens
          ↓
 Browser session: INVALIDATED
          ↓
-IDE session (is_ide_device=true): UNAFFECTED
+API key in user_sessions: UNAFFECTED (different from browser tokens!)
          ↓
-IDE continues to work!
+IDE continues to work normally
          ↓
-User can continue using IDE normally
+User can continue using IDE for 30 days
+```
+
+### IDE Disconnect (Only Way to Revoke IDE Access)
+
+```
+User clicks "Disconnect" in IDE
+         ↓
+IDE: remove tokens from SecretStorage
+         ↓
+IDE: shows "Connect to your Account"
+         ↓
+Website API key: still in user_sessions
+         ↓
+User can reconnect anytime (will generate new API key)
 ```
 
 ---
@@ -339,38 +439,38 @@ User can continue using IDE normally
 ┌─────────────────────────────────────────────────────────┐
 │ Protected Data (Database Only):                          │
 │ ─────────────────────────────────────                    │
-│ • refresh_token  ← Stored in user_sessions               │
-│ • is_ide_device  ← Marks IDE-specific sessions           │
-│ • NEVER sent to IDE                                      │
-│ • Website API uses it server-side only                   │
+│ • API key  ← Random 64+ chars, stored in user_sessions  │
+│ • access_token  ← Obtained via API key, 1 hour lifespan │
+│ • refresh_token  ← Stored in user_sessions, never in IDE│
+│ • All tokens stay server-side                            │
 └─────────────────────────────────────────────────────────┘
          ↑
-         │ refresh_token needed for refresh
+         │ API key needed for token exchange
          │
 ┌────────┴────────┐
 │ Attacker:        │
 │ ───────────     │
-│ 1. Can intercept│   Only access_token (1 hour lifespan)
-│    access_token │   ← Valid for 1 hour max
-│ 2. Cannot get   │   ← Cannot refresh without refresh_token
-│    refresh_token│   ← refresh_token stays in DB
-│ 3. Must call    │   ← API verifies user exists
-│    website API  │   ← API checks is_ide_device status
-│                 │   ← Returns ONLY new access_token
-│ 4. Browser      │   ← Browser logout does NOT affect
-│    logout       │      IDE tokens (separate sessions)
+│ 1. Steal API key│   Only if they have access to IDE's SecretStorage
+│    from IDE      │   ← OS-level encrypted (Keychain on macOS)
+│ 2. Cannot       │   ← Cannot access other users' API keys
+│    access other │   ← Each API key is tied to one user_id
+│    users' keys  │
+│ 3. Browser      │   ← Browser logout does NOT affect API key
+│    logout       │   ← API key is completely separate
+│ 4. Time limit   │   ← API key expires in 30 days
+│                 │   ← Access token expires in 1 hour
 └─────────────────┘
 ```
 
 ### Security Guarantees
 
-1. **Independent sessions**: IDE tokens are separate from browser tokens
-2. **refresh_token**: Stored ONLY in `user_sessions` table, never exposed to IDE
-3. **access_token**: Has 1-hour lifespan, auto-refreshed by IDE
-4. **User verification**: API verifies user exists in auth.users before refresh
-5. **Session validation**: API checks `user_sessions.status = 'active'` AND `is_ide_device = true`
-6. **Browser logout safety**: Browser session revocation does NOT affect IDE tokens
-7. **Revocation support**: IDE session can only be revoked via "Disconnect" in IDE
+1. **API key**: Random 64+ characters, impossible to guess
+2. **OS encryption**: API key stored in SecretStorage (Keychain on macOS)
+3. **User isolation**: Each API key is tied to one user_id
+4. **Short-lived tokens**: Access token valid 1 hour, refreshed automatically
+5. **Browser independence**: Logout on website does NOT revoke API key
+6. **Revocation control**: Only "Disconnect" in IDE revokes API key
+7. **Server-side validation**: API key checked against database on every request
 
 ---
 
@@ -378,64 +478,60 @@ User can continue using IDE normally
 
 - [x] IDE "Connect" button opens browser
 - [x] User signs in (email/password or Google)
-- [x] IDE tokens are created via Admin API (independent of browser)
-- [x] Tokens insert into ide_pending_tokens and user_sessions
-- [x] IDE receives tokens via polling (200 OK)
+- [x] API key is created and stored in user_sessions
+- [x] IDE receives API key via polling (200 OK)
 - [x] IDE shows "Connected as {email}"
 - [x] Session persists after IDE restart
 - [x] Auto-refresh works every 1 minute
 - [x] Token refresh works when browser is closed
 - [x] Token refresh works when user is logged out from website
-- [x] Token refresh works with expired access_token
+- [x] API key expires after 30 days
 - [x] No CORS errors (CORS headers on API)
 - [x] IDE calls website API, not direct Supabase
 - [x] Logout from website does NOT disconnect IDE
-- [x] "Disconnect" in IDE properly revokes IDE session
+- [x] "Disconnect" in IDE properly revokes API key session
 
 ---
 
 ## Console Logs Expected
 
-### Website (initial connection)
+### Website (create-api-key)
 ```
-[IDE Connect] Initial session: found
-[IDE Connect] Creating IDE session for user: xxx
-[IDE Connect] IDE tokens generated via Admin API
-[IDE Connect] IDE tokens inserted to ide_pending_tokens
-[IDE Connect] IDE session is INDEPENDENT of browser session
-```
-
-### Website (create-ide-session)
-```
-[Create IDE Session] User verified: xxx
-[Create IDE Session] IDE tokens generated via Admin API
-[Create IDE Session] IDE session saved to user_sessions
-[Create IDE Session] IDE session created successfully
+[Create API Key] User verified: xxx
+[Create API Key] Creating API key for user: xxx
+[Create API Key] Updating existing session...
+[Create API Key] API key created successfully
 ```
 
-### Website (token refresh)
+### Website (get-access-token - valid)
 ```
-[Auth Refresh] Token received, extracting user_id...
-[Auth Refresh] Extracted user_id from token: xxx
-[Auth Refresh] User verified in auth system: xxx
-[Auth Refresh] Active session found, refreshing via token exchange...
-[Auth Refresh] Tokens refreshed successfully via Admin API
+[Get Access Token] Looking up API key: edlide_xxx...
+[Get Access Token] API key valid for user: xxx
+[Get Access Token] Returning stored tokens (not expired)
+```
+
+### Website (get-access-token - refresh)
+```
+[Get Access Token] Looking up API key: edlide_xxx...
+[Get Access Token] API key valid for user: xxx
+[Get Access Token] Tokens expired, refreshing...
+[Get Access Token] Tokens refreshed successfully
 ```
 
 ### IDE (auto-refresh)
 ```
 [SupabaseAuth] Timer check: {isValid: true, expiresIn: '1586s', willRefresh: false}
 [SupabaseAuth] Token expiring soon, proactive refresh...
-[SupabaseAuth] Refreshing tokens via website API...
-[SupabaseAuth] Tokens refreshed successfully via website
+[SupabaseAuth] Getting fresh access token via API key...
+[SupabaseAuth] Access token refreshed successfully
 ```
 
 ### IDE (browser logout - should still work!)
 ```
 [SupabaseAuth] Timer check: {isValid: false, expiresIn: '-153s', willRefresh: true}
-[SupabaseAuth] Token expired, auto-refreshing...
-[SupabaseAuth] Refreshing tokens via website API...
-[SupabaseAuth] Tokens refreshed successfully via website
+[SupabaseAuth] Token invalid, refreshing...
+[SupabaseAuth] Getting fresh access token via API key...
+[SupabaseAuth] Access token refreshed successfully
 ```
 
 ---
@@ -443,15 +539,15 @@ User can continue using IDE normally
 ## Related Files Modified
 
 ### Website (edlide-website)
-1. `src/app/api/auth/create-ide-session/route.ts` - NEW: Creates independent IDE tokens
-2. `src/app/api/auth/refresh/route.ts` - Updated: Refresh IDE tokens via Admin API
-3. `src/app/ide-connect/page.tsx` - Updated: Call create-ide-session endpoint
+1. `src/app/api/ide/create-api-key/route.ts` - NEW: Creates independent API key
+2. `src/app/api/ide/get-access-token/route.ts` - NEW: Returns token via API key
+3. `src/app/ide-connect/page.tsx` - Updated: Call create-api-key endpoint
 
 ### Database (Supabase)
-1. `user_sessions` table - Added is_ide_device column and index
+1. `user_sessions` table - Added api_key, api_key_expires_at columns
 
 ### IDE (Edlide)
-1. `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts` - No changes needed
+1. `src/vs/workbench/contrib/void/browser/supabaseAuthService.ts` - Use X-API-Key header
 
 ---
 
@@ -472,7 +568,7 @@ EDLIDE_WEBSITE_URL=https://edlide.com  # or http://localhost:3000 for dev
 ---
 
 ## Date
-January 20, 2026
+January 21, 2026
 
 ## Version
-4.0 - Browser-independent authentication with separate IDE tokens
+5.0 - API Key-based authentication for fully browser-independent IDE sessions
