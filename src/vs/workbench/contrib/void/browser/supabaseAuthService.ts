@@ -180,8 +180,8 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Refresh tokens using website API
-   * IDE calls website endpoint which handles Supabase refresh securely
+   * Get fresh access token using API key
+   * API key is independent of browser session
    */
   async refreshTokens(supabaseUrl: string): Promise<SupabaseTokens | null> {
     try {
@@ -191,26 +191,26 @@ export class SupabaseAuthService {
         return null;
       }
 
-      console.log('[SupabaseAuth] Refreshing tokens via website API...');
+      console.log('[SupabaseAuth] Getting fresh access token via API key...');
 
-      const response = await fetch(`https://edlide.com/api/auth/refresh`, {
+      const response = await fetch(`https://edlide.com/api/ide/get-access-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokens.access_token}`
+          'X-API-Key': tokens.access_token
         }
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('[SupabaseAuth] Refresh failed:', errorData.error);
+        console.error('[SupabaseAuth] Get token failed:', errorData.error);
         return null;
       }
 
       const data = await response.json();
 
       if (!data.success || !data.tokens) {
-        console.error('[SupabaseAuth] Invalid refresh response:', data);
+        console.error('[SupabaseAuth] Invalid response:', data);
         return null;
       }
 
@@ -223,7 +223,7 @@ export class SupabaseAuthService {
       };
 
       await this.saveTokens(newTokens);
-      console.log('[SupabaseAuth] Tokens refreshed successfully via website');
+      console.log('[SupabaseAuth] Access token refreshed successfully');
       return newTokens;
     } catch (error) {
       console.error('[SupabaseAuth] Error refreshing tokens:', error);

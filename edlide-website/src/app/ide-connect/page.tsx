@@ -18,14 +18,10 @@ async function insertTokens(session: any, stateId: string | null) {
     return false
   }
 
-  console.log('[IDE Connect] Creating IDE session for user:', session.user?.id)
-
-  const expiresAtDateTime = typeof session.expires_at === 'number'
-    ? new Date(session.expires_at * 1000).toISOString()
-    : session.expires_at
+  console.log('[IDE Connect] Creating API key for user:', session.user?.id)
 
   try {
-    const response = await fetch('/api/auth/create-ide-session', {
+    const response = await fetch('/api/ide/create-api-key', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,32 +32,32 @@ async function insertTokens(session: any, stateId: string | null) {
     const data = await response.json()
 
     if (!response.ok || !data.success) {
-      console.error('[IDE Connect] Failed to create IDE session:', data.error)
+      console.error('[IDE Connect] Failed to create API key:', data.error)
       return false
     }
 
-    const { access_token, refresh_token, expires_at, user_email } = data.tokens
+    const { api_key, expires_at, user_email } = data
 
     const { error } = await supabase.from('ide_pending_tokens').insert({
       state_id: stateId,
-      access_token: access_token,
-      refresh_token: refresh_token,
+      access_token: api_key,
+      refresh_token: api_key,
       expires_at: expires_at,
       user_id: session.user?.id,
       user_email: user_email
     })
 
     if (error) {
-      console.error('[IDE Connect] ERROR inserting tokens to ide_pending_tokens:', JSON.stringify(error, null, 2))
+      console.error('[IDE Connect] ERROR inserting API key to ide_pending_tokens:', JSON.stringify(error, null, 2))
       return false
     }
 
-    console.log('[IDE Connect] IDE tokens inserted to ide_pending_tokens for state:', stateId)
-    console.log('[IDE Connect] IDE session is INDEPENDENT of browser session')
+    console.log('[IDE Connect] API key inserted to ide_pending_tokens for state:', stateId)
+    console.log('[IDE Connect] IDE will use API key for all requests (INDEPENDENT of browser session)')
 
     return true
   } catch (err) {
-    console.error('[IDE Connect] Error creating IDE session:', err)
+    console.error('[IDE Connect] Error creating API key:', err)
     return false
   }
 }
