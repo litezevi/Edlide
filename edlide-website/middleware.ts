@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (pathname === '/docs' || pathname === '/chat') {
+  if (pathname.startsWith('/chat')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -12,5 +12,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/docs/:path*', '/chat/:path*'],
+  matcher: ['/chat/:path*']
 }
