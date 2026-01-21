@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 const docsSections = [
@@ -52,10 +52,38 @@ const docsSections = [
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('about')
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 150
+      const docHeight = document.documentElement.scrollHeight
+      const windowHeight = window.innerHeight
+      const scrollBottom = docHeight - windowHeight - 100
+
+      if (window.scrollY >= scrollBottom) {
+        setActiveSection('context-window')
+        return
+      }
+
+      const sectionIds = Object.keys(sectionRefs.current).reverse()
+      for (const id of sectionIds) {
+        const element = sectionRefs.current[id]
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(id)
+          break
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const scrollToSection = (id: string) => {
-    setActiveSection(id)
-    const element = document.getElementById(id)
+    const element = sectionRefs.current[id]
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
     }
@@ -92,7 +120,7 @@ export default function DocsPage() {
       </aside>
 
       <main className="flex-1 py-12 px-6 lg:px-12 max-w-4xl">
-        <div id="about" className="scroll-mt-20">
+        <div id="about" ref={(el) => { sectionRefs.current['about'] = el }}>
           <h1 className="text-3xl font-bold text-primary mb-4">About Edlide</h1>
           <p className="text-muted-foreground mb-6">
             Edlide is an AI-powered IDE focused on open source models and privacy. 
@@ -117,7 +145,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="installation" className="scroll-mt-20">
+        <div id="installation" ref={(el) => { sectionRefs.current['installation'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Installation</h2>
           <p className="text-muted-foreground mb-6">
             Get started by downloading Edlide for your platform.
@@ -151,7 +179,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="account" className="scroll-mt-20">
+        <div id="account" ref={(el) => { sectionRefs.current['account'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Account Setup</h2>
           <p className="text-muted-foreground mb-6">
             Connect your Edlide IDE to your account to access all features.
@@ -198,7 +226,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="transfer" className="scroll-mt-20">
+        <div id="transfer" ref={(el) => { sectionRefs.current['transfer'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Transfer Settings</h2>
           <p className="text-muted-foreground mb-6">
             Import your settings from other IDEs seamlessly.
@@ -218,7 +246,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="available-models" className="scroll-mt-20">
+        <div id="available-models" ref={(el) => { sectionRefs.current['available-models'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Available Models</h2>
           <p className="text-muted-foreground mb-6">
             Choose from the best open source AI models.
@@ -260,7 +288,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="model-features" className="scroll-mt-20">
+        <div id="model-features" ref={(el) => { sectionRefs.current['model-features'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Key Features</h2>
           <div className="space-y-4">
             <div className="border rounded-lg p-4 bg-card">
@@ -280,7 +308,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="system-prompt" className="scroll-mt-20">
+        <div id="system-prompt" ref={(el) => { sectionRefs.current['system-prompt'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">System Prompt</h2>
           <p className="text-muted-foreground mb-6">
             Configure your global communication style and AI behavior in <strong>Settings → Rules → System Prompt</strong>.
@@ -295,7 +323,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="project-rules" className="scroll-mt-20">
+        <div id="project-rules" ref={(el) => { sectionRefs.current['project-rules'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Project Rules</h2>
           <p className="text-muted-foreground mb-6">
             Create project-specific rules for tailored AI responses.
@@ -349,7 +377,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="mcp-setup" className="scroll-mt-20">
+        <div id="mcp-setup" ref={(el) => { sectionRefs.current['mcp-setup'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">MCP Setup</h2>
           <p className="text-muted-foreground mb-6">
             Model Context Protocol (MCP) servers extend Edlide capabilities. First, ensure <strong>Node.js</strong> is installed.
@@ -384,7 +412,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="mcp-example" className="scroll-mt-20">
+        <div id="mcp-example" ref={(el) => { sectionRefs.current['mcp-example'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Example Configuration</h2>
           <p className="text-muted-foreground mb-4">
             Add MCP servers by pasting this configuration into your MCP settings:
@@ -439,7 +467,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="apply-settings" className="scroll-mt-20">
+        <div id="apply-settings" ref={(el) => { sectionRefs.current['apply-settings'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Apply Settings</h2>
           <p className="text-muted-foreground mb-6">
             Configure how the Apply button behaves in <strong>Settings → Actions → Apply</strong>.
@@ -462,7 +490,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="autoapprove" className="scroll-mt-20">
+        <div id="autoapprove" ref={(el) => { sectionRefs.current['autoapprove'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Auto-Approve Settings</h2>
           <p className="text-muted-foreground mb-6">
             Configure automatic approval behaviors in <strong>Settings → Actions</strong>.
@@ -494,7 +522,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="autocompacting" className="scroll-mt-20">
+        <div id="autocompacting" ref={(el) => { sectionRefs.current['autocompacting'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Autocompacting</h2>
           <p className="text-muted-foreground mb-6">
             Edlide automatically manages context window efficiency when it reaches 80% capacity.
@@ -541,7 +569,7 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="context-window" className="scroll-mt-20">
+        <div id="context-window" ref={(el) => { sectionRefs.current['context-window'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Context Window</h2>
           <p className="text-muted-foreground mb-6">
             Monitor your real-time context window usage in the chat interface.
