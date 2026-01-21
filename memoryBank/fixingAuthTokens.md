@@ -65,7 +65,7 @@ When user connects IDE:
 
 **File**: `edlide-website/src/app/api/ide/create-api-key/route.ts`
 
-**Creates independent API key for IDE**
+**Creates independent API key for IDE using upsert**
 
 ```typescript
 function generateApiKey(): string {
@@ -89,36 +89,25 @@ export async function POST(request: NextRequest) {
   const apiKey = generateApiKey()
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Check if user already has IDE session
-  const { data: existing } = await adminSupabase
+  // Upsert new session (replace existing on conflict)
+  const { error: upsertError } = await adminSupabase
     .from('user_sessions')
-    .select('id')
-    .eq('user_id', user_id)
-    .eq('is_ide_device', true)
-    .single()
-
-  if (existing) {
-    // Update existing session
-    await adminSupabase.from('user_sessions')
-      .update({
-        user_email,
-        api_key: apiKey,
-        api_key_expires_at: expiresAt,
-        status: 'active',
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user_id)
-      .eq('is_ide_device', true)
-  } else {
-    // Insert new session
-    await adminSupabase.from('user_sessions').insert({
-      user_id,
-      user_email,
+    .upsert({
+      user_id: user_id,
+      user_email: user_email,
       api_key: apiKey,
       api_key_expires_at: expiresAt,
       status: 'active',
-      is_ide_device: true
+      is_ide_device: true,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id',
+      ignoreDuplicates: false
     })
+
+  if (upsertError) {
+    console.error('[Create API Key] Failed to save API key:', upsertError)
+    return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 })
   }
 
   return NextResponse.json({
@@ -141,7 +130,20 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get('X-API-Key')
+  const authHeader = request.headers.get('Authorization')
+  const apiKeyHeader = request.headers.get('X-API-Key')
+
+  // Support both Authorization: Bearer edlide_xxx... and X-API-Key: edlide_xxx...
+  let apiKey = null
+  if (authHeader?.startsWith('Bearer edlide_')) {
+    apiKey = authHeader.substring(7)
+  } else if (apiKeyHeader) {
+    apiKey = apiKeyHeader
+  }
+
+  if (!apiKey) {
+    return NextResponse.json({ error: 'Missing API key' }, { status: 401 })
+  }
 
   // Look up API key in user_sessions
   const { data: sessionData, error } = await adminSupabase
@@ -150,7 +152,7 @@ export async function POST(request: NextRequest) {
     .eq('api_key', apiKey)
     .eq('is_ide_device', true)
     .eq('status', 'active')
-    .single()
+    .maybeSingle()
 
   if (error || !sessionData) {
     return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
@@ -195,7 +197,6 @@ export async function POST(request: NextRequest) {
   })
 
   if (!refreshResponse.ok) {
-    // Refresh token revoked, user needs to reconnect
     await adminSupabase.from('user_sessions')
       .update({ status: 'revoked' })
       .eq('api_key', apiKey)
@@ -209,7 +210,6 @@ export async function POST(request: NextRequest) {
   const newTokens = await refreshResponse.json()
   const newExpiresAt = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString()
 
-  // Update stored tokens
   await adminSupabase.from('user_sessions')
     .update({
       access_token: newTokens.access_token,
@@ -534,6 +534,27 @@ User can reconnect anytime (will generate new API key)
 [SupabaseAuth] Access token refreshed successfully
 ```
 
+### 6. Website: AI Proxy Updated for API Key Support
+
+**File**: `edlide-website/src/app/api/ai-proxy/[[...path]]/route.ts`
+
+**Updated to accept both JWT tokens and API keys**
+
+```typescript
+// Check for API key in Authorization header
+if (authHeader?.startsWith('Bearer edlide_')) {
+  const apiKey = authHeader.substring(7)
+  user = await authenticateViaApiKey(apiKey)
+} else if (apiKeyHeader) {
+  user = await authenticateViaApiKey(apiKeyHeader)
+} else if (authHeader?.startsWith('Bearer ')) {
+  // JWT token from browser
+  const userToken = authHeader.substring(7)
+  const { data: { user: jwtUser } } = await supabase.auth.getUser(userToken)
+  user = jwtUser
+}
+```
+
 ---
 
 ## Related Files Modified
@@ -542,6 +563,7 @@ User can reconnect anytime (will generate new API key)
 1. `src/app/api/ide/create-api-key/route.ts` - NEW: Creates independent API key
 2. `src/app/api/ide/get-access-token/route.ts` - NEW: Returns token via API key
 3. `src/app/ide-connect/page.tsx` - Updated: Call create-api-key endpoint
+4. `src/app/api/ai-proxy/[[...path]]/route.ts` - Updated: Accept API key in Authorization header
 
 ### Database (Supabase)
 1. `user_sessions` table - Added api_key, api_key_expires_at columns
@@ -568,7 +590,17 @@ EDLIDE_WEBSITE_URL=https://edlide.com  # or http://localhost:3000 for dev
 ---
 
 ## Date
-January 21, 2026
+January 21, 2026 (Updated)
 
 ## Version
-5.0 - API Key-based authentication for fully browser-independent IDE sessions
+5.2 - Fixed race condition in create-api-key and ide-connect
+
+### Fixes Applied
+1. **`create-api-key/route.ts`**: Added promise deduplication using Map to prevent multiple API key generations for same user
+2. **`ide-connect/page.tsx`**: Added `connectedRef` and promise caching to prevent duplicate insert calls
+
+### Security Verified
+- API key stored only in `user_sessions` (service_role access)
+- IDE uses API key independent of browser session
+- User logout does not revoke API key
+- Chutes token refresh working correctly

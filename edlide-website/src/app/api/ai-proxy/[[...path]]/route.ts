@@ -7,34 +7,105 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Получаем пользовательский JWT токен из Authorization header
+    // 1. Получаем токен из Authorization header
     const authHeader = request.headers.get('Authorization')
+    const apiKeyHeader = request.headers.get('X-API-Key')
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader && !apiKeyHeader) {
       return NextResponse.json(
-        { error: 'Missing or invalid Authorization header' },
+        { error: 'Missing authentication' },
         { status: 401 }
       )
     }
 
-    const userToken = authHeader.substring(7)
+    let user: any = null
 
-    // 2. Валидируем JWT токен через Supabase
-    const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user }, error: userError } = await supabase.auth.getUser(userToken)
+    // Helper function to authenticate via API key
+    const authenticateViaApiKey = async (key: string) => {
+      console.log('[AI Proxy] Authenticating via API key:', key.substring(0, 20) + '...')
+      const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    if (userError || !user) {
-      console.error('[AI Proxy] Invalid user token:', userError?.message)
-      return NextResponse.json(
-        { error: 'Invalid or expired token. Please connect to your Edlide account.' },
-        { status: 401 }
-      )
+      const { data: sessionData, error } = await adminSupabase
+        .from('user_sessions')
+        .select('user_id, user_email, status')
+        .eq('api_key', key)
+        .eq('is_ide_device', true)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (error) {
+        console.error('[AI Proxy] Invalid API key:', error.message, 'code:', error.code)
+        return null
+      }
+
+      if (!sessionData) {
+        console.error('[AI Proxy] API key not found in database')
+        return null
+      }
+
+      const { data: userData } = await adminSupabase.auth.admin.getUserById(sessionData.user_id)
+      if (!userData?.user) {
+        console.error('[AI Proxy] User not found for API key')
+        return null
+      }
+
+      console.log('[AI Proxy] User authenticated via API key:', {
+        user_id: userData.user.id,
+        email: userData.user.email
+      })
+      return userData.user
     }
 
-    console.log('[AI Proxy] User authenticated:', {
-      user_id: user.id,
-      email: user.email
+    // 2. Проверяем API key или JWT токен
+    console.log('[AI Proxy] Auth check:', {
+      authHeader: authHeader?.substring(0, 30) + '...',
+      apiKeyHeader: apiKeyHeader?.substring(0, 30) + '...'
     })
+
+    if (authHeader?.startsWith('Bearer edlide_')) {
+      // Authorization: Bearer edlide_xxx... -> API key
+      const apiKey = authHeader.substring(7)
+      user = await authenticateViaApiKey(apiKey)
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Invalid or expired token. Please connect to your Edlide account.' },
+          { status: 401 }
+        )
+      }
+    } else if (apiKeyHeader) {
+      // X-API-Key: edlide_xxx... -> API key
+      user = await authenticateViaApiKey(apiKeyHeader)
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Invalid or expired token. Please connect to your Edlide account.' },
+          { status: 401 }
+        )
+      }
+    } else if (authHeader?.startsWith('Bearer ')) {
+      // Authorization: Bearer jwt_xxx... -> JWT токен
+      const userToken = authHeader.substring(7)
+      const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+      const { data: { user: jwtUser }, error: userError } = await supabase.auth.getUser(userToken)
+
+      if (userError || !jwtUser) {
+        console.error('[AI Proxy] Invalid JWT token:', userError?.message)
+        return NextResponse.json(
+          { error: 'Invalid or expired token. Please connect to your Edlide account.' },
+          { status: 401 }
+        )
+      }
+
+      user = jwtUser
+      console.log('[AI Proxy] User authenticated via JWT:', {
+        user_id: user.id,
+        email: user.email
+      })
+    } else {
+      return NextResponse.json(
+        { error: 'Missing or invalid authentication' },
+        { status: 401 }
+      )
+    }
 
     // 3. Проверяем и обновляем Chutes токен если нужно
     console.log('[AI Proxy] Checking and refreshing Chutes token if needed...')

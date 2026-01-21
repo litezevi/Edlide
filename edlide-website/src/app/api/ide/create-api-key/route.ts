@@ -16,6 +16,8 @@ function generateApiKey(): string {
   return `edlide_${randomBytes(32).toString('hex')}`
 }
 
+const pendingRequests = new Map<string, Promise<any>>()
+
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')
@@ -49,67 +51,71 @@ export async function POST(request: NextRequest) {
       console.log('[Create API Key] User verified:', user_id)
     }
 
-    console.log('[Create API Key] Creating API key for user:', user_id)
-
-    const apiKey = generateApiKey()
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-
-    const { error: selectError } = await adminSupabase
-      .from('user_sessions')
-      .select('id')
-      .eq('user_id', user_id)
-      .eq('is_ide_device', true)
-      .single()
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      console.error('[Create API Key] Failed to check existing session:', selectError)
-      return addCorsHeaders(NextResponse.json({ error: 'Database error' }, { status: 500 }))
+    if (pendingRequests.has(user_id)) {
+      console.log('[Create API Key] Waiting for existing request for user:', user_id)
+      const result = await pendingRequests.get(user_id)!
+      return addCorsHeaders(NextResponse.json(result))
     }
 
-    const sessionData = {
-      user_id: user_id,
-      user_email: user_email,
-      api_key: apiKey,
-      api_key_expires_at: expiresAt,
-      status: 'active' as const,
-      is_ide_device: true,
-      updated_at: new Date().toISOString()
-    }
+    const createKeyPromise = (async () => {
+      console.log('[Create API Key] Creating API key for user:', user_id)
 
-    let keyError
-    if (selectError && selectError.code === 'PGRST116') {
-      console.log('[Create API Key] No existing session, inserting new...')
-      const { error } = await adminSupabase.from('user_sessions').insert(sessionData)
-      keyError = error
-    } else {
-      console.log('[Create API Key] Updating existing session...')
-      const { error } = await adminSupabase
+      const apiKey = generateApiKey()
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+      console.log('[Create API Key] Generated API key:', apiKey.substring(0, 30) + '...')
+
+      console.log('[Create API Key] Upserting to user_sessions...')
+      const { error: upsertError } = await adminSupabase
         .from('user_sessions')
-        .update(sessionData)
-        .eq('user_id', user_id)
-        .eq('is_ide_device', true)
-      keyError = error
+        .upsert({
+          user_id: user_id,
+          user_email: user_email,
+          api_key: apiKey,
+          api_key_expires_at: expiresAt,
+          status: 'active',
+          is_ide_device: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
+        })
+
+      if (upsertError) {
+        console.error('[Create API Key] Failed to save API key:', upsertError)
+        throw new Error('Failed to create API key')
+      }
+
+      console.log('[Create API Key] API key saved successfully')
+
+      return {
+        success: true,
+        api_key: apiKey,
+        expires_at: expiresAt,
+        user_id: user_id,
+        user_email: user_email
+      }
+    })()
+
+    pendingRequests.set(user_id, createKeyPromise)
+
+    try {
+      const result = await createKeyPromise
+      pendingRequests.delete(user_id)
+      return addCorsHeaders(NextResponse.json(result))
+    } catch (error: any) {
+      pendingRequests.delete(user_id)
+      console.error('[Create API Key] Error:', error)
+      return addCorsHeaders(NextResponse.json(
+        { error: error.message || 'Internal server error' },
+        { status: 500 }
+      ))
     }
 
-    if (keyError) {
-      console.error('[Create API Key] Failed to save API key:', keyError)
-      return addCorsHeaders(NextResponse.json({ error: 'Failed to create API key' }, { status: 500 }))
-    }
-
-    console.log('[Create API Key] API key created successfully')
-
-    return addCorsHeaders(NextResponse.json({
-      success: true,
-      api_key: apiKey,
-      expires_at: expiresAt,
-      user_id: user_id,
-      user_email: user_email
-    }))
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Create API Key] Error:', error)
     return addCorsHeaders(NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     ))
   }
