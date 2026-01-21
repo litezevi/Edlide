@@ -13,55 +13,57 @@ async function insertTokens(session: any, stateId: string | null) {
     return false
   }
 
-  if (!session?.access_token) {
-    console.error('[IDE Connect] ERROR: No access_token in session', session)
+  if (!session?.user?.id) {
+    console.error('[IDE Connect] ERROR: No user in session', session)
     return false
   }
+
+  console.log('[IDE Connect] Creating IDE session for user:', session.user?.id)
 
   const expiresAtDateTime = typeof session.expires_at === 'number'
     ? new Date(session.expires_at * 1000).toISOString()
     : session.expires_at
 
-  console.log('[IDE Connect] Inserting tokens for state:', stateId, {
-    user_id: session.user?.id,
-    user_email: session.user?.email,
-    expires_at: expiresAtDateTime
-  })
+  try {
+    const response = await fetch('/api/auth/create-ide-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    })
 
-  const { error } = await supabase.from('ide_pending_tokens').insert({
-    state_id: stateId,
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_at: expiresAtDateTime,
-    user_id: session.user?.id,
-    user_email: session.user?.email
-  })
+    const data = await response.json()
 
-  if (error) {
-    console.error('[IDE Connect] ERROR inserting tokens to ide_pending_tokens:', JSON.stringify(error, null, 2))
-    console.error('[IDE Connect] Full error details:', error)
+    if (!response.ok || !data.success) {
+      console.error('[IDE Connect] Failed to create IDE session:', data.error)
+      return false
+    }
+
+    const { access_token, refresh_token, expires_at, user_email } = data.tokens
+
+    const { error } = await supabase.from('ide_pending_tokens').insert({
+      state_id: stateId,
+      access_token: access_token,
+      refresh_token: refresh_token,
+      expires_at: expires_at,
+      user_id: session.user?.id,
+      user_email: user_email
+    })
+
+    if (error) {
+      console.error('[IDE Connect] ERROR inserting tokens to ide_pending_tokens:', JSON.stringify(error, null, 2))
+      return false
+    }
+
+    console.log('[IDE Connect] IDE tokens inserted to ide_pending_tokens for state:', stateId)
+    console.log('[IDE Connect] IDE session is INDEPENDENT of browser session')
+
+    return true
+  } catch (err) {
+    console.error('[IDE Connect] Error creating IDE session:', err)
     return false
   }
-
-  console.log('[IDE Connect] Tokens inserted to ide_pending_tokens for state:', stateId)
-
-  const expiresAt = new Date(Date.now() + (session.expires_in || 3600) * 1000).toISOString()
-  const { error: sessionError } = await supabase.from('user_sessions').insert({
-    user_id: session.user?.id,
-    user_email: session.user?.email,
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_at: expiresAt,
-    status: 'active'
-  })
-
-  if (sessionError) {
-    console.error('[IDE Connect] ERROR inserting session:', JSON.stringify(sessionError, null, 2))
-  } else {
-    console.log('[IDE Connect] Session saved to user_sessions with refresh_token')
-  }
-
-  return true
 }
 
 export default function IDEConnectPage() {
