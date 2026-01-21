@@ -7,31 +7,51 @@ const docsSections = [
   {
     title: 'Getting Started',
     items: [
-      { id: 'introduction', label: 'Introduction' },
+      { id: 'about', label: 'About Edlide' },
       { id: 'installation', label: 'Installation' },
-      { id: 'quick-start', label: 'Quick Start' },
+      { id: 'account', label: 'Account Setup' },
+      { id: 'transfer', label: 'Transfer Settings' },
     ]
   },
   {
-    title: 'Core Concepts',
+    title: 'Models',
     items: [
-      { id: 'architecture', label: 'Architecture' },
-      { id: 'configuration', label: 'Configuration' },
-      { id: 'models', label: 'Model Management' },
+      { id: 'available-models', label: 'Available Models' },
+      { id: 'model-features', label: 'Key Features' },
     ]
   },
   {
-    title: 'API Reference',
+    title: 'Rules',
     items: [
-      { id: 'chat-api', label: 'Chat API' },
-      { id: 'authentication', label: 'Authentication' },
-      { id: 'endpoints', label: 'Endpoints' },
+      { id: 'system-prompt', label: 'System Prompt' },
+      { id: 'project-rules', label: 'Project Rules' },
+    ]
+  },
+  {
+    title: 'MCP',
+    items: [
+      { id: 'mcp-setup', label: 'Setup' },
+      { id: 'mcp-example', label: 'Example Configuration' },
+    ]
+  },
+  {
+    title: 'Actions',
+    items: [
+      { id: 'apply-settings', label: 'Apply Settings' },
+      { id: 'autoapprove', label: 'Auto-Approve' },
+    ]
+  },
+  {
+    title: 'Advanced',
+    items: [
+      { id: 'autocompacting', label: 'Autocompacting' },
+      { id: 'context-window', label: 'Context Window' },
     ]
   }
 ]
 
 export default function DocsPage() {
-  const [activeSection, setActiveSection] = useState('introduction')
+  const [activeSection, setActiveSection] = useState('about')
 
   const scrollToSection = (id: string) => {
     setActiveSection(id)
@@ -43,7 +63,6 @@ export default function DocsPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
       <aside className="w-64 hidden lg:block border-r border-border/50 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
         <nav className="p-4 space-y-6">
           {docsSections.map((section) => (
@@ -72,30 +91,25 @@ export default function DocsPage() {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 py-12 px-6 lg:px-12 max-w-4xl">
-        <div id="introduction" className="scroll-mt-20">
-          <h1 className="text-3xl font-bold text-primary mb-4">Introduction</h1>
+        <div id="about" className="scroll-mt-20">
+          <h1 className="text-3xl font-bold text-primary mb-4">About Edlide</h1>
           <p className="text-muted-foreground mb-6">
-            Edlide is an AI-powered IDE designed specifically for working with open source models. 
-            Built on VSCode architecture, it provides a privacy-focused alternative to other AI IDEs 
-            by sending messages directly to providers without data retention.
-          </p>
-          <p className="text-muted-foreground mb-6">
-            With Edlide, you get seamless integration with open source AI models, local provider support 
-            via Ollama and LM Studio, and enterprise-grade security with no data retention policies.
+            Edlide is an AI-powered IDE focused on open source models and privacy. 
+            Unlike other AI IDEs, Edlide does not collect or retain your important data, 
+            ensuring a secure and private development environment.
           </p>
           <div className="grid gap-4 md:grid-cols-2 mt-8">
             <div className="border rounded-lg p-4 bg-card">
-              <h3 className="font-semibold text-primary mb-2">Open Source First</h3>
+              <h3 className="font-semibold text-primary mb-2">Open Source Focus</h3>
               <p className="text-sm text-muted-foreground">
-                Focuses exclusively on open source models with direct integration to providers.
+                Work with the best open source AI models without vendor lock-in.
               </p>
             </div>
             <div className="border rounded-lg p-4 bg-card">
-              <h3 className="font-semibold text-primary mb-2">Privacy Focused</h3>
+              <h3 className="font-semibold text-primary mb-2">Privacy First</h3>
               <p className="text-sm text-muted-foreground">
-                No data retention - messages sent directly to providers.
+                No data retention - your data stays yours.
               </p>
             </div>
           </div>
@@ -106,55 +120,52 @@ export default function DocsPage() {
         <div id="installation" className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Installation</h2>
           <p className="text-muted-foreground mb-6">
-            Edlide is available for macOS and Windows. Download the appropriate installer for your system.
+            Get started by downloading Edlide for your platform.
           </p>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-3">macOS</h3>
-              <div className="border rounded-lg bg-card p-4">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Download the DMG file for your architecture:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <strong>Apple Silicon (M1/M2/M3):</strong> Edlide-1.0.0-arm64.dmg</li>
-                  <li>• <strong>Intel Macs:</strong> Edlide-1.0.0-x64.dmg</li>
-                </ul>
-              </div>
+
+          <div className="border rounded-lg bg-card p-4 mb-6">
+            <Link href="/download" className="text-primary hover:underline font-medium">
+              Go to Download Page
+            </Link>
+            <p className="text-sm text-muted-foreground mt-2">
+              Download the appropriate installer for macOS or Windows.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-primary mb-2">macOS</h3>
+              <p className="text-sm text-muted-foreground">
+                Download the DMG file and install Edlide on your Mac.
+              </p>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-3">Windows</h3>
-              <div className="border rounded-lg bg-card p-4">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Download the installer for your architecture:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <strong>Windows 10/11 x64:</strong> edlide-1.0.0-x64.exe</li>
-                  <li>• <strong>Windows ARM64:</strong> edlide-1.0.0-arm64.exe</li>
-                </ul>
-              </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-primary mb-2">Windows</h3>
+              <p className="text-sm text-muted-foreground">
+                Download the installer and install Edlide on Windows.
+              </p>
             </div>
           </div>
         </div>
 
         <hr className="my-12 border-border/50" />
 
-        <div id="quick-start" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Quick Start</h2>
+        <div id="account" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Account Setup</h2>
           <p className="text-muted-foreground mb-6">
-            Get started with Edlide in just a few steps.
+            Connect your Edlide IDE to your account to access all features.
           </p>
-          
+
           <div className="space-y-4">
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
                 1
               </div>
               <div>
-                <h4 className="font-medium text-primary">Create an Account</h4>
+                <h4 className="font-medium text-primary">Open Settings</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Sign up using email/password or Google OAuth at <Link href="/account" className="text-primary hover:underline">/account</Link>.
+                  Navigate to <strong>Settings → Account</strong> in the IDE.
                 </p>
               </div>
             </div>
@@ -164,9 +175,9 @@ export default function DocsPage() {
                 2
               </div>
               <div>
-                <h4 className="font-medium text-primary">Link Your Chutes Account</h4>
+                <h4 className="font-medium text-primary">Connect Account</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Connect your Chutes.ai account to access AI models. Go to your account page and click &quot;Link Chutes Account&quot;.
+                  Click <strong>Connect to your account</strong> to open the Edlide website.
                 </p>
               </div>
             </div>
@@ -176,9 +187,9 @@ export default function DocsPage() {
                 3
               </div>
               <div>
-                <h4 className="font-medium text-primary">Start Chatting</h4>
+                <h4 className="font-medium text-primary">Authenticate</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Navigate to the chat interface and start using AI models powered by Chutes.
+                  Sign in or create an account. The IDE will automatically connect.
                 </p>
               </div>
             </div>
@@ -187,89 +198,60 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
-        <div id="architecture" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Architecture</h2>
+        <div id="transfer" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Transfer Settings</h2>
           <p className="text-muted-foreground mb-6">
-            Edlide is built on VSCode architecture, providing a familiar experience for developers while adding powerful AI capabilities.
-          </p>
-          
-          <h3 className="text-lg font-semibold text-primary mb-3">Multi-Process Architecture</h3>
-          <p className="text-muted-foreground mb-4">
-            Like VSCode, Edlide uses a multi-process architecture with proper separation between browser and main processes 
-            for security and CSP compliance.
+            Import your settings from other IDEs seamlessly.
           </p>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Service-First Design</h3>
-          <p className="text-muted-foreground mb-4">
-            Services follow a proper dependency injection pattern with React components for the UI layer.
-          </p>
-        </div>
-
-        <hr className="my-12 border-border/50" />
-
-        <div id="configuration" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Configuration</h2>
-          <p className="text-muted-foreground mb-6">
-            Configure Edlide to suit your development workflow.
-          </p>
-
-          <h3 className="text-lg font-semibold text-primary mb-3">Environment Variables</h3>
-          <div className="border rounded-lg bg-card p-4 mb-6">
-            <pre className="text-sm text-muted-foreground overflow-x-auto">
-{`# Supabase (required for authentication)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Chutes OAuth (required for AI chat)
-NEXT_PUBLIC_CHUTES_CLIENT_ID=your-client-id
-CHUTES_CLIENT_SECRET=your-client-secret
-
-# Token Encryption (required for production)
-CHUTES_ENCRYPTION_KEY=your-encryption-key`}
-            </pre>
+          <div className="border rounded-lg bg-card p-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Available transfer options in <strong>Settings → General</strong>:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>• <strong>Transfer from VS Code</strong> - Import extensions and settings</li>
+              <li>• <strong>Transfer from Cursor</strong> - Migrate your Cursor configuration</li>
+              <li>• <strong>Transfer from Windsurf</strong> - Import Windsurf settings</li>
+            </ul>
           </div>
         </div>
 
         <hr className="my-12 border-border/50" />
 
-        <div id="models" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Model Management</h2>
+        <div id="available-models" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Available Models</h2>
           <p className="text-muted-foreground mb-6">
-            Edlide supports a variety of open source models through the Chutes integration.
+            Choose from the best open source AI models.
           </p>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Supported Providers</h3>
-          <ul className="space-y-2 text-muted-foreground mb-6">
-            <li>• <strong>Chutes.ai</strong> - Primary AI provider with many open source models</li>
-            <li>• <strong>Ollama</strong> - Run models locally</li>
-            <li>• <strong>LM Studio</strong> - Local model support</li>
-          </ul>
-
-          <h3 className="text-lg font-semibold text-primary mb-3">Popular Models</h3>
           <div className="border rounded-lg bg-card overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-accent/50">
                 <tr>
                   <th className="text-left p-3 font-medium text-primary">Model</th>
-                  <th className="text-left p-3 font-medium text-primary">Size</th>
                   <th className="text-left p-3 font-medium text-primary">Type</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">Qwen/Qwen3-32B</td>
-                  <td className="p-3 text-muted-foreground">32B</td>
-                  <td className="p-3 text-muted-foreground">Instruction-tuned</td>
+                  <td className="p-3 text-muted-foreground">deepseek-v3.2</td>
+                  <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">Llama-3-70B</td>
-                  <td className="p-3 text-muted-foreground">70B</td>
-                  <td className="p-3 text-muted-foreground">Instruct</td>
+                  <td className="p-3 text-muted-foreground">glm-4.6</td>
+                  <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">Mistral-7B</td>
-                  <td className="p-3 text-muted-foreground">7B</td>
-                  <td className="p-3 text-muted-foreground">Instruct v0.1</td>
+                  <td className="p-3 text-muted-foreground">glm-4.7</td>
+                  <td className="p-3 text-muted-foreground">Open Source</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground">mimo-v2-flash</td>
+                  <td className="p-3 text-muted-foreground">Open Source</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground">minimax-m2.1</td>
+                  <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
               </tbody>
             </table>
@@ -278,31 +260,178 @@ CHUTES_ENCRYPTION_KEY=your-encryption-key`}
 
         <hr className="my-12 border-border/50" />
 
-        <div id="chat-api" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Chat API</h2>
+        <div id="model-features" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Key Features</h2>
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-primary mb-2">No Context Window Limits</h3>
+              <p className="text-sm text-muted-foreground">
+                Work with large contexts without artificial limitations.
+              </p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-primary mb-2">Native Quantization</h3>
+              <p className="text-sm text-muted-foreground">
+                Optimized for performance and efficiency.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-12 border-border/50" />
+
+        <div id="system-prompt" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">System Prompt</h2>
           <p className="text-muted-foreground mb-6">
-            Use the Chat API to integrate AI capabilities into your workflow.
+            Configure your global communication style and AI behavior in <strong>Settings → Rules → System Prompt</strong>.
+          </p>
+          <div className="border rounded-lg p-4 bg-card">
+            <p className="text-sm text-muted-foreground">
+              The System Prompt applies globally and does not change when opening different projects. 
+              Use it to define communication style, explanation depth, and other general AI behavior preferences.
+            </p>
+          </div>
+        </div>
+
+        <hr className="my-12 border-border/50" />
+
+        <div id="project-rules" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Project Rules</h2>
+          <p className="text-muted-foreground mb-6">
+            Create project-specific rules for tailored AI responses.
           </p>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Authentication</h3>
-          <p className="text-muted-foreground mb-3">
-            All API requests require a Supabase session token in the Authorization header:
-          </p>
-          <div className="border rounded-lg bg-card p-4 mb-6">
-            <pre className="text-sm text-muted-foreground overflow-x-auto">
-{`Authorization: Bearer <supabase-session-token>`}
-            </pre>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                1
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Create Rule</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Click the <strong>+</strong> button in <strong>Settings → Rules</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                2
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Name Your Rule</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Enter a name for your project-specific rule.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                3
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">File Created</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  A file is automatically created in your project with a <code className="text-xs bg-accent px-1 py-0.5 rounded ml-1">.edliderules</code> extension.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Request Format</h3>
-          <div className="border rounded-lg bg-card p-4">
-            <pre className="text-sm text-muted-foreground overflow-x-auto">
-{`POST /api/chat
-Content-Type: application/json
+          <div className="border rounded-lg p-4 bg-card mt-6">
+            <p className="text-sm text-muted-foreground">
+              Project rules are ideal for specific project requirements that need tailored AI behavior 
+              for better results. Each rule applies only to its respective project.
+            </p>
+          </div>
+        </div>
 
-{
-  "message": "Your question here",
-  "model": "Qwen/Qwen3-32B"
+        <hr className="my-12 border-border/50" />
+
+        <div id="mcp-setup" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">MCP Setup</h2>
+          <p className="text-muted-foreground mb-6">
+            Model Context Protocol (MCP) servers extend Edlide capabilities. First, ensure <strong>Node.js</strong> is installed.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                1
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Open MCP Settings</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Navigate to <strong>Settings → MCP</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                2
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Add Server</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Click <strong>Add MCP Server</strong> to configure your server.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-12 border-border/50" />
+
+        <div id="mcp-example" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Example Configuration</h2>
+          <p className="text-muted-foreground mb-4">
+            Add MCP servers by pasting this configuration into your MCP settings:
+          </p>
+
+          <div className="border rounded-lg bg-card p-4 overflow-x-auto">
+            <pre className="text-sm text-muted-foreground">
+{`{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "YOUR_SUPABASE_ACCESS_TOKEN"
+      ],
+      "transportType": "stdio"
+    },
+    "search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "SEARCH_API_KEY": "YOUR_API_KEY"
+      }
+    },
+    "context": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "docs": {
+      "url": "https://example.com/mcp-docs"
+    }
+  }
 }`}
             </pre>
           </div>
@@ -310,78 +439,120 @@ Content-Type: application/json
 
         <hr className="my-12 border-border/50" />
 
-        <div id="authentication" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Authentication</h2>
+        <div id="apply-settings" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Apply Settings</h2>
           <p className="text-muted-foreground mb-6">
-            Edlide uses a dual authentication system for maximum flexibility.
+            Configure how the Apply button behaves in <strong>Settings → Actions → Apply</strong>.
           </p>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Supabase Auth</h3>
-          <p className="text-muted-foreground mb-3">
-            Primary authentication for the application:
-          </p>
-          <ul className="space-y-1 text-sm text-muted-foreground mb-6">
-            <li>• Email/password registration and sign-in</li>
-            <li>• Google OAuth integration</li>
-            <li>• Password reset via email</li>
-            <li>• Automatic session management and refresh</li>
-          </ul>
+          <div className="border rounded-lg p-4 bg-card mb-4">
+            <h4 className="font-medium text-primary mb-2">Same as Chat Model</h4>
+            <p className="text-sm text-muted-foreground">
+              Use the same AI model for Apply functionality as your chat model.
+            </p>
+          </div>
 
-          <h3 className="text-lg font-semibold text-primary mb-3">Chutes OAuth</h3>
-          <p className="text-muted-foreground mb-3">
-            Secondary authentication for AI model access:
-          </p>
-          <ul className="space-y-1 text-sm text-muted-foreground mb-6">
-            <li>• OAuth2 + OpenID Connect flow</li>
-            <li>• Linked 1-to-1 with Supabase accounts</li>
-            <li>• Tokens stored encrypted in database</li>
-            <li>• Automatic token refresh</li>
-          </ul>
+          <div className="border rounded-lg p-4 bg-card">
+            <h4 className="font-medium text-primary mb-2">Tools</h4>
+            <p className="text-sm text-muted-foreground">
+              Functions that LLMs can call. Some tools require user approval before execution.
+            </p>
+          </div>
         </div>
 
         <hr className="my-12 border-border/50" />
 
-        <div id="endpoints" className="scroll-mt-20">
-          <h2 className="text-2xl font-bold text-primary mb-4">Endpoints</h2>
+        <div id="autoapprove" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Auto-Approve Settings</h2>
           <p className="text-muted-foreground mb-6">
-            Complete reference for all API endpoints.
+            Configure automatic approval behaviors in <strong>Settings → Actions</strong>.
           </p>
 
-          <div className="space-y-6">
-            <div className="border rounded-lg bg-card p-4">
-              <h4 className="font-semibold text-primary mb-2">POST /api/auth/signup</h4>
-              <p className="text-sm text-muted-foreground mb-3">Register a new user account.</p>
-              <pre className="text-xs text-muted-foreground overflow-x-auto">
-{`Body: { "email": "user@example.com", "password": "secure-password", "fullName": "John Doe" }`}
-              </pre>
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-primary mb-1">Auto-approve edits</h4>
+              <p className="text-sm text-muted-foreground">Automatically accepts code edits suggested by the AI without requiring manual confirmation.</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-primary mb-1">Auto-approve terminal</h4>
+              <p className="text-sm text-muted-foreground">Automatically accepts terminal command executions run by the AI.</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-primary mb-1">Auto-approve MCP tools</h4>
+              <p className="text-sm text-muted-foreground">Automatically accepts MCP (Model Context Protocol) tool calls made by the AI.</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-primary mb-1">Fix lint errors</h4>
+              <p className="text-sm text-muted-foreground">Automatically fixes lint errors detected in your code without asking for confirmation.</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-card">
+              <h4 className="font-medium text-primary mb-1">Auto-accept LLM changes</h4>
+              <p className="text-sm text-muted-foreground">Automatically accepts all changes made by the LLM during conversations and edits.</p>
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-12 border-border/50" />
+
+        <div id="autocompacting" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Autocompacting</h2>
+          <p className="text-muted-foreground mb-6">
+            Edlide automatically manages context window efficiency when it reaches 80% capacity.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                1
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Threshold Reached</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  When context window reaches 80%, the auto-compacting mechanism triggers.
+                </p>
+              </div>
             </div>
 
-            <div className="border rounded-lg bg-card p-4">
-              <h4 className="font-semibold text-primary mb-2">POST /api/auth/signin</h4>
-              <p className="text-sm text-muted-foreground mb-3">Sign in with email/password.</p>
-              <pre className="text-xs text-muted-foreground overflow-x-auto">
-{`Body: { "email": "user@example.com", "password": "secure-password" }`}
-              </pre>
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                2
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">Summarization</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  The entire chat session is summarized to preserve key information.
+                </p>
+              </div>
             </div>
 
-            <div className="border rounded-lg bg-card p-4">
-              <h4 className="font-semibold text-primary mb-2">POST /api/chat</h4>
-              <p className="text-sm text-muted-foreground mb-3">Send a message to the AI model.</p>
-              <pre className="text-xs text-muted-foreground overflow-x-auto">
-{`Headers: Authorization: Bearer <supabase-token>
-Body: { "message": "Hello", "model": "Qwen/Qwen3-32B" }`}
-              </pre>
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-semibold">
+                3
+              </div>
+              <div>
+                <h4 className="font-medium text-primary">New Session</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  A fresh session opens with the summarized context for better performance.
+                </p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div className="border rounded-lg bg-card p-4">
-              <h4 className="font-semibold text-primary mb-2">GET /api/auth/chutes/unlink</h4>
-              <p className="text-sm text-muted-foreground mb-3">Check Chutes account linkage status.</p>
-            </div>
+        <hr className="my-12 border-border/50" />
 
-            <div className="border rounded-lg bg-card p-4">
-              <h4 className="font-semibold text-primary mb-2">DELETE /api/auth/chutes/unlink</h4>
-              <p className="text-sm text-muted-foreground mb-3">Unlink Chutes account from Supabase.</p>
-            </div>
+        <div id="context-window" className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-4">Context Window</h2>
+          <p className="text-muted-foreground mb-6">
+            Monitor your real-time context window usage in the chat interface.
+          </p>
+
+          <div className="border rounded-lg p-4 bg-card">
+            <p className="text-sm text-muted-foreground">
+              Hover over the context window indicator in the chat for <strong>2+ seconds</strong> 
+              to see your real-time context usage. This helps you understand when auto-compacting 
+              will be triggered.
+            </p>
           </div>
         </div>
       </main>
