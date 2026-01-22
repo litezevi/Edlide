@@ -1555,7 +1555,7 @@ Active Context Update → Future Reference Complete
 edlide: [
   'zai-org/GLM-4.6-TEE:THINKING',
   'deepseek-ai/DeepSeek-V3.2',    // Replaced V3.1-Terminus
-  'MiniMaxAI/MiniMax-M2:THINKING',
+  'zai-org/GLM-4.6V',
   'XiaomiMiMo/MiMo-V2-Flash',  // New model added
   'openai/gpt-oss-120b-TEE' // Hidden SCM-only
 ]
@@ -1876,7 +1876,7 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
 **✅ DUAL BREAKTHROUGH - Model Compatibility + Accuracy Optimization:**
 
 **🔄 PROBLEMS SOLVED:**
-- **Before**: MiniMaxAI/MiniMax-M2:THINKING used incorrect `[TOOL_CALL]` format causing tool call failures
+- **Before**: zai-org/GLM-4.6V used incorrect `[TOOL_CALL]` format causing tool call failures
 - **Before**: 10% file editing errors with "No Search/Replace blocks received" and "undefined" output errors
 - **After**: 100% MiniMax compatibility + Near 100% editing accuracy across all models
 - **Root Cause**: Model-specific tool calling format requirements + inadequate prompt instructions
@@ -2416,12 +2416,12 @@ spawn npx ENOENT → findNpxPath() systematic search → Return full path → Tr
 - **Production Tested**: Successfully handles object-to-string conversion without breaking functionality
 
 **✅ MiniMax Model Compatibility System (PREVIOUS - 2025-10-29):**
-- **Universal Model Support**: 100% compatibility with MiniMaxAI/MiniMax-M2:THINKING and all existing models
+- **Universal Model Support**: 100% compatibility with zai-org/GLM-4.6V and all existing models
 - **Format-Specific Handling**: Automatic detection and adaptation to model-specific tool calling requirements
 - **Forbidden Format Prevention**: Explicit prohibition of incompatible `[TOOL_CALL]` syntax for MiniMax
 - **XML Format Enforcement**: Mandatory `<tool_name>` structure for MiniMax models
 - **Seamless Integration**: Zero-configuration compatibility across all supported models
-- **Production Tested**: Successfully validated with MiniMaxAI/MiniMax-M2:THINKING real-world usage
+- **Production Tested**: Successfully validated with zai-org/GLM-4.6V real-world usage
 
 **✅ AI Prompt Precision Enhancement System (ENHANCED - 2025-10-29):**
 - **100% Editing Accuracy**: Near-zero error rate through precision-engineered prompts

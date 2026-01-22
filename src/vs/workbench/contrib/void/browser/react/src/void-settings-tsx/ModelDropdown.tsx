@@ -27,10 +27,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 	if (providerName === 'edlide') {
 		if (modelName === 'zai-org/GLM-4.6-TEE:THINKING') return 'glm-4.6'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
-		if (modelName === 'MiniMaxAI/MiniMax-M2:THINKING')
-		return 'minimax-m2'
-		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE')
-		return 'minimax-m2.1'
+		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE') return 'minimax-m2.1'
 		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 	}

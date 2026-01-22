@@ -20,7 +20,7 @@ import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, ToolCallParams, T
 import { IToolsService } from './toolsService.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ILanguageFeaturesService } from '../../../../editor/common/services/languageFeatures.js';
-import { ChatMessage, CheckpointEntry, CodespanLocationLink, StagingSelectionItem, ToolMessage } from '../common/chatThreadServiceTypes.js';
+import { ChatMessage, CheckpointEntry, ChatImageAttachment, CodespanLocationLink, StagingSelectionItem, ToolMessage } from '../common/chatThreadServiceTypes.js';
 import { Position } from '../../../../editor/common/core/position.js';
 import { IMetricsService } from '../common/metricsService.js';
 import { shorten } from '../../../../base/common/labels.js';
@@ -123,6 +123,7 @@ export type ThreadType = {
 	messages: ChatMessage[];
 	filesWithUserChanges: Set<string>;
 
+	// this doesn't need to go in a state object, but feels right
 	state: {
 		currCheckpointIdx: number | null;
 
@@ -136,6 +137,8 @@ export type ThreadType = {
 		}
 
 		isCompacted?: boolean;
+
+		chatImages: ChatImageAttachment[];
 
 		mountedInfo?: {
 			whenMounted: Promise<WhenMounted>
@@ -174,7 +177,7 @@ export type ThreadStreamState = {
 	} | { // an assistant message is being written
 		isRunning: 'LLM';
 		error?: undefined;
-  	llmInfo: {
+		llmInfo: {
 			displayContentSoFar: string;
 			reasoningSoFar: string;
 			toolCallSoFar: RawToolCallObj | null;
@@ -223,6 +226,7 @@ const newThreadObject = (workspaceId: string) => {
 			stagingSelections: [],
 			focusedMessageIdx: undefined,
 			linksOfMessageIdx: {},
+			chatImages: [],
 		},
 		filesWithUserChanges: new Set()
 	} satisfies ThreadType
@@ -257,6 +261,12 @@ export interface IChatThreadService {
 	setCurrentMessageState: (messageIdx: number, newState: Partial<UserMessageState>) => void
 	getCurrentThreadState: () => ThreadType['state']
 	setCurrentThreadState: (newState: Partial<ThreadType['state']>) => void
+
+	// chat images
+	getCurrentChatImages: () => ChatImageAttachment[]
+	addChatImage: (image: ChatImageAttachment) => void
+	removeChatImage: (id: string) => void
+	clearChatImages: () => void
 
 	// you can edit multiple messages - the one you're currently editing is "focused", and we add items to that one when you press cmd+L.
 	getCurrentFocusedMessageIdx(): number | undefined;
@@ -883,36 +893,36 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 					| { type: 'llmError', error?: { message: string; fullError: Error | null; } }
 					| { type: 'llmAborted' }
 
-let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user approves this tool use (or if tool doesn't require approval)
-			const messageIsDonePromise = new Promise<ResTypes>((res, rej) => { resMessageIsDonePromise = res })
+				let resMessageIsDonePromise: (res: ResTypes) => void // resolves when user approves this tool use (or if tool doesn't require approval)
+				const messageIsDonePromise = new Promise<ResTypes>((res, rej) => { resMessageIsDonePromise = res })
 
-let supabaseAccessToken: string | undefined = undefined
-if (modelSelection && modelSelection.providerName === 'edlide') {
-  let token = SupabaseAuthHelper.getAccessTokenSync()
+				let supabaseAccessToken: string | undefined = undefined
+				if (modelSelection && modelSelection.providerName === 'edlide') {
+					let token = SupabaseAuthHelper.getAccessTokenSync()
 
-  if (token) {
-    console.log('[ChatThread] Token from sync cache: ✅')
-  } else {
-    console.log('[ChatThread] Token not in sync cache, waiting for init...')
-    const container = (window as any).__edlideServiceContainer
-    if (container) {
-      try {
-        const authService = container.get(ISupabaseAuthService)
-        if (authService?.whenReady) {
-          await authService.whenReady()
-          token = SupabaseAuthHelper.getAccessTokenSync()
-          console.log('[ChatThread] Token after wait:', token ? '✅' : '❌ NULL')
-        }
-      } catch (e) {
-        console.error('[ChatThread] Auth wait error:', e)
-      }
-    }
-  }
+					if (token) {
+						console.log('[ChatThread] Token from sync cache: ✅')
+					} else {
+						console.log('[ChatThread] Token not in sync cache, waiting for init...')
+						const container = (window as any).__edlideServiceContainer
+						if (container) {
+							try {
+								const authService = container.get(ISupabaseAuthService)
+								if (authService?.whenReady) {
+									await authService.whenReady()
+									token = SupabaseAuthHelper.getAccessTokenSync()
+									console.log('[ChatThread] Token after wait:', token ? '✅' : '❌ NULL')
+								}
+							} catch (e) {
+								console.error('[ChatThread] Auth wait error:', e)
+							}
+						}
+					}
 
-  supabaseAccessToken = token ?? undefined
-}
+					supabaseAccessToken = token ?? undefined
+				}
 
-			const llmCancelToken = this._llmMessageService.sendLLMMessage({
+				const llmCancelToken = this._llmMessageService.sendLLMMessage({
 					messagesType: 'chatMessages',
 					chatMode,
 					messages: messages,
@@ -922,7 +932,7 @@ if (modelSelection && modelSelection.providerName === 'edlide') {
 					supabaseAccessToken,
 					logging: { loggingName: `Chat - ${chatMode}`, loggingExtras: { threadId, nMessagesSent, chatMode } },
 					separateSystemMessage: separateSystemMessage,
-    onText: ({ fullText, fullReasoning, toolCall, totalTokens }) => {
+					onText: ({ fullText, fullReasoning, toolCall, totalTokens }) => {
 						this._setStreamState(threadId, { isRunning: 'LLM', llmInfo: { displayContentSoFar: fullText, reasoningSoFar: fullReasoning, toolCallSoFar: toolCall ?? null, totalTokens }, interrupt: Promise.resolve(() => { if (llmCancelToken) this._llmMessageService.abort(llmCancelToken) }) })
 					},
 					onFinalMessage: async ({ fullText, fullReasoning, toolCall, anthropicReasoning, }) => {
@@ -1344,7 +1354,7 @@ We only need to do it for files that were edited since `from`, ie files between 
 	hasAnyActiveAIStreams(excludeThreadId?: string): boolean {
 		for (const threadId in this.streamState) {
 			if (excludeThreadId && threadId === excludeThreadId) continue;
-			
+
 			const state = this.streamState[threadId];
 			if (state?.isRunning === 'LLM' || state?.isRunning === 'tool' || state?.isRunning === 'idle') {
 				return true;
@@ -1771,7 +1781,7 @@ We only need to do it for files that were edited since `from`, ie files between 
 			this._notificationService.info('Cannot switch chats while AI is working in another chat. Please wait for the current task to complete.');
 			return;
 		}
-		
+
 		this._setState({ currentThreadId: threadId })
 	}
 
@@ -1844,7 +1854,7 @@ We only need to do it for files that were edited since `from`, ie files between 
 		const { allThreads: currentThreads } = this.state
 		const threadToMark = currentThreads[threadId]
 		if (!threadToMark) return
-		
+
 		const updatedThread = {
 			...threadToMark,
 			state: {
@@ -1853,12 +1863,12 @@ We only need to do it for files that were edited since `from`, ie files between 
 			},
 			lastModified: new Date().toISOString()
 		}
-		
+
 		const newThreads = {
 			...currentThreads,
 			[threadId]: updatedThread
 		}
-		
+
 		this._storeAllThreads(newThreads)
 		this._setState({ allThreads: newThreads })
 	}
@@ -1965,6 +1975,34 @@ We only need to do it for files that were edited since `from`, ie files between 
 			...selections.slice(0, selections.length - numPops)
 		])
 
+	}
+
+	// Chat images management
+	getCurrentChatImages(): ChatImageAttachment[] {
+		return this.getCurrentThreadState().chatImages ?? []
+	}
+
+	addChatImage(image: ChatImageAttachment): void {
+		const threadId = this.state.currentThreadId
+		const thread = this.state.allThreads[threadId]
+		if (!thread) return
+
+		const currentImages = thread.state.chatImages ?? []
+		this._setThreadState(threadId, { chatImages: [...currentImages, image] })
+	}
+
+	removeChatImage(id: string): void {
+		const threadId = this.state.currentThreadId
+		const thread = this.state.allThreads[threadId]
+		if (!thread) return
+
+		const currentImages = thread.state.chatImages ?? []
+		this._setThreadState(threadId, { chatImages: currentImages.filter(img => img.id !== id) })
+	}
+
+	clearChatImages(): void {
+		const threadId = this.state.currentThreadId
+		this._setThreadState(threadId, { chatImages: [] })
 	}
 
 	// set message.state

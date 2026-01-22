@@ -255,7 +255,7 @@ const modelInfoOfDefaultModelNames = (defaultModelNames: string[], providerName?
 			modelName,
 			type: 'default',
 			isHidden: defaultModelNames.length >= 10, // hide all models if there are a ton of them, and make user enable them individually
-			isUIHidden: providerName === 'edlide' && modelName === 'openai/gpt-oss-120b-TEE', // hide gpt-oss-20b from UI dropdowns but keep available for SCM
+			isUIHidden: (providerName === 'edlide' && modelName === 'openai/gpt-oss-120b-TEE') || (providerName === 'edlide' && modelName === 'zai-org/GLM-4.6V'), // hide from UI dropdowns but keep available for internal use
 		}))
 	}
 }

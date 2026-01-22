@@ -79,10 +79,10 @@ export const defaultModelsOfProvider = {
 		'MiniMaxAI/MiniMax-M2.1-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'zai-org/GLM-4.6-TEE:THINKING',
-		//'MiniMaxAI/MiniMax-M2:THINKING',
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'deepseek-ai/DeepSeek-V3.2',
-		'openai/gpt-oss-120b-TEE' // Hidden SCM-only model for commit generation
+		'openai/gpt-oss-120b-TEE', // Hidden SCM-only model for commit generation
+		'zai-org/GLM-4.6V'
 	],
 	openAI: [ // https://platform.openai.com/docs/models/gp
 		'gpt-5-high',
@@ -1150,9 +1150,9 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-	'MiniMaxAI/MiniMax-M2:THINKING': {
-		contextWindow: 196_608,
-		reservedOutputTokenSpace: 19_608,
+	'zai-org/GLM-4.6V': {
+		contextWindow: 131_072,
+		reservedOutputTokenSpace: 8_192,
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "chutes/glm-4.7-tee",
+  "model": "chutes/MiniMax-M2.1-TEE",
   "provider": {
     "chutes": {
       "models": {
