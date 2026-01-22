@@ -670,6 +670,9 @@ const uriStr = validateStr('uri', uriUnknown)
 				const analysisPromise = new Promise<string>((resolve, reject) => {
 					const supabaseAccessToken = SupabaseAuthHelper.getAccessTokenSync() ?? undefined
 
+					const chatThreadService = (this.instantiationService as any)._serviceGraph?.get(IChatThreadService)
+						|| (globalThis as any).__voidChatThreadService as IChatThreadService
+
 					let attempt = 0
 					const maxAttempts = 3
 
@@ -684,11 +687,21 @@ const uriStr = validateStr('uri', uriUnknown)
 							logging: { loggingName: 'analyze_image tool' },
 							separateSystemMessage: undefined,
 							supabaseAccessToken,
-							onText: () => {},
+							onText: ({ fullText }) => {
+								if (chatThreadService) {
+									chatThreadService.updateStreamingAnalysisContent(fullText)
+								}
+							},
 							onFinalMessage: ({ fullText }) => {
+								if (chatThreadService) {
+									chatThreadService.updateStreamingAnalysisContent('')
+								}
 								resolve(fullText)
 							},
 							onError: ({ message }) => {
+								if (chatThreadService) {
+									chatThreadService.updateStreamingAnalysisContent('')
+								}
 								// Retry on 429 (rate limit)
 								if (message.includes('429') && attempt < maxAttempts) {
 									attempt++

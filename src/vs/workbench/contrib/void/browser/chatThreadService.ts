@@ -174,6 +174,7 @@ export type ThreadStreamState = {
 		llmInfo?: undefined;
 		toolInfo?: undefined;
 		interrupt?: undefined;
+		streamingAnalysisContent?: undefined;
 	} | { // an assistant message is being written
 		isRunning: 'LLM';
 		error?: undefined;
@@ -184,7 +185,8 @@ export type ThreadStreamState = {
 			totalTokens?: number;
 		};
 		toolInfo?: undefined;
-		interrupt: Promise<() => void>; // calling this should have no effect on state - would be too confusing. it just cancels the tool
+		interrupt: Promise<() => void>;
+		streamingAnalysisContent?: undefined;
 	} | { // a tool is being run
 		isRunning: 'tool';
 		error?: undefined;
@@ -198,18 +200,21 @@ export type ThreadStreamState = {
 			mcpServerName: string | undefined;
 		};
 		interrupt: Promise<() => void>;
+		streamingAnalysisContent?: string;
 	} | {
 		isRunning: 'awaiting_user';
 		error?: undefined;
 		llmInfo?: undefined;
 		toolInfo?: undefined;
 		interrupt?: undefined;
+		streamingAnalysisContent?: undefined;
 	} | {
 		isRunning: 'idle';
 		error?: undefined;
 		llmInfo?: undefined;
 		toolInfo?: undefined;
-		interrupt: 'not_needed' | Promise<() => void>; // calling this should have no effect on state - would be too confusing. it just cancels the tool
+		interrupt: 'not_needed' | Promise<() => void>;
+		streamingAnalysisContent?: undefined;
 	}
 }
 
@@ -267,6 +272,9 @@ export interface IChatThreadService {
 	addChatImage: (image: ChatImageAttachment) => void
 	removeChatImage: (id: string) => void
 	clearChatImages: () => void
+
+	// streaming analysis content
+	updateStreamingAnalysisContent: (content: string) => void
 
 	// you can edit multiple messages - the one you're currently editing is "focused", and we add items to that one when you press cmd+L.
 	getCurrentFocusedMessageIdx(): number | undefined;
@@ -2013,6 +2021,17 @@ We only need to do it for files that were edited since `from`, ie files between 
 	clearChatImages(): void {
 		const threadId = this.state.currentThreadId
 		this._setThreadState(threadId, { chatImages: [] })
+	}
+
+	updateStreamingAnalysisContent(content: string): void {
+		const threadId = this.state.currentThreadId
+		const currentState = this.streamState[threadId]
+		if (currentState && currentState.isRunning === 'tool') {
+			this._setStreamState(threadId, {
+				...currentState,
+				streamingAnalysisContent: content,
+			})
+		}
 	}
 
 	// set message.state

@@ -3096,35 +3096,49 @@ ${newString}
 		},
 	},
 	'analyze_image': {
-		resultWrapper: ({ toolMessage }) => {
+		resultWrapper: ({ toolMessage, threadId }) => {
 			const accessor = useAccessor()
 
 			const title = getTitle(toolMessage)
 			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
 			const icon = null
 
-			if (toolMessage.type === 'tool_request') return null
-			if (toolMessage.type === 'running_now') return null
-
 			const isError = false
 			const isRejected = toolMessage.type === 'rejected'
-			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isError, icon, isRejected, }
+			const isRunning = toolMessage.type === 'running_now' || toolMessage.type === 'tool_request'
+
+			const streamState = useChatThreadsStreamState(threadId)
+			const streamingContent = streamState?.streamingAnalysisContent ?? ''
+
+			const [isOpen, setIsOpen] = useState(isRunning || !!streamingContent)
+
+			const componentParams: ToolHeaderParams = {
+				title,
+				desc1,
+				desc1Info,
+				isError,
+				icon,
+				isRejected,
+				isOpen,
+				onClick: () => setIsOpen(v => !v),
+			}
 
 			if (toolMessage.type === 'success') {
 				const { result } = toolMessage as any
-				componentParams.bottomChildren = <BottomChildren title='Analysis'>
-					<CodeChildren>
-						{(result as any)?.analysis}
-					</CodeChildren>
-				</BottomChildren>
+				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
+					{(result as any)?.analysis}
+				</div>
 			}
 			else if (toolMessage.type === 'tool_error') {
 				const { result } = toolMessage
-				componentParams.bottomChildren = <BottomChildren title='Error'>
-					<CodeChildren>
-						{result}
-					</CodeChildren>
-				</BottomChildren>
+				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap text-red-400'>
+					{result}
+				</div>
+			}
+			else if (streamingContent) {
+				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
+					{streamingContent}
+				</div>
 			}
 
 			return <ToolHeaderWrapper {...componentParams} />
@@ -3580,6 +3594,32 @@ const EditToolSoFar = ({ toolCallSoFar, }: { toolCallSoFar: RawToolCallObj }) =>
 }
 
 
+const AnalyzeImageToolSoFar = ({ toolCallSoFar, threadId }: { toolCallSoFar: RawToolCallObj, threadId: string }) => {
+	if (!isABuiltinToolName(toolCallSoFar.name)) return null
+
+	const title = 'Analyzing images'
+	const desc1 = toolCallSoFar.rawParams?.description?.slice(0, 30) ?? ''
+
+	const streamState = useChatThreadsStreamState(threadId)
+	const streamingContent = streamState?.streamingAnalysisContent ?? ''
+
+	const [isOpen, setIsOpen] = useState(true)
+
+	return <ToolHeaderWrapper
+		title={title}
+		desc1={desc1}
+		isOpen={isOpen}
+		onClick={() => setIsOpen(v => !v)}
+	>
+		{streamingContent && (
+			<div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
+				{streamingContent}
+			</div>
+		)}
+	</ToolHeaderWrapper>
+}
+
+
 export const SidebarChat = () => {
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const textAreaFnsRef = useRef<TextAreaFns | null>(null)
@@ -3875,7 +3915,12 @@ export const SidebarChat = () => {
 			key={'curr-streaming-tool'}
 			toolCallSoFar={toolCallSoFar}
 		/>
-			: null
+			: toolCallSoFar.name === 'analyze_image' ? <AnalyzeImageToolSoFar
+				key={'curr-streaming-tool'}
+				toolCallSoFar={toolCallSoFar}
+				threadId={threadId}
+			/>
+				: null
 		: null
 
 	const messagesHTML = <ScrollToBottomContainer

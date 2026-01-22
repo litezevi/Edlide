@@ -1,6 +1,6 @@
 # Image Support in Edlide IDE Chat
 
-## ✅ Status: Fully Implemented and Working (2026-01-22)
+## ✅ Status: Fully Implemented with Real-time Streaming (2026-01-22)
 
 ### Changes Made (Latest Update)
 
@@ -12,14 +12,22 @@
    - Retry logic: 3 attempts with exponential backoff for 429 errors
    - Extracts images from last user message automatically
    - Supabase auth via `getAccessTokenSync()`
+   - **Real-time streaming**: `onText` callback updates `streamingAnalysisContent` in thread state
 
 3. **prompts.ts** - Added tool description for LLM
 
-4. **chatThreadService.ts** - Added `<has_images>true|false</has_images>` flag to messages, stores images in ChatMessage
+4. **chatThreadService.ts** - Added:
+   - `<has_images>true|false</has_images>` flag to messages, stores images in ChatMessage
+   - `streamingAnalysisContent` field in `ThreadStreamState` for real-time streaming
+   - `updateStreamingAnalysisContent(content: string)` method to update streaming content
 
 5. **chatThreadServiceTypes.ts** - Added `images?: ChatImageAttachment[]` to user message type
 
-6. **SidebarChat.tsx** - Added `MessageImageThumbnails` component for displaying sent images
+6. **SidebarChat.tsx** - Added:
+   - `MessageImageThumbnails` component for displaying sent images
+   - `AnalyzeImageToolSoFar` component with real-time streaming content display
+   - **Chevron is clickable**: toggles open/close state with `useState`
+   - **No "Analyzing images..." text**: only shows actual streaming content from GLM-4.6V
 
 ### How It Works
 
@@ -28,11 +36,18 @@
 3. Primary model decides to call `analyze_image` with `description` (question)
 4. Tool automatically extracts images from last user message
 5. Sends to GLM-4.6V via edlide provider with Supabase auth
-6. Returns analysis wrapped as `[IMAGE ANALYSIS]\n...\n[/IMAGE ANALYSIS]`
+6. **Real-time streaming**: `onText` callback updates `streamingAnalysisContent` in thread state
+7. UI shows streaming content inside chevron as it arrives from GLM-4.6V
+8. Chevron is open by default during streaming, clickable to toggle
 
 ### Architecture
 - **Primary model** (glm-4.7, etc.): conversation + tools, calls `analyze_image` when user shares images
-- **Hidden model** (zai-org/GLM-4.6V): vision model for image analysis
+- **Hidden model** (zai-org/GLM-4.6V): vision model for image analysis with real-time streaming output
+
+### Streaming Flow
+```
+GLM-4.6V generates → onText callback → updateStreamingAnalysisContent → thread state updated → useChatThreadsStreamState → UI re-renders → content displayed inside chevron
+```
 
 ---
 
