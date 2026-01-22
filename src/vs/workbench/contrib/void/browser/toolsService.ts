@@ -649,6 +649,39 @@ const uriStr = validateStr('uri', uriUnknown)
 					throw new Error('No images found in user messages')
 				}
 
+				// Helper function to resize images to max 1024x1024
+				const resizeImageToMaxSize = (dataUrl: string, maxSize: number = 1024): Promise<string> => {
+					return new Promise((resolve, reject) => {
+						const img = new Image()
+						img.onload = () => {
+							let width = img.width
+							let height = img.height
+
+							if (width > maxSize || height > maxSize) {
+								if (width > height) {
+									height = Math.round((height * maxSize) / width)
+									width = maxSize
+								} else {
+									width = Math.round((width * maxSize) / height)
+									height = maxSize
+								}
+							}
+
+							const canvas = document.createElement('canvas')
+							canvas.width = width
+							canvas.height = height
+							const ctx = canvas.getContext('2d')
+							ctx?.drawImage(img, 0, 0, width, height)
+
+							const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
+							const base64 = resizedDataUrl.split(',')[1]
+							resolve(base64)
+						}
+						img.onerror = reject
+						img.src = dataUrl
+					})
+				}
+
 				const contentParts: { type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }[] = []
 
 				const prompt = description || 'Describe these images in detail. What do you see? Include any UI elements, text, layouts, or visual content.'
@@ -658,11 +691,14 @@ const uriStr = validateStr('uri', uriUnknown)
 				})
 
 				for (const img of userMessageWithImages.images) {
-					const base64 = img.previewUrl.split(',')[1]
-					if (base64) {
+					const originalBase64 = img.previewUrl.split(',')[1]
+					if (originalBase64) {
+						// Resize image to max 1024x1024 to prevent 413 errors
+						const resizedBase64 = await resizeImageToMaxSize(img.previewUrl)
+						console.log(`analyze_image: resized image from ${Math.round(originalBase64.length * 0.75)} bytes to ${Math.round(resizedBase64.length * 0.75)} bytes`)
 						contentParts.push({
 							type: 'image_url',
-							image_url: { url: `data:${img.type};base64,${base64}` }
+							image_url: { url: `data:image/jpeg;base64,${resizedBase64}` }
 						})
 					}
 				}

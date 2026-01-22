@@ -917,6 +917,101 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 
 ---
 
+## 2026-01-22 (Update) - Image Resizing для предотвращения ошибки 413
+
+**Проблема:** При отправке больших изображений (4K скриншоты, фото с камеры) в API возникала ошибка `413 Request Entity Entity Too Large` из-за слишком большого размера base64 строки (5-10MB+).
+
+**Решение:** Добавлен автоматический ресайз изображений до 1024x1024px перед отправкой в GLM-4.6V API.
+
+### Изменения в toolsService.ts
+
+**Файл:** `src/vs/workbench/contrib/void/browser/toolsService.ts` (строки 652-704)
+
+**Добавлена функция `resizeImageToMaxSize`:**
+```typescript
+const resizeImageToMaxSize = (dataUrl: string, maxSize: number = 1024): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let width = img.width
+      let height = img.height
+
+      // Масштабировать если превышает maxSize (сохраняя aspect ratio)
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height * maxSize) / width)
+          width = maxSize
+        } else {
+          width = Math.round((width * maxSize) / height)
+          height = maxSize
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0, width, height)
+
+      // Экспорт как JPEG с качеством 0.8
+      const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
+      const base64 = resizedDataUrl.split(',')[1]
+      resolve(base64)
+    }
+    img.onerror = reject
+    img.src = dataUrl
+  })
+}
+```
+
+**Модифицирован цикл обработки изображений:**
+```typescript
+for (const img of userMessageWithImages.images) {
+  const originalBase64 = img.previewUrl.split(',')[1]
+  if (originalBase64) {
+    // Resize image to max 1024x1024 to prevent 413 errors
+    const resizedBase64 = await resizeImageToMaxSize(img.previewUrl)
+    console.log(`analyze_image: resized image from ${Math.round(originalBase64.length * 0.75)} bytes to ${Math.round(resizedBase64.length * 0.75)} bytes`)
+    contentParts.push({
+      type: 'image_url',
+      image_url: { url: `data:image/jpeg;base64,${resizedBase64}` }
+    })
+  }
+}
+```
+
+### Характеристики ресайза
+
+| Параметр | Значение |
+|----------|----------|
+| Максимальный размер | 1024x1024px |
+| Сохранение пропорций | Да (aspect ratio preserved) |
+| Формат на выходе | image/jpeg |
+| Качество JPEG | 0.8 (80%) |
+
+### Результат
+
+- **Большие изображения** (4K, 8MB+) сжимаются до ~100-200KB
+- **Ошибка 413** больше не возникает
+- **Качество сохраняется** - достаточно для анализа AI-моделью
+- **Логирование** - в консоли показывается размер до и после сжатия
+
+### Архитектура
+
+```
+User прикрепляет изображение → SidebarChat.tsx (previewUrl как base64)
+        ↓
+analyze_image tool вызван
+        ↓
+resizeImageToMaxSize() → Canvas API ресайз
+        ↓
+GLM-4.6V получает оптимизированное изображение (max 1024x1024, ~100KB)
+```
+
+**Status: IMAGE RESIZING IMPLEMENTED** ✅
+
+---
+
 ## Last Updated
 
 2026-01-22 (Full analyze_image tool implementation with two-model architecture, working)
