@@ -1,5 +1,246 @@
 # Image Support in Edlide IDE Chat
 
+## Implementation Plan
+
+### Overview
+
+Enable Edlide to understand images via `analyze_image` tool. Since most models don't support vision natively, we use a two-model approach:
+- **Primary model** (glm-4.7, claude, etc.): conversation + tools
+- **Hidden model** (zai-org/GLM-4.6V): analyzes images when primary model calls `analyze_image`
+
+---
+
+## Step 1: Add Tool Types
+
+**File:** `src/vs/workbench/contrib/void/common/toolsServiceTypes.ts`
+
+Add `analyze_image` to the tool type system.
+
+**Changes:**
+1. Add `'analyze_image'` to `ToolName` union type
+2. Add `'images_base64'` to `ToolParamName` union type
+
+**Expected code:**
+```typescript
+export type ToolName = // existing types... | 'analyze_image'
+export type ToolParamName<T> = // existing params... | 'images_base64'
+```
+
+---
+
+## Step 2: Implement Tool in ToolsService
+
+**File:** `src/vs/workbench/contrib/void/browser/toolsService.ts`
+
+Add three sections to `ToolsService` class:
+
+### 2a. validateParams.analyze_image
+Validates the input array of base64 strings.
+
+**Logic:**
+- Accepts `images_base64` parameter (array of base64 strings)
+- Returns `{ images_base64: string[] }`
+
+### 2b. callTool.analyze_image
+Main tool implementation - calls GLM-4.6V with images.
+
+**Logic:**
+1. Extract base64 data from data:image/...;base64,... format
+2. Create message for GLM-4.6V in OpenAI multimodal format:
+   ```json
+   {
+     "model": "zai-org/GLM-4.6V",
+     "messages": [{
+       "role": "user",
+       "content": [
+         { "type": "text", "text": "Describe these images in detail" },
+         { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,..." } }
+         // ... more images
+       ]
+     }]
+   }
+   ```
+3. Send to edlide provider via existing `sendLLMMessage` infrastructure
+4. Return analysis text as result
+
+**Key considerations:**
+- Uses `zai-org/GLM-4.6V` model (hidden, vision-only)
+- Base64 must be extracted from data:image/... prefix
+- Model generates its own question based on conversation context
+- Returns `{ analysis: string }` type
+
+### 2c. stringOfResult.analyze_image
+Formats the analysis result for the primary model.
+
+**Output format:**
+```
+[IMAGE ANALYSIS]
+<description from GLM-4.6V>
+[/IMAGE ANALYSIS]
+```
+
+---
+
+## Step 3: Add Tool to Available Tools
+
+**File:** `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+Add `analyze_image` to `availableTools()` function.
+
+**XML format:**
+```xml
+<tool_name>analyze_image</tool_name>
+<description>Analyze images and describe what's in them. Use this when user shares screenshots or images. The model will generate a question based on the conversation context.</description>
+<parameters>
+  <images_base64>Array of base64-encoded images from ChatImageAttachment.previewUrl field</images_base64>
+</parameters>
+```
+
+---
+
+## Step 4: Add `<has_images>` Flag to Messages
+
+**File:** `src/vs/workbench/contrib/void/browser/chatThreadService.ts`
+
+Modify `createNewMessage()` function where user messages are created.
+
+**Logic:**
+1. Get current chat images from thread state: `chatThreadsService.getCurrentChatImages()`
+2. Create flag string:
+   - If images exist: `<has_images>true</has_images>`
+   - If no images: `<has_images>false</has_images>`
+3. Prepend flag to message content:
+   ```typescript
+   const content = `${hasImagesFlag}${text}`
+   ```
+
+**Note:** This signals to the model whether to expect image-related queries.
+
+---
+
+## Step 5: Display Images in Sent Messages
+
+**File:** `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
+
+Add `MessageImageThumbnails` component to render images under sent user messages.
+
+**Component structure:**
+```typescript
+const MessageImageThumbnails = ({
+  images
+}: {
+  images: ChatImageAttachment[]
+}) => {
+  if (images.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {images.map((img) => (
+        <img
+          key={img.id}
+          src={img.previewUrl}
+          alt={img.name}
+          className="w-6 h-6 object-cover rounded-sm cursor-pointer"
+          onClick={() => openFullPreview(img)}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+**Integration:**
+- Add to `MessageContainer` render for user messages
+- Pass images from message data (need to store in ChatMessage)
+- Reuse existing `previewImage` state for full-size modal
+
+**Styling:**
+- Thumbnail: `w-6 h-6 object-cover rounded-sm cursor-pointer`
+- Container: `flex flex-wrap gap-2 mt-2`
+- Click: opens existing `ImagePreviewModal`
+
+---
+
+## Data Flow (After Implementation)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. User attaches images via Drag&Drop / Ctrl+V / File Picker    │
+│    - Images stored in ChatImageAttachment[]                      │
+│    - previewUrl (base64 data URL) available                      │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. User sends message                                            │
+│    - chatThreadsService creates message with <has_images>true   │
+│    - Images displayed below message in chat UI                   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. Primary model receives message                                │
+│    - Sees <has_images>true flag                                  │
+│    - Can decide to call analyze_image tool if needed             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. If model calls analyze_image tool:                            │
+│    - Receives images_base64[] from tool call                     │
+│    - Sends to GLM-4.6V via edlide provider                       │
+│    - GLM-4.6V returns image analysis                             │
+│    - Result passed back to primary model                         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. Primary model responds                                        │
+│    - Uses image analysis to generate helpful response            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `toolsServiceTypes.ts` | Add `analyze_image` to ToolName and ToolParamName |
+| `toolsService.ts` | Implement analyze_image: validateParams, callTool, stringOfResult |
+| `prompts.ts` | Add tool description in XML format |
+| `chatThreadService.ts` | Add `<has_images>` flag to user messages |
+| `SidebarChat.tsx` | Add MessageImageThumbnails to display sent images |
+
+---
+
+## API Integration Details
+
+**Provider:** `edlide`
+**Endpoint:** `https://edlide.com/api/ai-proxy/v1/chat/completions`
+**Auth:** Supabase access token (passed via headers)
+**Model:** `zai-org/GLM-4.6V` (hidden, vision-only)
+
+**Request format to GLM-4.6V:**
+```json
+{
+  "model": "zai-org/GLM-4.6V",
+  "messages": [{
+    "role": "user",
+    "content": [
+      { "type": "text", "text": "Describe these images in detail" },
+      { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,..." } }
+    ]
+  }]
+}
+```
+
+**Base64 extraction from previewUrl:**
+```typescript
+const extractBase64 = (dataUrl: string): string => {
+  // data:image/png;base64,iVBORw0KGgo...
+  return dataUrl.split(',')[1];
+}
+```
+
+---
+
 ## 2026-01-11 Update: Hidden Image-Only Model (GLM-4.6V)
 
 Added support for hidden image-only model `zai-org/GLM-4.6V`:
