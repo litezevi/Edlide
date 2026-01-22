@@ -687,20 +687,25 @@ const uriStr = validateStr('uri', uriUnknown)
 							logging: { loggingName: 'analyze_image tool' },
 							separateSystemMessage: undefined,
 							supabaseAccessToken,
-							onText: ({ fullText }) => {
+							onText: ({ fullText, fullReasoning }) => {
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent(fullText)
+									if (fullReasoning) {
+										chatThreadService.updateStreamingReasoningContent(fullReasoning)
+									}
 								}
 							},
 							onFinalMessage: ({ fullText }) => {
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent('')
+									chatThreadService.updateStreamingReasoningContent('')
 								}
 								resolve(fullText)
 							},
 							onError: ({ message }) => {
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent('')
+									chatThreadService.updateStreamingReasoningContent('')
 								}
 								// Retry on 429 (rate limit)
 								if (message.includes('429') && attempt < maxAttempts) {

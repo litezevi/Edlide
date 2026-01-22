@@ -3100,7 +3100,6 @@ ${newString}
 			const accessor = useAccessor()
 
 			const title = getTitle(toolMessage)
-			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
 			const icon = null
 
 			const isError = false
@@ -3109,13 +3108,13 @@ ${newString}
 
 			const streamState = useChatThreadsStreamState(threadId)
 			const streamingContent = streamState?.streamingAnalysisContent ?? ''
+			const streamingReasoning = streamState?.streamingReasoningContent ?? ''
 
 			const [isOpen, setIsOpen] = useState(isRunning || !!streamingContent)
 
 			const componentParams: ToolHeaderParams = {
 				title,
-				desc1,
-				desc1Info,
+				desc1: '',
 				isError,
 				icon,
 				isRejected,
@@ -3123,16 +3122,20 @@ ${newString}
 				onClick: () => setIsOpen(v => !v),
 			}
 
-			if (toolMessage.type === 'success') {
-				const { result } = toolMessage as any
-				componentParams.children = <div className='px-2 py-1'>
+			const renderContent = (content: string) => (
+				<div className='px-2 py-1'>
 					<ChatMarkdownRender
-						string={(result as any)?.analysis || ''}
+						string={content}
 						chatMessageLocation={undefined}
 						isApplyEnabled={false}
 						isLinkDetectionEnabled={true}
 					/>
 				</div>
+			)
+
+			if (toolMessage.type === 'success') {
+				const { result } = toolMessage as any
+				componentParams.children = renderContent((result as any)?.analysis || '')
 			}
 			else if (toolMessage.type === 'tool_error') {
 				const { result } = toolMessage
@@ -3145,15 +3148,22 @@ ${newString}
 					/>
 				</div>
 			}
-			else if (streamingContent) {
-				componentParams.children = <div className='px-2 py-1'>
-					<ChatMarkdownRender
-						string={streamingContent}
-						chatMessageLocation={undefined}
-						isApplyEnabled={false}
-						isLinkDetectionEnabled={true}
-					/>
-				</div>
+			else if (streamingContent || streamingReasoning) {
+				componentParams.children = (
+					<>
+						{streamingReasoning && (
+							<div className='px-2 py-1 text-void-fg-3 text-xs italic border-b border-void-border-2 mb-1'>
+								<ChatMarkdownRender
+									string={streamingReasoning}
+									chatMessageLocation={undefined}
+									isApplyEnabled={false}
+									isLinkDetectionEnabled={true}
+								/>
+							</div>
+						)}
+						{streamingContent && renderContent(streamingContent)}
+					</>
+				)
 			}
 
 			return <ToolHeaderWrapper {...componentParams} />
@@ -3613,19 +3623,29 @@ const AnalyzeImageToolSoFar = ({ toolCallSoFar, threadId }: { toolCallSoFar: Raw
 	if (!isABuiltinToolName(toolCallSoFar.name)) return null
 
 	const title = 'Analyzing image'
-	const desc1 = toolCallSoFar.rawParams?.description?.slice(0, 30) ?? ''
 
 	const streamState = useChatThreadsStreamState(threadId)
 	const streamingContent = streamState?.streamingAnalysisContent ?? ''
+	const streamingReasoning = streamState?.streamingReasoningContent ?? ''
 
 	const [isOpen, setIsOpen] = useState(true)
 
 	return <ToolHeaderWrapper
 		title={title}
-		desc1={desc1}
+		desc1=''
 		isOpen={isOpen}
 		onClick={() => setIsOpen(v => !v)}
 	>
+		{streamingReasoning && (
+			<div className='px-2 py-1 text-void-fg-3 text-xs italic border-b border-void-border-2 mb-1'>
+				<ChatMarkdownRender
+					string={streamingReasoning}
+					chatMessageLocation={undefined}
+					isApplyEnabled={false}
+					isLinkDetectionEnabled={true}
+				/>
+			</div>
+		)}
 		{streamingContent && (
 			<div className='px-2 py-1'>
 				<ChatMarkdownRender

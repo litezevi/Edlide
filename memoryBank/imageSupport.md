@@ -12,14 +12,15 @@
    - Retry logic: 3 attempts with exponential backoff for 429 errors
    - Extracts images from last user message automatically
    - Supabase auth via `getAccessTokenSync()`
-   - **Real-time streaming**: `onText` callback updates `streamingAnalysisContent` in thread state
+   - **Real-time streaming**: `onText` callback updates `streamingAnalysisContent` AND `streamingReasoningContent`
 
 3. **prompts.ts** - Added tool description for LLM
 
 4. **chatThreadService.ts** - Added:
    - `<has_images>true|false</has_images>` flag to messages, stores images in ChatMessage
-   - `streamingAnalysisContent` field in `ThreadStreamState` for real-time streaming
-   - `updateStreamingAnalysisContent(content: string)` method to update streaming content
+   - `streamingAnalysisContent` and `streamingReasoningContent` fields in `ThreadStreamState`
+   - `updateStreamingAnalysisContent(content: string)` method
+   - `updateStreamingReasoningContent(content: string)` method
 
 5. **chatThreadServiceTypes.ts** - Added `images?: ChatImageAttachment[]` to user message type
 
@@ -29,6 +30,7 @@
    - **Chevron is clickable**: toggles open/close state with `useState`
    - **No "Analyzing image" text**: only shows actual streaming content from GLM-4.6V
    - **Markdown rendering**: content rendered via `ChatMarkdownRender` for beautiful formatting
+   - **Reasoning content**: shown in gray italic with border above main content
 
 ### How It Works
 
@@ -47,7 +49,7 @@
 
 ### Streaming Flow
 ```
-GLM-4.6V generates → onText callback → updateStreamingAnalysisContent → thread state updated → useChatThreadsStreamState → UI re-renders → content displayed inside chevron
+GLM-4.6V generates → onText({ fullText, fullReasoning }) → updateStreamingAnalysisContent + updateStreamingReasoningContent → thread state updated → useChatThreadsStreamState → UI re-renders → reasoning (gray) + content displayed inside chevron
 ```
 
 ---

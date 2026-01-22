@@ -175,6 +175,7 @@ export type ThreadStreamState = {
 		toolInfo?: undefined;
 		interrupt?: undefined;
 		streamingAnalysisContent?: undefined;
+		streamingReasoningContent?: undefined;
 	} | { // an assistant message is being written
 		isRunning: 'LLM';
 		error?: undefined;
@@ -187,6 +188,7 @@ export type ThreadStreamState = {
 		toolInfo?: undefined;
 		interrupt: Promise<() => void>;
 		streamingAnalysisContent?: undefined;
+		streamingReasoningContent?: undefined;
 	} | { // a tool is being run
 		isRunning: 'tool';
 		error?: undefined;
@@ -201,6 +203,7 @@ export type ThreadStreamState = {
 		};
 		interrupt: Promise<() => void>;
 		streamingAnalysisContent?: string;
+		streamingReasoningContent?: string;
 	} | {
 		isRunning: 'awaiting_user';
 		error?: undefined;
@@ -208,6 +211,7 @@ export type ThreadStreamState = {
 		toolInfo?: undefined;
 		interrupt?: undefined;
 		streamingAnalysisContent?: undefined;
+		streamingReasoningContent?: undefined;
 	} | {
 		isRunning: 'idle';
 		error?: undefined;
@@ -215,6 +219,7 @@ export type ThreadStreamState = {
 		toolInfo?: undefined;
 		interrupt: 'not_needed' | Promise<() => void>;
 		streamingAnalysisContent?: undefined;
+		streamingReasoningContent?: undefined;
 	}
 }
 
@@ -275,6 +280,7 @@ export interface IChatThreadService {
 
 	// streaming analysis content
 	updateStreamingAnalysisContent: (content: string) => void
+	updateStreamingReasoningContent: (content: string) => void
 
 	// you can edit multiple messages - the one you're currently editing is "focused", and we add items to that one when you press cmd+L.
 	getCurrentFocusedMessageIdx(): number | undefined;
@@ -2030,6 +2036,17 @@ We only need to do it for files that were edited since `from`, ie files between 
 			this._setStreamState(threadId, {
 				...currentState,
 				streamingAnalysisContent: content,
+			})
+		}
+	}
+
+	updateStreamingReasoningContent(content: string): void {
+		const threadId = this.state.currentThreadId
+		const currentState = this.streamState[threadId]
+		if (currentState && currentState.isRunning === 'tool') {
+			this._setStreamState(threadId, {
+				...currentState,
+				streamingReasoningContent: content,
 			})
 		}
 	}
