@@ -1,5 +1,41 @@
 # Image Support in Edlide IDE Chat
 
+## ✅ Status: Fully Implemented and Working (2026-01-22)
+
+### Changes Made (Latest Update)
+
+1. **toolsServiceTypes.ts** - Added `{ description: string }` input type and `{ analysis: string }` output type for `analyze_image` tool
+
+2. **toolsService.ts** - Full implementation with:
+   - `validateParams.analyze_image` - validates array of base64 strings
+   - `callTool.analyze_image` - calls GLM-4.6V via edlide provider
+   - Retry logic: 3 attempts with exponential backoff for 429 errors
+   - Extracts images from last user message automatically
+   - Supabase auth via `getAccessTokenSync()`
+
+3. **prompts.ts** - Added tool description for LLM
+
+4. **chatThreadService.ts** - Added `<has_images>true|false</has_images>` flag to messages, stores images in ChatMessage
+
+5. **chatThreadServiceTypes.ts** - Added `images?: ChatImageAttachment[]` to user message type
+
+6. **SidebarChat.tsx** - Added `MessageImageThumbnails` component for displaying sent images
+
+### How It Works
+
+1. User sends message with images → stored in `ChatMessage.images[]`
+2. Message includes `<has_images>true</has_images>` flag
+3. Primary model decides to call `analyze_image` with `description` (question)
+4. Tool automatically extracts images from last user message
+5. Sends to GLM-4.6V via edlide provider with Supabase auth
+6. Returns analysis wrapped as `[IMAGE ANALYSIS]\n...\n[/IMAGE ANALYSIS]`
+
+### Architecture
+- **Primary model** (glm-4.7, etc.): conversation + tools, calls `analyze_image` when user shares images
+- **Hidden model** (zai-org/GLM-4.6V): vision model for image analysis
+
+---
+
 ## ✅ Completed (2026-01-22)
 
 ### Step 1: Add Tool Types ✅
@@ -865,4 +901,4 @@ onSubmit() → setChatImages([]) + chatThreadsService.clearChatImages()
 
 ## Last Updated
 
-2026-01-11 (Added hidden image-only model GLM-4.6V, image limit 5 per message)
+2026-01-22 (Full analyze_image tool implementation with two-model architecture, working)

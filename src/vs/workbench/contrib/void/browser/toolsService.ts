@@ -21,6 +21,8 @@ import { RawToolParamsObj } from '../common/sendLLMMessageTypes.js'
 import { MAX_CHILDREN_URIs_PAGE, MAX_FILE_CHARS_PAGE, MAX_TERMINAL_BG_COMMAND_TIME, MAX_TERMINAL_INACTIVE_TIME } from '../common/prompt/prompts.js'
 import { IVoidSettingsService } from '../common/voidSettingsService.js'
 import { generateUuid } from '../../../../base/common/uuid.js'
+import { IChatThreadService } from './chatThreadService.js'
+import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js'
 
 
 // tool use for AI
@@ -218,7 +220,7 @@ export class ToolsService implements IToolsService {
 		@IFileService fileService: IFileService,
 		@IWorkspaceContextService workspaceContextService: IWorkspaceContextService,
 		@ISearchService searchService: ISearchService,
-		@IInstantiationService instantiationService: IInstantiationService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IVoidModelService voidModelService: IVoidModelService,
 		@IEditCodeService editCodeService: IEditCodeService,
 		@ITerminalToolService private readonly terminalToolService: ITerminalToolService,
@@ -388,14 +390,9 @@ const uriStr = validateStr('uri', uriUnknown)
 			},
 
 			analyze_image: (params: RawToolParamsObj) => {
-				const { images_base64: imagesBase64Unknown } = params
-				if (imagesBase64Unknown === null) throw new Error(`Invalid LLM output: images_base64 was null.`)
-				if (!Array.isArray(imagesBase64Unknown)) throw new Error(`Invalid LLM output: images_base64 must be an array, but its type is "${typeof imagesBase64Unknown}".`)
-				const images_base64: string[] = imagesBase64Unknown.map((img, i) => {
-					if (typeof img !== 'string') throw new Error(`Invalid LLM output: images_base64[${i}] must be a string, but its type is "${typeof img}".`)
-					return img
-				})
-				return { images_base64 }
+				const { description: descriptionUnknown } = params
+				const description = validateOptionalStr('description', descriptionUnknown) ?? 'Describe these images in detail. What do you see?'
+				return { description }
 			},
 
 		}
@@ -623,44 +620,94 @@ const uriStr = validateStr('uri', uriUnknown)
 				return { result: {} }
 			},
 
-			analyze_image: async ({ images_base64 }) => {
+			analyze_image: async ({ description }) => {
+				const chatThreadService = (this.instantiationService as any)._serviceGraph?.get(IChatThreadService)
+					|| (globalThis as any).__voidChatThreadService as IChatThreadService
+
+				if (!chatThreadService) {
+					throw new Error('ChatThreadService not available')
+				}
+
+				const threadId = chatThreadService.state.currentThreadId
+				const thread = chatThreadService.state.allThreads[threadId]
+				if (!thread) throw new Error('No current thread')
+
+				// Find the last user message with images (not the assistant's response)
+				const messages = thread.messages
+				let userMessageWithImages = null
+				for (let i = messages.length - 1; i >= 0; i--) {
+					const msg = messages[i]
+					if (msg.role === 'user' && msg.images?.length) {
+						userMessageWithImages = msg
+						break
+					}
+				}
+
+				console.log('analyze_image: found user message with images:', !!userMessageWithImages, 'images:', userMessageWithImages?.images?.length)
+
+				if (!userMessageWithImages || !userMessageWithImages.images?.length) {
+					throw new Error('No images found in user messages')
+				}
+
 				const contentParts: { type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }[] = []
 
+				const prompt = description || 'Describe these images in detail. What do you see? Include any UI elements, text, layouts, or visual content.'
 				contentParts.push({
 					type: 'text',
-					text: 'Analyze these images in detail. Describe what you see, including any UI elements, text, layouts, colors, or other visual content. Be thorough as this will be used to help the user with their request.'
+					text: prompt
 				})
 
-				for (const base64 of images_base64) {
-					contentParts.push({
-						type: 'image_url',
-						image_url: { url: `data:image/png;base64,${base64}` }
-					})
+				for (const img of userMessageWithImages.images) {
+					const base64 = img.previewUrl.split(',')[1]
+					if (base64) {
+						contentParts.push({
+							type: 'image_url',
+							image_url: { url: `data:${img.type};base64,${base64}` }
+						})
+					}
 				}
 
 				const analysisPromise = new Promise<string>((resolve, reject) => {
-					const requestId = this.llmMessageService.sendLLMMessage({
-						messagesType: 'chatMessages',
-						chatMode: null,
-						messages: [{ role: 'user', content: contentParts }] as any,
-						modelSelection: { providerName: 'edlide', modelName: 'zai-org/GLM-4.6V' },
-						modelSelectionOptions: undefined,
-						overridesOfModel: undefined,
-						logging: { loggingName: 'analyze_image tool' },
-						separateSystemMessage: undefined,
-						onText: () => {},
-						onFinalMessage: ({ fullText }) => {
-							resolve(fullText)
-						},
-						onError: ({ message }) => {
-							reject(new Error(`analyze_image failed: ${message}`))
-						},
-						onAbort: () => {},
-					})
+					const supabaseAccessToken = SupabaseAuthHelper.getAccessTokenSync() ?? undefined
 
-					if (!requestId) {
-						reject(new Error('analyze_image failed: could not send request'))
+					let attempt = 0
+					const maxAttempts = 3
+
+					const tryRequest = () => {
+						const requestId = this.llmMessageService.sendLLMMessage({
+							messagesType: 'chatMessages',
+							chatMode: null,
+							messages: [{ role: 'user', content: contentParts }] as any,
+							modelSelection: { providerName: 'edlide', modelName: 'zai-org/GLM-4.6V' },
+							modelSelectionOptions: undefined,
+							overridesOfModel: undefined,
+							logging: { loggingName: 'analyze_image tool' },
+							separateSystemMessage: undefined,
+							supabaseAccessToken,
+							onText: () => {},
+							onFinalMessage: ({ fullText }) => {
+								resolve(fullText)
+							},
+							onError: ({ message }) => {
+								// Retry on 429 (rate limit)
+								if (message.includes('429') && attempt < maxAttempts) {
+									attempt++
+									const delay = Math.pow(2, attempt) * 1000
+									console.log(`analyze_image: 429, retry ${attempt}/${maxAttempts} after ${delay}ms`)
+									setTimeout(tryRequest, delay)
+									return
+								}
+								reject(new Error(`analyze_image failed: ${message}`))
+							},
+							onAbort: () => {},
+						})
+
+						if (!requestId) {
+							reject(new Error('analyze_image failed: could not send request'))
+						}
 					}
+
+					tryRequest()
 				})
 
 				const analysis = await analysisPromise

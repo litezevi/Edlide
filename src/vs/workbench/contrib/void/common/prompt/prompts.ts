@@ -344,8 +344,8 @@ For existing files: use edit_file instead!`,
 
 	analyze_image: {
 		name: 'analyze_image',
-		description: `Analyzes images and describes what's in them. Use this when user shares screenshots, UI mockups, or any images. The model will generate a question based on the conversation context.`,
-		params: { images_base64: { description: `Array of base64-encoded images from ChatImageAttachment.previewUrl field. Extract the base64 portion from "data:image/...;base64,..." format.` } }
+		description: `Analyzes images and describes what's in them. Use this when user shares screenshots, UI mockups, or any images. Images are automatically passed from the user's message - you only need to provide a description of what to analyze.`,
+		params: { description: { description: `Description of what to look for or analyze in the images. For example: "Describe the UI layout and colors" or "What text is visible in the screenshot?"` } }
 	},
 
 

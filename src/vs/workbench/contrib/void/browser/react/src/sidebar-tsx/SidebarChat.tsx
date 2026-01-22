@@ -2200,7 +2200,7 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 		},
 		'analyze_image': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['analyze_image']
-			return { desc1: `${toolParams.images_base64?.length ?? 0} images` }
+			return { desc1: toolParams.description?.slice(0, 50) ?? 'Analyze images' }
 		},
 	}
 

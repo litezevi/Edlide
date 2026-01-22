@@ -61,7 +61,7 @@ export type BuiltinToolCallParams = {
 	'run_persistent_command': { command: string; persistentTerminalId: string },
 	'kill_persistent_terminal': { persistentTerminalId: string },
 	// ---
-	'analyze_image': { images_base64: string[] },
+	'analyze_image': { description: string },
 }
 
 // RESULT OF TOOL CALL
