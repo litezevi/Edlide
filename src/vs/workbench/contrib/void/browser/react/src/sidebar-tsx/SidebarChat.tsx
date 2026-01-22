@@ -2056,7 +2056,7 @@ const titleOfBuiltinToolName = {
 
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
-	'analyze_image': { done: 'Analyzed images', proposed: 'Analyze images', running: loadingTitleWrapper('Analyzing images') },
+	'analyze_image': { done: 'Analyzed image', proposed: 'Analyze image', running: loadingTitleWrapper('Analyzing image') },
 } as const satisfies Record<string, { done: any, proposed: any, running: any }>
 
 
@@ -3125,19 +3125,34 @@ ${newString}
 
 			if (toolMessage.type === 'success') {
 				const { result } = toolMessage as any
-				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
-					{(result as any)?.analysis}
+				componentParams.children = <div className='px-2 py-1'>
+					<ChatMarkdownRender
+						string={(result as any)?.analysis || ''}
+						chatMessageLocation={undefined}
+						isApplyEnabled={false}
+						isLinkDetectionEnabled={true}
+					/>
 				</div>
 			}
 			else if (toolMessage.type === 'tool_error') {
 				const { result } = toolMessage
-				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap text-red-400'>
-					{result}
+				componentParams.children = <div className='px-2 py-1 text-red-400'>
+					<ChatMarkdownRender
+						string={result || ''}
+						chatMessageLocation={undefined}
+						isApplyEnabled={false}
+						isLinkDetectionEnabled={true}
+					/>
 				</div>
 			}
 			else if (streamingContent) {
-				componentParams.children = <div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
-					{streamingContent}
+				componentParams.children = <div className='px-2 py-1'>
+					<ChatMarkdownRender
+						string={streamingContent}
+						chatMessageLocation={undefined}
+						isApplyEnabled={false}
+						isLinkDetectionEnabled={true}
+					/>
 				</div>
 			}
 
@@ -3597,7 +3612,7 @@ const EditToolSoFar = ({ toolCallSoFar, }: { toolCallSoFar: RawToolCallObj }) =>
 const AnalyzeImageToolSoFar = ({ toolCallSoFar, threadId }: { toolCallSoFar: RawToolCallObj, threadId: string }) => {
 	if (!isABuiltinToolName(toolCallSoFar.name)) return null
 
-	const title = 'Analyzing images'
+	const title = 'Analyzing image'
 	const desc1 = toolCallSoFar.rawParams?.description?.slice(0, 30) ?? ''
 
 	const streamState = useChatThreadsStreamState(threadId)
@@ -3612,8 +3627,13 @@ const AnalyzeImageToolSoFar = ({ toolCallSoFar, threadId }: { toolCallSoFar: Raw
 		onClick={() => setIsOpen(v => !v)}
 	>
 		{streamingContent && (
-			<div className='px-2 py-1 text-void-fg-4 text-xs font-mono whitespace-pre-wrap'>
-				{streamingContent}
+			<div className='px-2 py-1'>
+				<ChatMarkdownRender
+					string={streamingContent}
+					chatMessageLocation={undefined}
+					isApplyEnabled={false}
+					isLinkDetectionEnabled={true}
+				/>
 			</div>
 		)}
 	</ToolHeaderWrapper>

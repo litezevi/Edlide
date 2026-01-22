@@ -1,6 +1,6 @@
 # Image Support in Edlide IDE Chat
 
-## ✅ Status: Fully Implemented with Real-time Streaming (2026-01-22)
+## ✅ Status: Fully Implemented with Real-time Streaming + Markdown (2026-01-22)
 
 ### Changes Made (Latest Update)
 
@@ -27,7 +27,8 @@
    - `MessageImageThumbnails` component for displaying sent images
    - `AnalyzeImageToolSoFar` component with real-time streaming content display
    - **Chevron is clickable**: toggles open/close state with `useState`
-   - **No "Analyzing images..." text**: only shows actual streaming content from GLM-4.6V
+   - **No "Analyzing image" text**: only shows actual streaming content from GLM-4.6V
+   - **Markdown rendering**: content rendered via `ChatMarkdownRender` for beautiful formatting
 
 ### How It Works
 
