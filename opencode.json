@@ -4,14 +4,6 @@
   "provider": {
     "chutes": {
       "models": {
-        "glm-4.7-tee": {
-          "id": "zai-org/GLM-4.7-TEE",
-          "name": "GLM 4.7 TEE",
-          "options": {
-            "reasoningEffort": "high",
-            "textVerbosity": "low"
-          }
-        },
         "minimax-m2.1-tee": {
           "id": "MiniMaxAI/MiniMax-M2.1-TEE",
           "name": "MiniMax M2.1 TEE",
