@@ -53,6 +53,7 @@ export type ChatMessage =
 		content: string; // content displayed to the LLM on future calls - allowed to be '', will be replaced with (empty)
 		displayContent: string; // content displayed to user  - allowed to be '', will be ignored
 		selections: StagingSelectionItem[] | null; // the user's selection
+		images?: ChatImageAttachment[]; // images attached to this message
 		state: {
 			stagingSelections: StagingSelectionItem[];
 			isBeingEdited: boolean;

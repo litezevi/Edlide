@@ -1406,8 +1406,18 @@ We only need to do it for files that were edited since `from`, ie files between 
 		const currSelns: StagingSelectionItem[] = _chatSelections ?? thread.state.stagingSelections
 
 		const userMessageContent = await chat_userMessageContent(instructions, currSelns, { directoryStrService: this._directoryStringService, fileService: this._fileService }) // user message + names of files (NOT content)
-		const userHistoryElt: ChatMessage = { role: 'user', content: userMessageContent, displayContent: instructions, selections: currSelns, state: defaultMessageState }
+		const chatImages = this.getCurrentChatImages()
+		const hasImagesFlag = chatImages.length > 0 ? '<has_images>true</has_images>\n' : '<has_images>false</has_images>\n'
+		const userHistoryElt: ChatMessage = {
+			role: 'user',
+			content: hasImagesFlag + userMessageContent,
+			displayContent: instructions,
+			selections: currSelns,
+			images: chatImages,
+			state: defaultMessageState
+		}
 		this._addMessageToThread(threadId, userHistoryElt)
+		this.clearChatImages()
 
 		this._setThreadState(threadId, { currCheckpointIdx: null }) // no longer at a checkpoint because started streaming
 

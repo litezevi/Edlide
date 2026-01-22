@@ -9,6 +9,7 @@ import { QueryBuilder } from '../../../services/search/common/queryBuilder.js'
 import { ISearchService } from '../../../services/search/common/search.js'
 import { IEditCodeService } from './editCodeServiceInterface.js'
 import { ITerminalToolService } from './terminalToolService.js'
+import { ILLMMessageService } from '../common/sendLLMMessageService.js'
 import { LintErrorItem, BuiltinToolCallParams, BuiltinToolResultType, BuiltinToolName } from '../common/toolsServiceTypes.js'
 import { IVoidModelService } from '../common/voidModelService.js'
 import { EndOfLinePreference } from '../../../../editor/common/model.js'
@@ -225,6 +226,7 @@ export class ToolsService implements IToolsService {
 		@IDirectoryStrService private readonly directoryStrService: IDirectoryStrService,
 		@IMarkerService private readonly markerService: IMarkerService,
 		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
+		@ILLMMessageService private readonly llmMessageService: ILLMMessageService,
 	) {
 		const queryBuilder = instantiationService.createInstance(QueryBuilder);
 
@@ -383,6 +385,17 @@ const uriStr = validateStr('uri', uriUnknown)
 				const { persistent_terminal_id: terminalIdUnknown } = params;
 				const persistentTerminalId = validateProposedTerminalId(terminalIdUnknown);
 				return { persistentTerminalId };
+			},
+
+			analyze_image: (params: RawToolParamsObj) => {
+				const { images_base64: imagesBase64Unknown } = params
+				if (imagesBase64Unknown === null) throw new Error(`Invalid LLM output: images_base64 was null.`)
+				if (!Array.isArray(imagesBase64Unknown)) throw new Error(`Invalid LLM output: images_base64 must be an array, but its type is "${typeof imagesBase64Unknown}".`)
+				const images_base64: string[] = imagesBase64Unknown.map((img, i) => {
+					if (typeof img !== 'string') throw new Error(`Invalid LLM output: images_base64[${i}] must be a string, but its type is "${typeof img}".`)
+					return img
+				})
+				return { images_base64 }
 			},
 
 		}
@@ -609,6 +622,50 @@ const uriStr = validateStr('uri', uriUnknown)
 				await this.terminalToolService.killPersistentTerminal(persistentTerminalId)
 				return { result: {} }
 			},
+
+			analyze_image: async ({ images_base64 }) => {
+				const contentParts: { type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }[] = []
+
+				contentParts.push({
+					type: 'text',
+					text: 'Analyze these images in detail. Describe what you see, including any UI elements, text, layouts, colors, or other visual content. Be thorough as this will be used to help the user with their request.'
+				})
+
+				for (const base64 of images_base64) {
+					contentParts.push({
+						type: 'image_url',
+						image_url: { url: `data:image/png;base64,${base64}` }
+					})
+				}
+
+				const analysisPromise = new Promise<string>((resolve, reject) => {
+					const requestId = this.llmMessageService.sendLLMMessage({
+						messagesType: 'chatMessages',
+						chatMode: null,
+						messages: [{ role: 'user', content: contentParts }] as any,
+						modelSelection: { providerName: 'edlide', modelName: 'zai-org/GLM-4.6V' },
+						modelSelectionOptions: undefined,
+						overridesOfModel: undefined,
+						logging: { loggingName: 'analyze_image tool' },
+						separateSystemMessage: undefined,
+						onText: () => {},
+						onFinalMessage: ({ fullText }) => {
+							resolve(fullText)
+						},
+						onError: ({ message }) => {
+							reject(new Error(`analyze_image failed: ${message}`))
+						},
+						onAbort: () => {},
+					})
+
+					if (!requestId) {
+						reject(new Error('analyze_image failed: could not send request'))
+					}
+				})
+
+				const analysis = await analysisPromise
+				return { result: { analysis } }
+			},
 		}
 
 
@@ -711,6 +768,10 @@ const uriStr = validateStr('uri', uriUnknown)
 			},
 			kill_persistent_terminal: (params, _result) => {
 				return `Successfully closed terminal "${params.persistentTerminalId}".`;
+			},
+
+			analyze_image: (_params, result) => {
+				return `[IMAGE ANALYSIS]\n${result.analysis}\n[/IMAGE ANALYSIS]`
 			},
 		}
 

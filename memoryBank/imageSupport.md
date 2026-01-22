@@ -1,5 +1,53 @@
 # Image Support in Edlide IDE Chat
 
+## ✅ Completed (2026-01-22)
+
+### Step 1: Add Tool Types ✅
+**File:** `src/vs/workbench/contrib/void/common/toolsServiceTypes.ts`
+
+Added `analyze_image` to `BuiltinToolCallParams` and `BuiltinToolResultType`:
+```typescript
+'analyze_image': { images_base64: string[] },
+'analyze_image': { analysis: string },
+```
+
+### Step 2: Implement Tool in ToolsService ✅
+**File:** `src/vs/workbench/contrib/void/browser/toolsService.ts`
+
+Added:
+- `validateParams.analyze_image` - validates array of base64 strings
+- `callTool.analyze_image` - calls GLM-4.6V via edlide provider
+- `stringOfResult.analyze_image` - formats result as `[IMAGE ANALYSIS]\n...\n[/IMAGE ANALYSIS]`
+
+### Step 3: Add Tool Description to Prompts ✅
+**File:** `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
+
+Added `analyze_image` to `builtinTools`:
+```typescript
+analyze_image: {
+  name: 'analyze_image',
+  description: `Analyzes images and describes what's in them...`,
+  params: { images_base64: { description: `Array of base64-encoded images...` } }
+}
+```
+
+### Step 4: Add `<has_images>` Flag ✅
+**File:** `src/vs/workbench/contrib/void/browser/chatThreadService.ts`
+
+Modified message creation to prepend flag:
+- Gets images from `getCurrentChatImages()`
+- Adds `<has_images>true|false</has_images>` to message content
+- Stores images in ChatMessage and clears them after send
+
+### Step 5: Display Images in Sent Messages ✅
+**Files:**
+- `src/vs/workbench/contrib/void/common/chatThreadServiceTypes.ts` - Added `images?: ChatImageAttachment[]` to user message type
+- `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx` - Added `MessageImageThumbnails` component
+
+Added `MessageImageThumbnails` that renders thumbnails below user messages using same styling as input thumbnails.
+
+---
+
 ## Implementation Plan
 
 ### Overview
@@ -7,77 +55,6 @@
 Enable Edlide to understand images via `analyze_image` tool. Since most models don't support vision natively, we use a two-model approach:
 - **Primary model** (glm-4.7, claude, etc.): conversation + tools
 - **Hidden model** (zai-org/GLM-4.6V): analyzes images when primary model calls `analyze_image`
-
----
-
-## Step 1: Add Tool Types
-
-**File:** `src/vs/workbench/contrib/void/common/toolsServiceTypes.ts`
-
-Add `analyze_image` to the tool type system.
-
-**Changes:**
-1. Add `'analyze_image'` to `ToolName` union type
-2. Add `'images_base64'` to `ToolParamName` union type
-
-**Expected code:**
-```typescript
-export type ToolName = // existing types... | 'analyze_image'
-export type ToolParamName<T> = // existing params... | 'images_base64'
-```
-
----
-
-## Step 2: Implement Tool in ToolsService
-
-**File:** `src/vs/workbench/contrib/void/browser/toolsService.ts`
-
-Add three sections to `ToolsService` class:
-
-### 2a. validateParams.analyze_image
-Validates the input array of base64 strings.
-
-**Logic:**
-- Accepts `images_base64` parameter (array of base64 strings)
-- Returns `{ images_base64: string[] }`
-
-### 2b. callTool.analyze_image
-Main tool implementation - calls GLM-4.6V with images.
-
-**Logic:**
-1. Extract base64 data from data:image/...;base64,... format
-2. Create message for GLM-4.6V in OpenAI multimodal format:
-   ```json
-   {
-     "model": "zai-org/GLM-4.6V",
-     "messages": [{
-       "role": "user",
-       "content": [
-         { "type": "text", "text": "Describe these images in detail" },
-         { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,..." } }
-         // ... more images
-       ]
-     }]
-   }
-   ```
-3. Send to edlide provider via existing `sendLLMMessage` infrastructure
-4. Return analysis text as result
-
-**Key considerations:**
-- Uses `zai-org/GLM-4.6V` model (hidden, vision-only)
-- Base64 must be extracted from data:image/... prefix
-- Model generates its own question based on conversation context
-- Returns `{ analysis: string }` type
-
-### 2c. stringOfResult.analyze_image
-Formats the analysis result for the primary model.
-
-**Output format:**
-```
-[IMAGE ANALYSIS]
-<description from GLM-4.6V>
-[/IMAGE ANALYSIS]
-```
 
 ---
 

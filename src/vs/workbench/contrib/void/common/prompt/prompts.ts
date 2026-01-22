@@ -339,7 +339,14 @@ For existing files: use edit_file instead!`,
 		name: 'kill_persistent_terminal',
 		description: `Interrupts and closes a persistent terminal that you opened with open_persistent_terminal.`,
 		params: { persistent_terminal_id: { description: `The ID of the persistent terminal.` } }
-	}
+	},
+
+
+	analyze_image: {
+		name: 'analyze_image',
+		description: `Analyzes images and describes what's in them. Use this when user shares screenshots, UI mockups, or any images. The model will generate a question based on the conversation context.`,
+		params: { images_base64: { description: `Array of base64-encoded images from ChatImageAttachment.previewUrl field. Extract the base64 portion from "data:image/...;base64,..." format.` } }
+	},
 
 
 	// go_to_definition

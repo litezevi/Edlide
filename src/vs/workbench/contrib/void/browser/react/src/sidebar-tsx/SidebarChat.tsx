@@ -691,6 +691,35 @@ const ChatImageThumbnails = ({
 };
 
 
+const MessageImageThumbnails = ({
+	images,
+	onPreview
+}: {
+	images: ChatImageAttachment[];
+	onPreview: (image: ChatImageAttachment) => void;
+}) => {
+	if (!images || images.length === 0) return null;
+
+	return (
+		<div className="flex flex-wrap gap-2 mt-2">
+			{images.map((img) => (
+				<div
+					key={img.id}
+					className="relative w-6 h-6 cursor-pointer"
+					onClick={() => onPreview(img)}
+				>
+					<img
+						src={img.previewUrl}
+						alt={img.name}
+						className="w-full h-full object-cover rounded-sm"
+					/>
+				</div>
+			))}
+		</div>
+	);
+};
+
+
 // SLIDER ONLY:
 const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) => {
 	const accessor = useAccessor()
@@ -1615,7 +1644,7 @@ const SimplifiedToolHeader = ({
 
 
 
-const UserMessageComponent = ({ chatMessage, messageIdx, isCheckpointGhost, currCheckpointIdx, _scrollToBottom }: { chatMessage: ChatMessage & { role: 'user' }, messageIdx: number, currCheckpointIdx: number | undefined, isCheckpointGhost: boolean, _scrollToBottom: (() => void) | null }) => {
+const UserMessageComponent = ({ chatMessage, messageIdx, isCheckpointGhost, currCheckpointIdx, _scrollToBottom, onPreviewImage }: { chatMessage: ChatMessage & { role: 'user' }, messageIdx: number, currCheckpointIdx: number | undefined, isCheckpointGhost: boolean, _scrollToBottom: (() => void) | null, onPreviewImage?: (image: ChatImageAttachment) => void }) => {
 
 	const accessor = useAccessor()
 	const chatThreadsService = accessor.get('IChatThreadService')
@@ -1688,6 +1717,12 @@ const UserMessageComponent = ({ chatMessage, messageIdx, isCheckpointGhost, curr
 		chatbubbleContents = <>
 			<SelectedFiles type='past' messageIdx={messageIdx} selections={chatMessage.selections || []} />
 			<span className='px-0.5'>{chatMessage.displayContent}</span>
+			{chatMessage.images && chatMessage.images.length > 0 && (
+				<MessageImageThumbnails
+					images={chatMessage.images}
+					onPreview={onPreviewImage || (() => {})}
+				/>
+			)}
 		</>
 	}
 	else if (mode === 'edit') {
@@ -2021,7 +2056,8 @@ const titleOfBuiltinToolName = {
 
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
-} as const satisfies Record<BuiltinToolName, { done: any, proposed: any, running: any }>
+	'analyze_image': { done: 'Analyzed images', proposed: 'Analyze images', running: loadingTitleWrapper('Analyzing images') },
+} as const satisfies Record<string, { done: any, proposed: any, running: any }>
 
 
 const getTitle = (toolMessage: Pick<ChatMessage & { role: 'tool' }, 'name' | 'type' | 'mcpServerName'>): React.ReactNode => {
@@ -2049,9 +2085,10 @@ const getTitle = (toolMessage: Pick<ChatMessage & { role: 'tool' }, 'name' | 'ty
 	// built-in title
 	else {
 		const toolName = t.name as BuiltinToolName
-		if (t.type === 'success') return titleOfBuiltinToolName[toolName].done
-		if (t.type === 'running_now') return titleOfBuiltinToolName[toolName].running
-		return titleOfBuiltinToolName[toolName].proposed
+		const titleMap = titleOfBuiltinToolName as any
+		if (t.type === 'success') return titleMap[toolName]?.done ?? ''
+		if (t.type === 'running_now') return titleMap[toolName]?.running ?? ''
+		return titleMap[toolName]?.proposed ?? ''
 	}
 }
 
@@ -2065,7 +2102,7 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 		return { desc1: '', };
 	}
 
-	const x = {
+	const x: { [key: string]: () => { desc1: React.ReactNode, desc1Info?: string } } = {
 		'read_file': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['read_file']
 			return {
@@ -2160,7 +2197,11 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 				desc1: getBasename(toolParams.uri.fsPath),
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
-		}
+		},
+		'analyze_image': () => {
+			const toolParams = _toolParams as BuiltinToolCallParams['analyze_image']
+			return { desc1: `${toolParams.images_base64?.length ?? 0} images` }
+		},
 	}
 
 	try {
@@ -3054,7 +3095,42 @@ ${newString}
 			return <ToolHeaderWrapper {...componentParams} />
 		},
 	},
-};
+	'analyze_image': {
+		resultWrapper: ({ toolMessage }) => {
+			const accessor = useAccessor()
+
+			const title = getTitle(toolMessage)
+			const { desc1, desc1Info } = toolNameToDesc(toolMessage.name, toolMessage.params, accessor)
+			const icon = null
+
+			if (toolMessage.type === 'tool_request') return null
+			if (toolMessage.type === 'running_now') return null
+
+			const isError = false
+			const isRejected = toolMessage.type === 'rejected'
+			const componentParams: ToolHeaderParams = { title, desc1, desc1Info, isError, icon, isRejected, }
+
+			if (toolMessage.type === 'success') {
+				const { result } = toolMessage as any
+				componentParams.bottomChildren = <BottomChildren title='Analysis'>
+					<CodeChildren>
+						{(result as any)?.analysis}
+					</CodeChildren>
+				</BottomChildren>
+			}
+			else if (toolMessage.type === 'tool_error') {
+				const { result } = toolMessage
+				componentParams.bottomChildren = <BottomChildren title='Error'>
+					<CodeChildren>
+						{result}
+					</CodeChildren>
+				</BottomChildren>
+			}
+
+			return <ToolHeaderWrapper {...componentParams} />
+		},
+	},
+} as const satisfies { [T in BuiltinToolName]?: { resultWrapper: ResultWrapper<T> } }
 
 
 const Checkpoint = ({ message, threadId, messageIdx, isCheckpointGhost, threadIsRunning }: { message: CheckpointEntry, threadId: string; messageIdx: number, isCheckpointGhost: boolean, threadIsRunning: boolean }) => {
@@ -3123,14 +3199,31 @@ const _ChatBubble = ({ threadId, chatMessage, currCheckpointIdx, isCommitted, me
 
 	const isCheckpointGhost = messageIdx > (currCheckpointIdx ?? Infinity) && !chatIsRunning // whether to show as gray (if chat is running, for good measure just dont show any ghosts)
 
+	const [previewImage, setPreviewImage] = useState<ChatImageAttachment | null>(null)
+	const handlePreviewImage = useCallback((image: ChatImageAttachment) => {
+		setPreviewImage(image);
+	}, []);
+	const handleClosePreview = useCallback(() => {
+		setPreviewImage(null);
+	}, []);
+
 	if (role === 'user') {
-		return <UserMessageComponent
-			chatMessage={chatMessage}
-			isCheckpointGhost={isCheckpointGhost}
-			currCheckpointIdx={currCheckpointIdx}
-			messageIdx={messageIdx}
-			_scrollToBottom={_scrollToBottom}
-		/>
+		return <>
+			<UserMessageComponent
+				chatMessage={chatMessage}
+				isCheckpointGhost={isCheckpointGhost}
+				currCheckpointIdx={currCheckpointIdx}
+				messageIdx={messageIdx}
+				_scrollToBottom={_scrollToBottom}
+				onPreviewImage={handlePreviewImage}
+			/>
+			{previewImage && (
+				<ImagePreviewModal
+					image={previewImage}
+					onClose={handleClosePreview}
+				/>
+			)}
+		</>
 	}
 	else if (role === 'assistant') {
 		return <AssistantMessageComponent
