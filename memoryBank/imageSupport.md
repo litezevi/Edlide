@@ -1,6 +1,6 @@
 # Image Support in Edlide IDE Chat
 
-## ✅ Status: Fully Implemented with Real-time Streaming + Markdown (2026-01-22)
+## ✅ Status: Fully Implemented with Real-time Streaming + Markdown + Instant Abort (2026-01-23)
 
 ### Changes Made (Latest Update)
 
@@ -13,6 +13,14 @@
    - Extracts images from last user message automatically
    - Supabase auth via `getAccessTokenSync()`
    - **Real-time streaming**: `onText` callback updates `streamingAnalysisContent` AND `streamingReasoningContent`
+   - **Instant abort support**: AbortController + Promise.race for immediate cancellation during "Analyzing image" and generation
+
+3. **chatThreadService.ts** - Added:
+   - `<has_images>true|false</has_images>` flag to messages, stores images in ChatMessage
+   - `streamingAnalysisContent` and `streamingReasoningContent` fields in `ThreadStreamState`
+   - `updateStreamingAnalysisContent(content: string)` method
+   - `updateStreamingReasoningContent(content: string)` method
+   - **Streaming content cleanup on abort**: clears streamingAnalysisContent and streamingReasoningContent in abortRunning, LLM error, and tool interrupted cases
 
 3. **prompts.ts** - Added tool description for LLM
 
@@ -1009,6 +1017,139 @@ GLM-4.6V получает оптимизированное изображени�
 ```
 
 **Status: IMAGE RESIZING IMPLEMENTED** ✅
+
+---
+
+## 2026-01-23 (Update) - Instant Abort Support for analyze_image Tool
+
+**Проблема:** При нажатии кнопки stop/abort во время работы `analyze_image` tool:
+- Abort не происходил мгновенно - процесс генерации продолжался до завершения
+- Кнопка stop не менялась на retry
+- При повторных нажатиях дублировались записи в истории чата
+
+**Решение:** Реализован мгновенный abort с помощью AbortController + Promise.race для немедленного прерывания.
+
+### Изменения в toolsService.ts
+
+**Файл:** `src/vs/workbench/contrib/void/browser/toolsService.ts` (строки ~706-820)
+
+**Добавлено:**
+1. **AbortController** - создается при запуске инструмента
+2. **Флаг isAborted** - для отслеживания состояния abort
+3. **Promise.race** - для мгновенного прерывания через AbortController.abort()
+4. **interruptTool функция** - вызывается при нажатии кнопки stop
+
+**Ключевая логика:**
+```typescript
+const abortController = new AbortController()
+let requestId: string | null = null
+let isAborted = false
+
+const analysisPromise = new Promise<string>((resolve, reject) => {
+  const tryRequest = () => {
+    requestId = this.llmMessageService.sendLLMMessage({
+      // ...
+      onText: ({ fullText, fullReasoning }) => {
+        // ✅ Проверка abort во всех callbacks
+        if (isAborted || abortController.signal.aborted) {
+          return
+        }
+        // Обновление streaming content
+      },
+      onFinalMessage: ({ fullText }) => {
+        if (isAborted || abortController.signal.aborted) {
+          return
+        }
+        // ...
+      },
+      onAbort: () => {
+        console.log('[analyze_image] Aborted by user')
+        isAborted = true
+        abortController.abort()
+        // Очистка streaming content
+        reject(new Error('analyze_image aborted'))
+      },
+    })
+  }
+  tryRequest()
+})
+
+// ✅ Promise.race для мгновенного abort
+return {
+  result: Promise.race([
+    analysisPromise.then(analysis => ({ analysis })),
+    new Promise<never>((_, reject) => {
+      abortController.signal.addEventListener('abort', () => {
+        reject(new Error('analyze_image aborted'))
+      })
+    })
+  ]),
+  interruptTool: () => {
+    console.log('[analyze_image] Calling abort for requestId:', requestId)
+    isAborted = true
+    abortController.abort()
+    if (requestId) {
+      this.llmMessageService.abort(requestId)
+    }
+  }
+}
+```
+
+### Изменения в chatThreadService.ts
+
+**Добавлена очистка streaming content в 3 местах (строки ~683-684, ~1009-1010, ~1029-1030):**
+
+```typescript
+// 1. В abortRunning() - при нажатии кнопки stop
+this.updateStreamingAnalysisContent('')
+this.updateStreamingReasoningContent('')
+
+// 2. В LLM error case - при слишком многих попытках с ошибкой
+this.updateStreamingAnalysisContent('')
+this.updateStreamingReasoningContent('')
+
+// 3. В tool interrupted case - при прерывании tool call
+this.updateStreamingAnalysisContent('')
+this.updateStreamingReasoningContent('')
+```
+
+### Архитектура Abort
+
+```
+User нажимает кнопку stop
+        ↓
+interrupt() из streamState вызывается
+        ↓
+isAborted = true
+abortController.abort()
+llmMessageService.abort(requestId)
+        ↓
+✅ Promise.race немедленно reject
+✅ Все последующие onText/onFinalMessage/onError callbacks игнорируются
+✅ Streaming content очищается
+✅ Кнопка меняется на retry
+✅ Никакой дублика̶ции в истории
+```
+
+### Характеристики Abort
+
+| Параметр | Значение |
+|----------|----------|
+| ⚡ Скорость abort | Мгновенно (через AbortController) |
+| 🔄 Очистка streaming content | Да, во всех callbacks |
+| 🚫 Предотвращение дублирования | Да, проверка isAborted |
+| 📝 Логирование | Да, requestId и abort причина |
+| ✅ UI обновление | Кнопка меняется на retry |
+
+### Результат
+
+- ✅ **Abort работает мгновенно** - при нажатии кнопкиstop прекращается всё
+- ✅ **Очистка UI** - streaming content очищается сразу
+- ✅ **Нет дублирования** - кнопка меняется на retry, никаких повторных записей
+- ✅ **Работает во всех фазах** - abort работает во время "Analyzing image" и генерации reasoning/content
+- ✅ **Поведение как у edit_file** - идентичная логика abort для всех инструментов
+
+**Status: INSTANT ABORT IMPLEMENTED** ✅
 
 ---
 

@@ -672,13 +672,16 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 			// do nothing
 		}
 
-		this._addUserCheckpoint({ threadId })
+this._addUserCheckpoint({ threadId })
 
 		// interrupt any effects
 		const interrupt = await this.streamState[threadId]?.interrupt
 		if (typeof interrupt === 'function')
 			interrupt()
 
+		// Clear streaming analysis content on abort
+		this.updateStreamingAnalysisContent('')
+		this.updateStreamingReasoningContent('')
 
 		this._setStreamState(threadId, undefined)
 	}
@@ -996,17 +999,21 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 						else
 							continue // retry
 					}
-					// error, but too many attempts
-					else {
-						const { error } = llmRes
-						const { displayContentSoFar, reasoningSoFar, toolCallSoFar } = this.streamState[threadId].llmInfo
-						this._addMessageToThread(threadId, { role: 'assistant', displayContent: displayContentSoFar, reasoning: reasoningSoFar, anthropicReasoning: null })
-						if (toolCallSoFar) this._addMessageToThread(threadId, { role: 'interrupted_streaming_tool', name: toolCallSoFar.name, mcpServerName: this._computeMCPServerOfToolName(toolCallSoFar.name) })
+// error, but too many attempts
+				else {
+					const { error } = llmRes
+					const { displayContentSoFar, reasoningSoFar, toolCallSoFar } = this.streamState[threadId].llmInfo
+					this._addMessageToThread(threadId, { role: 'assistant', displayContent: displayContentSoFar, reasoning: reasoningSoFar, anthropicReasoning: null })
+					if (toolCallSoFar) this._addMessageToThread(threadId, { role: 'interrupted_streaming_tool', name: toolCallSoFar.name, mcpServerName: this._computeMCPServerOfToolName(toolCallSoFar.name) })
 
-						this._setStreamState(threadId, { isRunning: undefined, error })
-						this._addUserCheckpoint({ threadId })
-						return
-					}
+					// Clear streaming analysis content on error
+					this.updateStreamingAnalysisContent('')
+					this.updateStreamingReasoningContent('')
+
+					this._setStreamState(threadId, { isRunning: undefined, error })
+					this._addUserCheckpoint({ threadId })
+					return
+				}
 				}
 
 				// llm res success
@@ -1021,11 +1028,14 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 					const mcpTools = this._mcpService.getMCPTools()
 					const mcpTool = mcpTools?.find(t => t.name === toolCall.name)
 
-					const { awaitingUserApproval, interrupted } = await this._runToolCall(threadId, toolCall.name, toolCall.id, mcpTool?.mcpServerName, { preapproved: false, unvalidatedToolParams: toolCall.rawParams })
-					if (interrupted) {
-						this._setStreamState(threadId, undefined)
-						return
-					}
+const { awaitingUserApproval, interrupted } = await this._runToolCall(threadId, toolCall.name, toolCall.id, mcpTool?.mcpServerName, { preapproved: false, unvalidatedToolParams: toolCall.rawParams })
+				if (interrupted) {
+					// Clear streaming analysis content on tool interrupted
+					this.updateStreamingAnalysisContent('')
+					this.updateStreamingReasoningContent('')
+					this._setStreamState(threadId, undefined)
+					return
+				}
 					if (awaitingUserApproval) { isRunningWhenEnd = 'awaiting_user' }
 					else { shouldSendAnotherMessage = true }
 

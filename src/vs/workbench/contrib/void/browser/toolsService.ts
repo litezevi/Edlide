@@ -703,6 +703,10 @@ const uriStr = validateStr('uri', uriUnknown)
 					}
 				}
 
+				const abortController = new AbortController()
+				let requestId: string | null = null
+				let isAborted = false
+
 				const analysisPromise = new Promise<string>((resolve, reject) => {
 					const supabaseAccessToken = SupabaseAuthHelper.getAccessTokenSync() ?? undefined
 
@@ -713,7 +717,7 @@ const uriStr = validateStr('uri', uriUnknown)
 					const maxAttempts = 3
 
 					const tryRequest = () => {
-						const requestId = this.llmMessageService.sendLLMMessage({
+						requestId = this.llmMessageService.sendLLMMessage({
 							messagesType: 'chatMessages',
 							chatMode: null,
 							messages: [{ role: 'user', content: contentParts }] as any,
@@ -724,6 +728,9 @@ const uriStr = validateStr('uri', uriUnknown)
 							separateSystemMessage: undefined,
 							supabaseAccessToken,
 							onText: ({ fullText, fullReasoning }) => {
+								if (isAborted || abortController.signal.aborted) {
+									return
+								}
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent(fullText)
 									if (fullReasoning) {
@@ -732,6 +739,9 @@ const uriStr = validateStr('uri', uriUnknown)
 								}
 							},
 							onFinalMessage: ({ fullText }) => {
+								if (isAborted || abortController.signal.aborted) {
+									return
+								}
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent('')
 									chatThreadService.updateStreamingReasoningContent('')
@@ -739,6 +749,9 @@ const uriStr = validateStr('uri', uriUnknown)
 								resolve(fullText)
 							},
 							onError: ({ message }) => {
+								if (isAborted || abortController.signal.aborted) {
+									return
+								}
 								if (chatThreadService) {
 									chatThreadService.updateStreamingAnalysisContent('')
 									chatThreadService.updateStreamingReasoningContent('')
@@ -753,7 +766,16 @@ const uriStr = validateStr('uri', uriUnknown)
 								}
 								reject(new Error(`analyze_image failed: ${message}`))
 							},
-							onAbort: () => {},
+							onAbort: () => {
+								console.log('[analyze_image] Aborted by user')
+								isAborted = true
+								abortController.abort()
+								if (chatThreadService) {
+									chatThreadService.updateStreamingAnalysisContent('')
+									chatThreadService.updateStreamingReasoningContent('')
+								}
+								reject(new Error('analyze_image aborted'))
+							},
 						})
 
 						if (!requestId) {
@@ -764,8 +786,24 @@ const uriStr = validateStr('uri', uriUnknown)
 					tryRequest()
 				})
 
-				const analysis = await analysisPromise
-				return { result: { analysis } }
+				return {
+					result: Promise.race([
+						analysisPromise.then(analysis => ({ analysis })),
+						new Promise<never>((_, reject) => {
+							abortController.signal.addEventListener('abort', () => {
+								reject(new Error('analyze_image aborted'))
+							})
+						})
+					]),
+					interruptTool: () => {
+						console.log('[analyze_image] Calling abort for requestId:', requestId)
+						isAborted = true
+						abortController.abort()
+						if (requestId) {
+							this.llmMessageService.abort(requestId)
+						}
+					}
+				}
 			},
 		}
 
