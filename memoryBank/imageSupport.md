@@ -1136,6 +1136,12 @@ else if (streamingContent || streamingReasoning) {
 const [isOpen, setIsOpen] = useState(isRunning)
 // Теперь aborted бокс открывается только если инструмент запущен
 
+useEffect(() => {
+  if (!isRunning) {
+    setIsOpen(false)
+  }
+}, [isRunning])
+
 else if (!isRejected && (streamingContent || streamingReasoning) && isRunning) {
   // Streaming content показывается ТОЛЬКО если:
   // - НЕ aborted (!isRejected)
@@ -1150,6 +1156,32 @@ else if (!isRejected && (streamingContent || streamingReasoning) && isRunning) {
 ```
 
 Это гарантирует что aborted analyze_image box НЕ будет показывать streaming content из нового запроса.
+
+---
+
+### Изменения: Auto-close chevron после завершения инструмента (2026-01-24)
+
+**Проблема:** После завершения работы `analyze_image` инструмента chevron оставался открытым, занимая пространство в чате.
+
+**Решение:** Добавлен `useEffect` для автоматического закрытия chevron при завершении инструмента.
+
+**Файл:** `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx` (строка ~31114)
+
+**Добавлено:**
+```typescript
+const [isOpen, setIsOpen] = useState(isRunning)
+
+useEffect(() => {
+  if (!isRunning) {
+    setIsOpen(false)
+  }
+}, [isRunning])
+```
+
+**Характеристики:**
+- Закрывается автоматически когда `isRunning` становится `false`
+- Пользователь может кликнуть и открыть chevron снова после завершения
+- Работает для всех статусов: `success`, `tool_error`, `rejected`
 
 ### Архитектура Abort
 

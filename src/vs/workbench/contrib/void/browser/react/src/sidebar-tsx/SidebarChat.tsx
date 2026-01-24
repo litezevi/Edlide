@@ -3112,6 +3112,12 @@ ${newString}
 
 			const [isOpen, setIsOpen] = useState(isRunning)
 
+			useEffect(() => {
+				if (!isRunning) {
+					setIsOpen(false)
+				}
+			}, [isRunning])
+
 			const componentParams: ToolHeaderParams = {
 				title,
 				desc1: '',
