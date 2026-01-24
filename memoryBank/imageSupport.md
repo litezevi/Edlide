@@ -1097,12 +1097,18 @@ return {
 
 ### Изменения в chatThreadService.ts
 
-**Добавлена очистка streaming content в 3 местах (строки ~683-684, ~1009-1010, ~1029-1030):**
+**Добавлена очистка streaming content в 3 местах (строки ~675-676, ~1009-1010, ~1029-1030):**
 
 ```typescript
-// 1. В abortRunning() - при нажатии кнопки stop
-this.updateStreamingAnalysisContent('')
-this.updateStreamingReasoningContent('')
+// 1. В abortRunning() - ПЕРЕД созданием aborted messages (ключевое изменение!)
+async abortRunning(threadId: string) {
+  // Очистка streaming content ДО создания aborted messages
+  // Это предотвращает дублирование текста в aborted analyze_image боксах
+  this.updateStreamingAnalysisContent('')
+  this.updateStreamingReasoningContent('')
+
+  // ... затем создаются aborted tool/assistant messages ...
+}
 
 // 2. В LLM error case - при слишком многих попытках с ошибкой
 this.updateStreamingAnalysisContent('')
@@ -1112,6 +1118,38 @@ this.updateStreamingReasoningContent('')
 this.updateStreamingAnalysisContent('')
 this.updateStreamingReasoningContent('')
 ```
+
+### Изменения в SidebarChat.tsx
+
+**Исправлена логика отображения streaming content в aborted tool boxes (строка ~31113, ~3151):**
+
+```typescript
+// Было (проблема):
+const [isOpen, setIsOpen] = useState(isRunning || !!streamingContent)
+// Проблема: aborted бокс открывался если есть streaming content из нового запроса
+
+else if (streamingContent || streamingReasoning) {
+  // Показывали streaming content даже для aborted инструментов
+}
+
+// Стало (исправлено):
+const [isOpen, setIsOpen] = useState(isRunning)
+// Теперь aborted бокс открывается только если инструмент запущен
+
+else if (!isRejected && (streamingContent || streamingReasoning) && isRunning) {
+  // Streaming content показывается ТОЛЬКО если:
+  // - НЕ aborted (!isRejected)
+  // - Есть streaming content
+  // - Инструмент запущен (isRunning)
+}
+```
+
+**Ключевое условие для предотвращения дублирования:**
+```typescript
+!isRejected && (streamingContent || streamingReasoning) && isRunning
+```
+
+Это гарантирует что aborted analyze_image box НЕ будет показывать streaming content из нового запроса.
 
 ### Архитектура Abort
 
@@ -1143,11 +1181,30 @@ llmMessageService.abort(requestId)
 
 ### Результат
 
-- ✅ **Abort работает мгновенно** - при нажатии кнопкиstop прекращается всё
+- ✅ **Abort работает мгновенно** - при нажатии кнопки stop прекращается всё
 - ✅ **Очистка UI** - streaming content очищается сразу
 - ✅ **Нет дублирования** - кнопка меняется на retry, никаких повторных записей
 - ✅ **Работает во всех фазах** - abort работает во время "Analyzing image" и генерации reasoning/content
 - ✅ **Поведение как у edit_file** - идентичная логика abort для всех инструментов
+- ✅ **Исправлено дублирование** - aborted analyze_image box НЕ показывает streaming content из новых запросов
+
+### Дополнительное исправление: Предотвращение дублирования в aborted boxes (2026-01-23)
+
+**Проблема:** После abort и отправки новой фотографии в том же чате:
+- Aborted analyze_image бокс показывал дублирующийся reasoning и основной контент из НОВОГО запроса
+- Streaming content отображался одновременно в ОБОИХ местах (в старом aborted box и в текущем)
+
+**Решение:** Двухэтапное исправление:
+
+1. **chatThreadService.ts (abortRunning):** Очистка streaming content ПЕРЕД созданием aborted messages
+   - Теперь `updateStreamingAnalysisContent('')` и `updateStreamingReasoningContent('')` вызываются ДО создания aborted tool/assistant messages
+   - Это предотвращает сохранение streaming content в aborted messages
+
+2. **SidebarChat.tsx (analyze_image resultWrapper):** Условие для отображения streaming content
+   - `useState(isRunning)` - aborted box открывается только если инструмент запущен
+   - `!isRejected && (streamingContent || streamingReasoning) && isRunning` - streaming content показывается ТОЛЬКО если инструмент NOT aborted AND запущен
+
+**Результат:** Aborted analyze_image box теперь корректно показывает только статус "interrupted" без дублирующегося streaming content.
 
 **Status: INSTANT ABORT IMPLEMENTED** ✅
 

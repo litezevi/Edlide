@@ -3110,7 +3110,7 @@ ${newString}
 			const streamingContent = streamState?.streamingAnalysisContent ?? ''
 			const streamingReasoning = streamState?.streamingReasoningContent ?? ''
 
-			const [isOpen, setIsOpen] = useState(isRunning || !!streamingContent)
+			const [isOpen, setIsOpen] = useState(isRunning)
 
 			const componentParams: ToolHeaderParams = {
 				title,
@@ -3148,7 +3148,7 @@ ${newString}
 					/>
 				</div>
 			}
-			else if (streamingContent || streamingReasoning) {
+			else if (!isRejected && (streamingContent || streamingReasoning) && isRunning) {
 				componentParams.children = (
 					<>
 						{streamingReasoning && (
