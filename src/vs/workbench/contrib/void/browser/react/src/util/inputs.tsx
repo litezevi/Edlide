@@ -384,27 +384,27 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 	const isTypingEnabled = true
 	const isBreadcrumbsShowing = optionPath.length === 0 && !optionText ? false : true
 
-	const insertTextAtCursor = (text: string) => {
+	const insertTextAtCursor = (text: string, includeAtSymbol = false) => {
 		const textarea = textAreaRef.current;
 		if (!textarea) return;
 
 		// Focus the textarea first
 		textarea.focus();
 
-		// delete the @ and set the cursor position
 		// Get cursor position
 		const startPos = textarea.selectionStart;
 		const endPos = textarea.selectionEnd;
 
-		// Get the text before the cursor, excluding the @ symbol that triggered the menu
+		// Get the text before and after the cursor
 		const textBeforeCursor = textarea.value.substring(0, startPos - 1);
 		const textAfterCursor = textarea.value.substring(endPos);
 
-		// Replace the text including the @ symbol with the selected option
-		textarea.value = textBeforeCursor + textAfterCursor;
+		// Insert text with @ symbol if includeAtSymbol is true, otherwise keep the @
+		const textToInsert = includeAtSymbol ? `@${text}` : text;
+		textarea.value = textBeforeCursor + textToInsert + textAfterCursor;
 
 		// Set cursor position after the inserted text
-		const newCursorPos = textBeforeCursor.length;
+		const newCursorPos = textBeforeCursor.length + textToInsert.length;
 		textarea.setSelectionRange(newCursorPos, newCursorPos);
 
 		// React's onChange relies on a SyntheticEvent system
@@ -426,24 +426,7 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 		setDidLoadInitialOptions(false)
 		if (isLastOption) {
 			setIsMenuOpen(false)
-			insertTextAtCursor(option.abbreviatedName)
-
-			let newSelection: StagingSelectionItem
-			if (option.leafNodeType === 'File') newSelection = {
-				type: 'File',
-				uri: option.uri,
-				language: languageService.guessLanguageIdByFilepathOrFirstLine(option.uri) || '',
-				state: { wasAddedAsCurrentFile: false },
-			}
-			else if (option.leafNodeType === 'Folder') newSelection = {
-				type: 'Folder',
-				uri: option.uri,
-				language: undefined,
-				state: undefined,
-			}
-			else throw new Error(`Unexpected leafNodeType ${option.leafNodeType}`)
-
-			chatThreadService.addNewStagingSelection(newSelection)
+			insertTextAtCursor(option.abbreviatedName, true)
 		}
 		else {
 

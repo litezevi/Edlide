@@ -513,6 +513,17 @@ FILE: has extension → "/app/page.ts"
 WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
 CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 
+# FILE MENTIONS (@filename)
+Users can reference files/folders in prompts using @syntax:
+- @file.py → User mentions a file (use tools to read it)
+- @folder → User mentions a folder (use tools to explore it)
+- When you see @filename, use tools to find and read that file
+- First use search_pathnames_only to find the file, then read it
+
+EXAMPLE:
+User: "Check @hello_world.py and update functions"
+YOU: search_pathnames_only("hello_world.py") → read_file(uri) → make edits
+
 # RULES
 - old_string: 5+ lines context, MUST be unique
 - If uncertain: say "I don't know"
@@ -613,7 +624,18 @@ MANDATORY PROTOCOLS:
 
 Follow all protocols for 100% success rate.`}
 
-You may receive selected files (SELECTIONS) for context. Assist the user with their query.`;
+You may receive selected files (SELECTIONS) for context. Assist the user with their query.
+
+ FILE MENTIONS (@filename):
+Users can reference files/folders in prompts using @syntax:
+- @file.py → User mentions a file (use tools to read it)
+- @folder → User mentions a folder (use tools to explore it)
+- When you see @filename, use tools to find and read that file
+- First use search_pathnames_only to find the file, then read it
+
+EXAMPLE: "Check @hello_world.py and update functions"
+→ search_pathnames_only("hello_world.py") → read_file(uri) → make edits`;
+
 
 	const sysInfo = `System Info:
 OS: ${os}
@@ -622,6 +644,7 @@ Active: ${activeURI || 'None'}
 Open files: ${openedURIs.join(', ') || 'None'}`;
 
 	const fsInfo = `File System:\n${directoryStr}`;
+
 	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools) : null;
 
 	const details = [];

@@ -24,7 +24,7 @@ import { ChatMode, displayInfoOfProviderName, FeatureName, isFeatureNameDisabled
 import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { WarningBox } from '../void-settings-tsx/WarningBox.js';
 import { getModelCapabilities, getIsReasoningEnabledState } from '../../../../common/modelCapabilities.js';
-import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CirclePlus, Ellipsis, CircleEllipsis, Folder, ALargeSmall, TypeOutline, Text, Image } from 'lucide-react';
+import { AlertTriangle, File, Ban, Check, ChevronRight, Dot, FileIcon, Pencil, Undo, Undo2, X, Flag, Copy as CopyIcon, Info, CirclePlus, Ellipsis, CircleEllipsis, Folder, ALargeSmall, TypeOutline, Text, Image, FileText } from 'lucide-react';
 import { ChatMessage, CheckpointEntry, StagingSelectionItem, ToolMessage, ChatImageAttachment } from '../../../../common/chatThreadServiceTypes.js';
 import { generateUuid } from '../../../../../../../base/common/uuid.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, BuiltinToolName, ToolName, LintErrorItem, ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js';
@@ -854,6 +854,54 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 		getOptionsEqual={(a, b) => a === b}
 	/>
 
+}
+
+const MentionHighlight = ({ text }: { text: string }) => {
+	const result: React.ReactNode[] = []
+    
+    // Regex matches @ followed by word characters, dots, dashes, slashes, and backslashes
+    //groupName after @ is optional to handle edge cases
+	const regex = /@([a-zA-Z0-9_\-./\\]+)/g
+	let lastIdx = 0
+	let match
+
+	while ((match = regex.exec(text)) !== null) {
+        // Text before the mention
+		if (match.index > lastIdx) {
+			result.push(text.slice(lastIdx, match.index))
+		}
+        
+        // Full match includes @ symbol
+        const fullMention = match[0]
+        // Just the name without @ (first capture group)
+        const mentionName = match[1]
+        
+        // Check if it's a folder (no extension)
+		const isFolder = !mentionName.includes('.')
+        
+		result.push(
+            <span
+                key={match.index}
+                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono ${
+                    isFolder
+                        ? 'bg-white/5 text-void-fg-2 border border-white/10'
+                        : 'bg-white/5 text-void-fg-2 border border-white/10'
+                }`}
+            >
+                {isFolder ? <Folder size={12} className="opacity-60" /> : <FileText size={12} className="opacity-60" />}
+                <span className="opacity-90">{fullMention}</span>
+            </span>
+		)
+		
+        lastIdx = match.index + fullMention.length
+	}
+	
+    // Remaining text after last mention
+	if (lastIdx < text.length) {
+		result.push(text.slice(lastIdx))
+	}
+	
+	return <>{result.length > 0 ? result : text}</>
 }
 
 
@@ -1716,7 +1764,9 @@ const UserMessageComponent = ({ chatMessage, messageIdx, isCheckpointGhost, curr
 	if (mode === 'display') {
 		chatbubbleContents = <>
 			<SelectedFiles type='past' messageIdx={messageIdx} selections={chatMessage.selections || []} />
-			<span className='px-0.5'>{chatMessage.displayContent}</span>
+			<span className='px-0.5'>
+				<MentionHighlight text={chatMessage.displayContent || ''} />
+			</span>
 			{chatMessage.images && chatMessage.images.length > 0 && (
 				<MessageImageThumbnails
 					images={chatMessage.images}
