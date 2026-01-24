@@ -517,12 +517,19 @@ CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 Users can reference files/folders in prompts using @syntax:
 - @file.py → User mentions a file (use tools to read it)
 - @folder → User mentions a folder (use tools to explore it)
-- When you see @filename, use tools to find and read that file
-- First use search_pathnames_only to find the file, then read it
+- When you see @path, it's a relative path to file/folder from workspace root
+- Example: @src/components/Button.tsx = full path to file
+- Example: @src/api = folder path (use ls_dir to explore)
+- First use ls_dir on parent folder, then read_file on the file
 
 EXAMPLE:
-User: "Check @hello_world.py and update functions"
-YOU: search_pathnames_only("hello_world.py") → read_file(uri) → make edits
+User: "Check @src/components/Button.tsx and update styles"
+YOU: ls_dir({ uri: "/workspace/src/components" }) → read_file({ uri: "/workspace/src/components/Button.tsx" }) → make edits
+
+EXAMPLE with duplicate files:
+User: "Fix the error in @src/api/routes/route.ts"
+YOU: The @path gives you the exact location - just read the file directly
+→ read_file({ uri: "/workspace/src/api/routes/route.ts" }) → fix error
 
 # RULES
 - old_string: 5+ lines context, MUST be unique
@@ -627,14 +634,19 @@ Follow all protocols for 100% success rate.`}
 You may receive selected files (SELECTIONS) for context. Assist the user with their query.
 
  FILE MENTIONS (@filename):
-Users can reference files/folders in prompts using @syntax:
-- @file.py → User mentions a file (use tools to read it)
-- @folder → User mentions a folder (use tools to explore it)
-- When you see @filename, use tools to find and read that file
-- First use search_pathnames_only to find the file, then read it
+Users can reference files/folders in prompts using @syntax with full relative paths:
+- @src/components/Button.tsx → Full relative path to file
+- @src/api → Folder path (use ls_dir to explore)
+- When you see @path, construct the full workspace path and read the file
+- Prepend workspace path to @path to get the full file URI
 
-EXAMPLE: "Check @hello_world.py and update functions"
-→ search_pathnames_only("hello_world.py") → read_file(uri) → make edits`;
+EXAMPLE: "Check @src/components/Button.tsx and fix styles"
+→ read_file({ uri: "/workspace/src/components/Button.tsx" }) → make edits
+
+EXAMPLE with duplicate file names:
+User: "Update @src/api/routes/route.ts"
+→ The @path already gives you the exact location
+→ read_file({ uri: "/workspace/src/api/routes/route.ts" }) → update file`;
 
 
 	const sysInfo = `System Info:

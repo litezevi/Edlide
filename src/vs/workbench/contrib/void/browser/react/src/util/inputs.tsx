@@ -426,7 +426,9 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 		setDidLoadInitialOptions(false)
 		if (isLastOption) {
 			setIsMenuOpen(false)
-			insertTextAtCursor(option.abbreviatedName, true)
+			// Insert full relative path (e.g., @src/components/Button.tsx)
+			const fullPath = [...newPath].join('/')
+			insertTextAtCursor(fullPath, true)
 		}
 		else {
 

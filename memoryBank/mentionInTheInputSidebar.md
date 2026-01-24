@@ -28,21 +28,24 @@ const insertTextAtCursor = (text: string, includeAtSymbol = false) => {
 
 ### 2. inputs.tsx - Modified `onSelectOption` function
 **File**: `src/vs/workbench/contrib/void/browser/react/src/util/inputs.tsx`
-**Lines**: 427-448 (simplified)
+**Lines**: 419-430
 
-**Change**: Removed `StagingSelectionItem` creation - mentions are now text only
+**Change**: Removed `StagingSelectionItem` creation - mentions are now text only with full relative path
 - **Before**: Inserted filename, created `StagingSelectionItem`, added to `chatThreadService`
-- **After**: Just inserts `@filename` as text with `includeAtSymbol=true`
+- **After**: Inserts full relative path `@src/components/Button.tsx` as text with `includeAtSymbol=true`
 
 ```typescript
 if (isLastOption) {
     setIsMenuOpen(false)
-    insertTextAtCursor(option.abbreviatedName, true)  // true = keep @ symbol
-    // Removed: StagingSelectionItem creation and chatThreadService.addNewStagingSelection()
+    // Insert full relative path (e.g., @src/components/Button.tsx)
+    const fullPath = [...newPath].join('/')
+    insertTextAtCursor(fullPath, true)
 }
 ```
 
-**Key Point**: Files/folders selected via `@` menu now stay as text in the input, not as separate attachments.
+**Critical Improvement**: Full relative path ensures unique file identification even when multiple files have the same name (e.g., `@src/api/routes/route.ts` vs `@src/web/routes/route.ts`).
+
+**Key Point**: Files/folders selected via `@` menu now stay as text in the input with complete path, not as separate attachments.
 
 ### 3. SidebarChat.tsx - Added `MentionHighlight` component
 **File**: `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
@@ -134,51 +137,53 @@ Added `FileText` icon for file mentions.
 ```markdown
 # FILE MENTIONS (@filename)
 Users can reference files/folders in prompts using @syntax:
-- @file.py → User mentions a file (use tools to read it)
-- @folder → User mentions a folder (use tools to explore it)
-- When you see @filename, use tools to find and read that file
-- First use search_pathnames_only to find the file, then read it
+- @src/components/Button.tsx → User mentions a file with relative path
+- @src/api → User mentions a folder with relative path
+- When you see @path, use tools to find and read that file/folder
+- Search for the path, then read with read_file or explore with ls_dir
 
 EXAMPLE:
-User: "Check @hello_world.py and update functions"
-YOU: search_pathnames_only("hello_world.py") → read_file(uri) → make edits
+User: "Check @src/components/Button.tsx and update styles"
+YOU: ls_dir @src/components → read_file(uri) → make edits
 ```
 
 **Added to `chat_systemMessage`** (same instructions for all modes):
 ```markdown
  FILE MENTIONS (@filename):
-Users can reference files/folders in prompts using @syntax:
-- @file.py → User mentions a file (use tools to read it)
-- @folder → User mentions a folder (use tools to explore it)
-- When you see @filename, use tools to find and read that file
-- First use search_pathnames_only to find the file, then read it
+Users can reference files/folders in prompts using @syntax with relative paths:
+- @src/components/Button.tsx → File mention with relative path
+- @src/api → Folder mention with relative path
+- When you see @path, use tools to find and read that file/folder
+- Search for path, then read with read_file or explore with ls_dir
 
-EXAMPLE: "Check @hello_world.py and update functions"
-→ search_pathnames_only("hello_world.py") → read_file(uri) → make edits
+EXAMPLE: "Check @src/api/routes/route.ts and fix the handler"
+→ search_pathnames_only("route.ts") or ls_dir @src/api/routes → read_file(uri) → make edits
 ```
 
-**Purpose**: AI now knows how to handle `@filename` mentions when they appear in user prompts.
+**Purpose**: AI now knows that mentions include relative paths and how to locate the exact file even with duplicate names.
 
 ## How It Works
 
 ### User Flow:
 1. User types `@` in the chat input
-2. Dropdown appears with files/folders options
-3. User selects a file/folder (e.g., `hello_world.py`)
-4. Input shows: `@hello_world.py` (keeps the `@` symbol)
-5. User sends message: "Check @hello_world.py and fix errors"
-6. The message displays with `@hello_world.py` highlighted (subtle background + icon)
+2. Dropdown appears with files/folders options (navigating folders)
+3. User selects a file (e.g., navigates to `src/components/` and selects `Button.tsx`)
+4. Input shows: `@src/components/Button.tsx` (full relative path with `@` symbol)
+5. User sends message: "Check @src/components/Button.tsx and fix errors"
+6. The message displays with `@src/components/Button.tsx` highlighted (subtle background + icon)
 
 ### AI Processing:
-1. AI sees the prompt with `@hello_world.py`
-2. AI knows from system prompt to use `search_pathnames_only` tool to find file
-3. AI reads the file with `read_file` tool
+1. AI sees the prompt with `@src/components/Button.tsx`
+2. AI parses the relative path and uses `search_pathnames_only` or `ls_dir` to locate the file
+3. AI reads the file with `read_file` tool using the full path
 4. AI provides response based on file content
 
 ### Key Points:
-- **No file content sent**: Only the `@filename` text is in the user message
+- **Full relative path sent**: Users send `@src/components/Button.tsx` not just `@Button.tsx`
+- **Handles duplicate filenames**: Multiple `route.ts` files are uniquely identified by their paths
+- **No file content sent**: Only the `@path` text is in the user message
 - **No StagingSelectionItem**: Mentions are plain text, not attachments
-- **AI discovers files**: AI uses tools to find and read mentioned files
+- **AI discovers files**: AI uses tools with paths to find and read mentioned files
 - **Clean UI**: Mentions stay inline with the message text, highlighted with subtle styling
 
 ## Files Modified Summary
