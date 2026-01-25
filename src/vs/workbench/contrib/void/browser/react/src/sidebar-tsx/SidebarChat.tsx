@@ -1451,6 +1451,7 @@ type ToolHeaderParams = {
 	desc2OnClick?: () => void;
 	isOpen?: boolean;
 	className?: string;
+	hideChevron?: boolean;
 }
 
 const ToolHeaderWrapper = ({
@@ -1470,7 +1471,8 @@ const ToolHeaderWrapper = ({
 	desc2OnClick,
 	isOpen,
 	isRejected,
-	className, // applies to the main content
+	className,
+	hideChevron,
 }: ToolHeaderParams) => {
 
 	const [isOpen_, setIsOpen] = useState(false);
@@ -1513,7 +1515,7 @@ const ToolHeaderWrapper = ({
 								if (onClick) { onClick(); }
 							}}
 						>
-							{isDropdown && (<ChevronRight
+							{isDropdown && !hideChevron && (<ChevronRight
 								className={`
 								text-void-fg-3 mr-0.5 h-4 w-4 flex-shrink-0 transition-transform duration-100 ease-[cubic-bezier(0.4,0,0.2,1)]
 								${isExpanded ? 'rotate-90' : ''}
@@ -3175,8 +3177,9 @@ ${newString}
 				isError,
 				icon,
 				isRejected,
-				isOpen,
+				isOpen: isRunning,
 				onClick: () => setIsOpen(v => !v),
+				hideChevron: true,
 			}
 
 			const renderContent = (content: string) => (
@@ -3243,6 +3246,7 @@ ${newString}
 				isRejected,
 				isOpen: false,
 				onClick: () => {},
+				hideChevron: true,
 			}
 
 			const renderContent = (results: Array<{ title: string; url: string; description: string }>) => (
