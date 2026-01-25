@@ -25,6 +25,7 @@ import { IChatThreadService } from './chatThreadService.js'
 import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js'
 
 
+
 // tool use for AI
 type ValidateBuiltinParams = { [T in BuiltinToolName]: (p: RawToolParamsObj) => BuiltinToolCallParams[T] }
 type CallBuiltinTool = { [T in BuiltinToolName]: (p: BuiltinToolCallParams[T]) => Promise<{ result: BuiltinToolResultType[T] | Promise<BuiltinToolResultType[T]>, interruptTool?: () => void }> }
@@ -393,6 +394,12 @@ const uriStr = validateStr('uri', uriUnknown)
 				const { description: descriptionUnknown } = params
 				const description = validateOptionalStr('description', descriptionUnknown) ?? 'Describe these images in detail. What do you see?'
 				return { description }
+			},
+
+			search_web: (params: RawToolParamsObj) => {
+				const { query: queryUnknown } = params
+				const query = validateStr('query', queryUnknown)
+				return { query }
 			},
 
 		}
@@ -805,6 +812,59 @@ const uriStr = validateStr('uri', uriUnknown)
 					}
 				}
 			},
+
+			search_web: async ({ query }) => {
+				const abortController = new AbortController()
+
+				const searchPromise = new Promise<{ results: Array<{ title: string; url: string; description: string }> }>((resolve, reject) => {
+					const apiKey = SupabaseAuthHelper.getAccessTokenSync()
+
+					if (!apiKey) {
+						reject(new Error('Not authenticated'))
+						return
+					}
+
+					fetch(`https://edlide.com/api/ai-proxy/brave-search`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${apiKey}`,
+						},
+						body: JSON.stringify({ query })
+					}).then(async (response) => {
+						if (abortController.signal.aborted) {
+							reject(new Error('search_web aborted'))
+							return
+						}
+						if (!response.ok) {
+							reject(new Error(`search_web failed: ${response.statusText}`))
+							return
+						}
+						const data = await response.json()
+						resolve(data)
+					}).catch((err) => {
+						if (abortController.signal.aborted) {
+							reject(new Error('search_web aborted'))
+							return
+						}
+						reject(new Error(`search_web failed: ${err.message}`))
+					})
+				})
+
+				return {
+					result: Promise.race([
+						searchPromise,
+						new Promise<never>((_, reject) => {
+							abortController.signal.addEventListener('abort', () => {
+								reject(new Error('search_web aborted'))
+							})
+						})
+					]),
+					interruptTool: () => {
+						abortController.abort()
+					}
+				}
+			},
 		}
 
 
@@ -911,6 +971,13 @@ const uriStr = validateStr('uri', uriUnknown)
 
 			analyze_image: (_params, result) => {
 				return `[IMAGE ANALYSIS]\n${result.analysis}\n[/IMAGE ANALYSIS]`
+			},
+
+			search_web: (_params, result) => {
+				const formattedResults = result.results.map((r, i) =>
+					`[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.description}`
+				).join('\n\n')
+				return `[WEB SEARCH RESULTS]\n${formattedResults}\n[/WEB SEARCH RESULTS]`
 			},
 		}
 

@@ -62,6 +62,7 @@ export type BuiltinToolCallParams = {
 	'kill_persistent_terminal': { persistentTerminalId: string },
 	// ---
 	'analyze_image': { description: string },
+	'search_web': { query: string },
 }
 
 // RESULT OF TOOL CALL
@@ -85,6 +86,7 @@ export type BuiltinToolResultType = {
 	'kill_persistent_terminal': {},
 	// ---
 	'analyze_image': { analysis: string },
+	'search_web': { results: Array<{ title: string; url: string; description: string }> },
 }
 
 

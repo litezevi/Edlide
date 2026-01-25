@@ -2107,6 +2107,7 @@ const titleOfBuiltinToolName = {
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
 	'analyze_image': { done: 'Analyzed image', proposed: 'Analyze image', running: loadingTitleWrapper('Analyzing image') },
+	'search_web': { done: 'Searched web', proposed: 'Search web', running: loadingTitleWrapper('Searching web') },
 } as const satisfies Record<string, { done: any, proposed: any, running: any }>
 
 
@@ -3220,6 +3221,50 @@ ${newString}
 						{streamingContent && renderContent(streamingContent)}
 					</>
 				)
+			}
+
+			return <ToolHeaderWrapper {...componentParams} />
+		},
+	},
+	'search_web': {
+		resultWrapper: ({ toolMessage, threadId }) => {
+			const title = getTitle(toolMessage)
+			const icon = null
+
+			const isError = false
+			const isRejected = toolMessage.type === 'rejected'
+			const isRunning = toolMessage.type === 'running_now' || toolMessage.type === 'tool_request'
+
+			const componentParams: ToolHeaderParams = {
+				title,
+				desc1: '',
+				isError,
+				icon,
+				isRejected,
+				isOpen: false,
+				onClick: () => {},
+			}
+
+			const renderContent = (results: Array<{ title: string; url: string; description: string }>) => (
+				<div className='px-2 py-1 space-y-2'>
+					{results.map((r, i) => (
+						<div key={i} className='border-b border-void-border-1 pb-1 last:border-0'>
+							<div className='font-medium text-void-fg-1 text-sm'>{r.title}</div>
+							<a href={r.url} target='_blank' rel='noopener noreferrer' className='text-xs text-blue-400 hover:underline truncate block'>{r.url}</a>
+							<div className='text-xs text-void-fg-3 mt-1'>{r.description}</div>
+						</div>
+					))}
+				</div>
+			)
+
+			if (toolMessage.type === 'success') {
+				const { result } = toolMessage as any
+				const results = (result as any)?.results || []
+				componentParams.children = renderContent(results)
+			}
+			else if (toolMessage.type === 'tool_error') {
+				const { result } = toolMessage
+				componentParams.children = <div className='px-2 py-1 text-red-400 text-sm'>{result || 'Search failed'}</div>
 			}
 
 			return <ToolHeaderWrapper {...componentParams} />
