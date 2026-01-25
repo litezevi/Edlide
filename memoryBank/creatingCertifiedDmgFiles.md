@@ -1,5 +1,107 @@
 # Creating Certified macOS DMG Files for Edlide
 
+## QUICK START - COMPLETE BUILD PROCEDURE
+
+⚠️ **Follow this exact procedure to avoid all issues**
+
+### Step 1: Sign Applications (both architectures)
+
+```bash
+# ARM (Apple Silicon)
+/Users/litezevin/Desktop/Projects/Edlide/scripts/build-dmg.sh \
+  /Users/litezevin/Desktop/Projects/VSCode-darwin-arm64/Edlide.app \
+  arm64
+
+# x64 (Intel) 
+/Users/litezevin/Desktop/Projects/Edlide/scripts/build-dmg.sh \
+  /Users/litezevin/Desktop/Projects/VSCode-darwin-x64/Edlide.app \
+  x64
+```
+
+**This signs ALL binaries with hardened runtime and entitlements**
+
+### Step 2: Create Beautiful DMG with Proper Layout
+
+```bash
+# Create DMG script: /Users/litezevin/Desktop/Projects/Edlide/scripts/create-dmg-layout.sh
+
+#!/bin/bash
+APP_PATH="$1"
+ARCH="$2"
+IDENTITY="Developer ID Application: Aitegin Bek (V6TP7FU6AF)"
+
+if [ "$ARCH" = "x64" ]; then
+  ARCH_LABEL="x64"
+  OUTPUT_DIR="/Users/litezevin/Desktop/Projects/Mac-x64-Edlide"
+else
+  ARCH_LABEL="arm64"
+  OUTPUT_DIR="/Users/litezevin/Desktop/Projects/Mac-ARM-Edlide"
+fi
+
+DMG_PATH="$OUTPUT_DIR/Edlide-$ARCH_LABEL.dmg"
+TEMP_DIR="/tmp/edlide-dmg-staging-$$"
+rm -rf "$TEMP_DIR"
+mkdir -p "$TEMP_DIR"
+
+# Copy app (preserve ownership)
+ditto --rsrc "$APP_PATH" "$TEMP_DIR/Edlide.app"
+
+# Create DMG with proper layout (App on LEFT, Applications on RIGHT)
+create-dmg \
+  --volname "Edlide-Install" \
+  --window-pos 200 120 \
+  --window-size 600 400 \
+  --icon-size 128 \
+  --icon "Edlide.app" 170 170 \
+  --hide-extension "Edlide.app" \
+  --app-drop-link 430 170 \
+  --format UDZO \
+  --hdiutil-verbose \
+  "$DMG_PATH" \
+  "$TEMP_DIR"
+
+rm -rf "$TEMP_DIR"
+
+# Sign DMG
+codesign --force --sign "$IDENTITY" --timestamp "$DMG_PATH"
+```
+
+```bash
+# Run for ARM
+/Users/litezevin/Desktop/Projects/Edlide/scripts/create-dmg-layout.sh \
+  /Users/litezevin/Desktop/Projects/VSCode-darwin-arm64/Edlide.app \
+  arm64
+
+# Run for x64
+/Users/litezevin/Desktop/Projects/Edlide/scripts/create-dmg-layout.sh \
+  /Users/litezevin/Desktop/Projects/VSCode-darwin-x64/Edlide.app \
+  x64
+```
+
+### Step 3: Notarize and Staple
+
+```bash
+# ARM
+xcrun notarytool submit "/Users/litezevin/Desktop/Projects/Mac-ARM-Edlide/Edlide-arm64.dmg" \
+  --key "/Users/litezevin/Desktop/Projects/Edlide/certificates,keys/AuthKey_7ATRNBYDTF.p8" \
+  --key-id "7ATRNBYDTF" \
+  --issuer "7e155c1e-f127-4884-b613-97055c066754" \
+  --wait
+
+xcrun stapler staple "/Users/litezevin/Desktop/Projects/Mac-ARM-Edlide/Edlide-arm64.dmg"
+
+# x64
+xcrun notarytool submit "/Users/litezevin/Desktop/Projects/Mac-x64-Edlide/Edlide-x64.dmg" \
+  --key "/Users/litezevin/Desktop/Projects/Edlide/certificates,keys/AuthKey_7ATRNBYDTF.p8" \
+  --key-id "7ATRNBYDTF" \
+  --issuer "7e155c1e-f127-4884-b613-97055c066754" \
+  --wait
+
+xcrun stapler staple "/Users/litezevin/Desktop/Projects/Mac-x64-Edlide/Edlide-x64.dmg"
+```
+
+---
+
 ## Overview
 
 This document details the complete process for creating properly signed and notarized macOS DMG files for Edlide distribution. Following this guide will prevent common errors like "Edlide quit unexpectedly" and ensure Gatekeeper passes without issues.
