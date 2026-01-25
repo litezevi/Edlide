@@ -2107,7 +2107,7 @@ const titleOfBuiltinToolName = {
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
 	'analyze_image': { done: 'Analyzed image', proposed: 'Analyze image', running: loadingTitleWrapper('Analyzing image') },
-	'search_web': { done: 'Searched web', proposed: 'Search web', running: loadingTitleWrapper('Searching web') },
+	'search_web': { done: 'Web Search Completed', proposed: 'Search the web', running: loadingTitleWrapper('Searching the web...') },
 } as const satisfies Record<string, { done: any, proposed: any, running: any }>
 
 
