@@ -348,6 +348,12 @@ For existing files: use edit_file instead!`,
 		params: { description: { description: `Description of what to look for or analyze in the images. For example: "Describe the UI layout and colors" or "What text is visible in the screenshot?"` } }
 	},
 
+	search_web: {
+		name: 'search_web',
+		description: `Searches the internet for current information. Use this when you need up-to-date information, documentation, API references, or answers that require web access. Returns top 5 results with title, URL, and description.`,
+		params: { query: { description: `Search query to find relevant information. Be specific and include key terms.` } }
+	},
+
 
 	// go_to_definition
 	// go_to_usages
@@ -564,6 +570,8 @@ TOOLS YOU CAN USE:
 ✅ search_for_files - Search file contents
 ✅ search_in_file - Search within file
 ✅ read_lint_errors - View lint errors
+✅ search_web - Search the internet for current information
+✅ analyze_image - Analyze images from user messages
 
 TOOLS YOU CANNOT USE:
 ❌ create_file_or_folder - Forbidden in Plan mode
@@ -620,6 +628,8 @@ ALL TOOLS AVAILABLE:
 ✅ edit_file, rewrite_file
 ✅ run_command, run_persistent_command
 ✅ open_persistent_terminal, kill_persistent_terminal
+✅ analyze_image - Analyze images from user messages
+✅ search_web - Search the internet for current information
 
 YOUR GOAL: Complete tasks autonomously using all available tools.
 
