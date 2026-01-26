@@ -175,7 +175,6 @@ let lastNotifController: INotificationHandle | null = null
 registerAction2(class extends Action2 {
 	constructor() {
 		super({
-			f1: true,
 			id: 'void.voidCheckUpdate',
 			title: localize2('voidCheckUpdate', 'Edlide: Check for Updates'),
 		});
