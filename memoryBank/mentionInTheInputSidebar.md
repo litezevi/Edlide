@@ -1,9 +1,12 @@
 # Mention in the Input Sidebar System
 
 ## Date Added: 2025-01-24
+## Date Updated: 2025-01-26 - Fixed Windows path support
 
 ## Overview
 Implemented inline file/folder mention system using `@filename` syntax directly in chat input. Mentions stay as text in the message and are highlighted in the sent message.
+
+**Windows Compatibility Fix (2025-01-26)**: Fixed path separator issues on Windows where backslashes `\` caused file/folder search and highlighting to fail. All paths are now normalized to use forward slashes `/` internally for cross-platform compatibility.
 
 ## Changes Made
 
@@ -65,12 +68,12 @@ const MentionHighlight = ({ text }: { text: string }) => {
         if (match.index > lastIdx) {
             result.push(text.slice(lastIdx, match.index))
         }
-        
+
         // Full match includes @ symbol
         const fullMention = match[0]
         const mentionName = match[1]
         const isFolder = !mentionName.includes('.')
-        
+
         result.push(
             <span
                 key={match.index}
@@ -80,14 +83,14 @@ const MentionHighlight = ({ text }: { text: string }) => {
                 <span>{fullMention}</span>
             </span>
         )
-        
+
         lastIdx = match.index + fullMention.length
     }
-    
+
     if (lastIdx < text.length) {
         result.push(text.slice(lastIdx))
     }
-    
+
     return <>{result.length > 0 ? result : text}</>
 }
 ```
@@ -97,6 +100,8 @@ const MentionHighlight = ({ text }: { text: string }) => {
 - `border-white/10` - Light border
 - `text-void-fg-2` - Matches Edlide theme colors
 - Icons: Folder (no extension) or FileText (with extension)
+
+**Windows Fix (2025-01-26)**: Updated regex from `/@([a-zA-Z0-9_\-./\\]+)/g` to `/@([a-zA-Z0-9_\-./:  \\]+)/g` to support Windows absolute paths with colons (e.g., `@c:\Users\...`). Also improved folder detection from simple `.includes('.')` check to regex `!/\.[a-zA-Z0-9]{1,10}$/.test()` for more accurate file extension detection.
 
 ### 4. SidebarChat.tsx - Modified UserMessageComponent
 **File**: `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
@@ -191,15 +196,40 @@ EXAMPLE: "Check @src/api/routes/route.ts and fix the handler"
 1. `src/vs/workbench/contrib/void/browser/react/src/util/inputs.tsx`
    - Modified `insertTextAtCursor()` - Added `includeAtSymbol` parameter
    - Modified `onSelectOption()` - Removed `StagingSelectionItem` creation
+   - **Windows Fix (2025-01-26)**:
+     - Modified `getRelativeWorkspacePath()` - Added path normalization (backslash → forward slash)
+     - Modified `searchForFilesOrFolders()` - Added path normalization for folder search
+     - Fixed folder search to work on Windows by normalizing all path separators to `/`
 
 2. `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
    - Added `FileText` import from lucide-react
    - Added `MentionHighlight` component
    - Modified `UserMessageComponent` - Wrap `displayContent` with `MentionHighlight`
+   - **Windows Fix (2025-01-26)**: Updated regex to support Windows absolute paths with colons
 
 3. `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
    - Added mention instructions to `agentSystemMessageText`
    - Added mention instructions to `chat_systemMessage`
+
+## Windows Compatibility Fixes (2025-01-26)
+
+### Problem
+On Windows, the mention system had two critical issues:
+1. **Highlighting failed**: Regex `/@([a-zA-Z0-9_\-./\\]+)/g` didn't include `:` so Windows paths like `@c:\Users\...` were truncated to `@c`
+2. **Folder search failed**: Path comparison used Windows backslashes `\` but code split paths by forward slash `/`, causing "no folders found" error
+
+### Solution
+1. **Regex fix in `MentionHighlight`**: Updated to `/@([a-zA-Z0-9_\-./:  \\]+)/g` to support colons in Windows drive letters
+2. **Path normalization**: Added `normalizePathSeparator()` function that converts all backslashes to forward slashes:
+   - In `getRelativeWorkspacePath()`: Normalize all paths before comparison
+   - In `searchForFilesOrFolders()` folder logic: Normalize paths before splitting and comparing
+3. **Improved folder detection**: Changed from `.includes('.')` to `/\.[a-zA-Z0-9]{1,10}$/.test()` for accurate file extension detection
+
+### Technical Details
+- All internal path operations now use forward slash `/` for consistency
+- Windows backslash paths are normalized at the entry points
+- Relative paths returned by `getRelativeWorkspacePath()` always use `/`
+- Folder search now correctly extracts directory hierarchies on Windows
 
 ## Next Steps / Future Enhancements
 

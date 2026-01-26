@@ -150,17 +150,21 @@ function getRelativeWorkspacePath(accessor: ReturnType<typeof useAccessor>, uri:
 		b.uri.fsPath.length - a.uri.fsPath.length
 	);
 
-	// Add trailing slash to paths for exact matching
-	const uriPath = uri.fsPath.endsWith('/') ? uri.fsPath : uri.fsPath + '/';
+	// Normalize paths for cross-platform compatibility
+	const normalizePathSeparator = (path: string) => path.replace(/\\/g, '/');
+	const uriPath = normalizePathSeparator(uri.fsPath);
 
 	// Check if the URI is inside any workspace folder
 	for (const folder of sortedFolders) {
+		const folderPath = normalizePathSeparator(folder.uri.fsPath);
 
+		// Ensure both paths end with / for consistent matching
+		const folderPathWithSlash = folderPath.endsWith('/') ? folderPath : folderPath + '/';
+		const uriPathWithSlash = uriPath.endsWith('/') ? uriPath : uriPath + '/';
 
-		const folderPath = folder.uri.fsPath.endsWith('/') ? folder.uri.fsPath : folder.uri.fsPath + '/';
-		if (uriPath.startsWith(folderPath)) {
+		if (uriPathWithSlash.startsWith(folderPathWithSlash)) {
 			// Calculate the relative path by removing the workspace folder path
-			let relativePath = uri.fsPath.slice(folder.uri.fsPath.length);
+			let relativePath = uriPath.slice(folderPath.length);
 			// Remove leading slash if present
 			if (relativePath.startsWith('/')) {
 				relativePath = relativePath.slice(1);
@@ -172,7 +176,7 @@ function getRelativeWorkspacePath(accessor: ReturnType<typeof useAccessor>, uri:
 	}
 
 	// URI is not in any workspace folder, return original path
-	return uri.fsPath;
+	return normalizePathSeparator(uri.fsPath);
 }
 
 
@@ -195,8 +199,11 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 	const searchForFilesOrFolders = async (t: string, searchFor: 'files' | 'folders') => {
 		try {
 
+			// For folders, search with wildcard to get more results if query is empty or very short
+			const searchQuery = searchFor === 'folders' && t.length < 2 ? '*' : t;
+
 			const searchResults = (await (await toolsService.callTool.search_pathnames_only({
-				query: t,
+				query: searchQuery,
 				includePattern: null,
 				pageNumber: 1,
 			})).result).uris
@@ -224,7 +231,9 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 
 					// Get the full path and extract directories
 					const relativePath = getRelativeWorkspacePath(accessor, uri)
-					const pathParts = relativePath.split('/');
+					// Normalize path separators for cross-platform compatibility (Windows uses \, macOS/Linux use /)
+					const normalizedPath = relativePath.replace(/\\/g, '/')
+					const pathParts = normalizedPath.split('/');
 
 					// Get workspace info
 					const workspaceService = accessor.get('IWorkspaceContextService');
@@ -238,12 +247,17 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 							b.uri.fsPath.length - a.uri.fsPath.length
 						);
 
+						// Normalize paths for cross-platform compatibility
+						const normalizePathSeparator = (path: string) => path.replace(/\\/g, '/');
+						const uriPathNormalized = normalizePathSeparator(uri.fsPath);
+
 						// Find the containing workspace folder
 						for (const folder of sortedFolders) {
-							const folderPath = folder.uri.fsPath.endsWith('/') ? folder.uri.fsPath : folder.uri.fsPath + '/';
-							const uriPath = uri.fsPath.endsWith('/') ? uri.fsPath : uri.fsPath + '/';
+							const folderPathNormalized = normalizePathSeparator(folder.uri.fsPath);
+							const folderPathWithSlash = folderPathNormalized.endsWith('/') ? folderPathNormalized : folderPathNormalized + '/';
+							const uriPathWithSlash = uriPathNormalized.endsWith('/') ? uriPathNormalized : uriPathNormalized + '/';
 
-							if (uriPath.startsWith(folderPath)) {
+							if (uriPathWithSlash.startsWith(folderPathWithSlash)) {
 								workspaceFolderUri = folder.uri;
 								break;
 							}
@@ -254,27 +268,35 @@ const getOptionsAtPath = async (accessor: ReturnType<typeof useAccessor>, path: 
 						// Add each directory and its parents to the map
 						let currentPath = '';
 						for (let i = 0; i < pathParts.length - 1; i++) {
-							currentPath = i === 0 ? `/${pathParts[i]}` : `${currentPath}/${pathParts[i]}`;
-
+							currentPath = i === 0 ? pathParts[i] : `${currentPath}/${pathParts[i]}`;
 
 							// Create a proper directory URI
 							const directoryUri = URI.joinPath(
 								workspaceFolderUri,
-								currentPath.startsWith('/') ? currentPath.substring(1) : currentPath
+								currentPath
 							);
 
 							directoryMap.set(currentPath, directoryUri);
 						}
 					}
 				}
+
+				// Filter folders by search term if provided
+				let folders = Array.from(directoryMap.entries());
+				if (t && t.length > 0 && t !== '*') {
+					folders = folders.filter(([path]) =>
+						path.toLowerCase().includes(t.toLowerCase())
+					);
+				}
+
 				// Convert map to array
-				return Array.from(directoryMap.entries()).map(([relativePath, uri]) => ({
-					leafNodeType: 'Folder',
+				return folders.map(([relativePath, uri]) => ({
+					leafNodeType: 'Folder' as const,
 					uri: uri,
-					iconInMenu: Folder, // Folder
+					iconInMenu: Folder,
 					fullName: relativePath,
 					abbreviatedName: getAbbreviatedName(relativePath),
-				})) satisfies Option[];
+				}));
 			}
 		} catch (error) {
 			console.error('Error fetching directories:', error);
@@ -1198,8 +1220,8 @@ export const VoidSwitch = ({
 	);
 };
 
-export const ContextProgressBar = ({ 
-	percentage, 
+export const ContextProgressBar = ({
+	percentage,
 	size = 'md',
 	disabled = false,
 	className = '',
@@ -1213,18 +1235,18 @@ export const ContextProgressBar = ({
 }) => {
 	// Clamp percentage between 0 and 100
 	const clampedPercentage = Math.max(0, Math.min(100, percentage));
-	
+
   // Calculate stroke properties for the circle - SAME SIZE as ButtonStop
   const radius = 8; // Same as ButtonStop
   const strokeWidth = 3; // Same as ButtonStop
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (clampedPercentage / 100) * circumference;
-  
+
   // Size calculations - SAME SIZE as ButtonStop
   const svgSize = radius * 2;
   const buttonSize = 22; // SAME as ButtonStop (22px)
-	
+
 	// State for mouse press with timer for faster tooltip
 	const [isPressed, setIsPressed] = useState(false);
 	const [showEnhancedTooltip, setShowEnhancedTooltip] = useState(false);
@@ -1260,14 +1282,14 @@ export const ContextProgressBar = ({
 	};
 
 	return (
-		<div 
+		<div
 			className={`
 				rounded-full flex-shrink-0 flex-grow-0 cursor-pointer flex items-center justify-center
 				${disabled ? 'opacity-40' : ''}
 				${className}
 			`}
-			style={{ 
-				width: buttonSize, 
+			style={{
+				width: buttonSize,
 				height: buttonSize
 			}}
 			title={showEnhancedTooltip ? enhancedTooltipText : tooltipText}
@@ -2066,9 +2088,9 @@ export const VoidDiffEditor = ({ uri, searchReplaceBlocks, language }: { uri?: a
 	// Try to extract OpenCode tool calls first, fallback to legacy blocks
 	const toolCalls = extractOpenCodeToolCalls(searchReplaceBlocks);
 	console.log('🔧 [VOID DIFF EDITOR] Extracted tool calls:', toolCalls.length)
-	
+
 	let blocks: ExtractedSearchReplaceBlock[] = [];
-	
+
 	if (toolCalls.length > 0) {
 		console.log('🔧 [VOID DIFF EDITOR] Processing tool calls...')
 		// Convert tool calls to search/replace blocks for compatibility

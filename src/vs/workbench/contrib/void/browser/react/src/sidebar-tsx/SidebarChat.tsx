@@ -858,10 +858,10 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 
 const MentionHighlight = ({ text }: { text: string }) => {
 	const result: React.ReactNode[] = []
-    
-    // Regex matches @ followed by word characters, dots, dashes, slashes, and backslashes
-    //groupName after @ is optional to handle edge cases
-	const regex = /@([a-zA-Z0-9_\-./\\]+)/g
+
+    // Regex matches @ followed by file paths (including Windows paths with colons like c:\Users\...)
+    // Supports: letters, numbers, underscores, dashes, dots, slashes, backslashes, colons (for Windows drive letters)
+	const regex = /@([a-zA-Z0-9_\-./:  \\]+)/g
 	let lastIdx = 0
 	let match
 
@@ -870,15 +870,16 @@ const MentionHighlight = ({ text }: { text: string }) => {
 		if (match.index > lastIdx) {
 			result.push(text.slice(lastIdx, match.index))
 		}
-        
+
         // Full match includes @ symbol
         const fullMention = match[0]
         // Just the name without @ (first capture group)
         const mentionName = match[1]
-        
-        // Check if it's a folder (no extension)
-		const isFolder = !mentionName.includes('.')
-        
+
+        // Check if it's a folder: no file extension at the end (e.g., .ts, .tsx, .js, .md, etc.)
+        // More robust check: looks for a dot followed by 1-10 alphanumeric characters at the end
+		const isFolder = !/\.[a-zA-Z0-9]{1,10}$/.test(mentionName)
+
 		result.push(
             <span
                 key={match.index}
@@ -892,15 +893,15 @@ const MentionHighlight = ({ text }: { text: string }) => {
                 <span className="opacity-90">{fullMention}</span>
             </span>
 		)
-		
+
         lastIdx = match.index + fullMention.length
 	}
-	
+
     // Remaining text after last mention
 	if (lastIdx < text.length) {
 		result.push(text.slice(lastIdx))
 	}
-	
+
 	return <>{result.length > 0 ? result : text}</>
 }
 
