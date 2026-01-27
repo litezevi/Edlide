@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { ChutesTokenManager } from '@/lib/chutes-token-manager'
+import { ChutesAccountPoolManager } from '@/lib/chutes-pool-manager'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Получаем токен из Authorization header
     const authHeader = request.headers.get('Authorization')
     const apiKeyHeader = request.headers.get('X-API-Key')
 
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
 
     let user: any = null
 
-    // Helper function to authenticate via API key
     const authenticateViaApiKey = async (key: string) => {
       console.log('[AI Proxy] Authenticating via API key:', key.substring(0, 20) + '...')
       const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -33,13 +31,8 @@ export async function POST(request: NextRequest) {
         .eq('status', 'active')
         .maybeSingle()
 
-      if (error) {
-        console.error('[AI Proxy] Invalid API key:', error.message, 'code:', error.code)
-        return null
-      }
-
-      if (!sessionData) {
-        console.error('[AI Proxy] API key not found in database')
+      if (error || !sessionData) {
+        console.error('[AI Proxy] Invalid API key:', error?.message)
         return null
       }
 
@@ -56,14 +49,7 @@ export async function POST(request: NextRequest) {
       return userData.user
     }
 
-    // 2. Проверяем API key или JWT токен
-    console.log('[AI Proxy] Auth check:', {
-      authHeader: authHeader?.substring(0, 30) + '...',
-      apiKeyHeader: apiKeyHeader?.substring(0, 30) + '...'
-    })
-
     if (authHeader?.startsWith('Bearer edlide_')) {
-      // Authorization: Bearer edlide_xxx... -> API key
       const apiKey = authHeader.substring(7)
       user = await authenticateViaApiKey(apiKey)
       if (!user) {
@@ -73,7 +59,6 @@ export async function POST(request: NextRequest) {
         )
       }
     } else if (apiKeyHeader) {
-      // X-API-Key: edlide_xxx... -> API key
       user = await authenticateViaApiKey(apiKeyHeader)
       if (!user) {
         return NextResponse.json(
@@ -82,7 +67,6 @@ export async function POST(request: NextRequest) {
         )
       }
     } else if (authHeader?.startsWith('Bearer ')) {
-      // Authorization: Bearer jwt_xxx... -> JWT токен
       const userToken = authHeader.substring(7)
       const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
       const { data: { user: jwtUser }, error: userError } = await supabase.auth.getUser(userToken)
@@ -107,47 +91,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Проверяем и обновляем Chutes токен если нужно
-    console.log('[AI Proxy] Checking and refreshing Chutes token if needed...')
-    const tokenResult = await ChutesTokenManager.getValidAccessToken(user.id)
+    console.log('[AI Proxy] Getting available account from pool...')
+    const poolResult = await ChutesAccountPoolManager.getAvailableAccount()
 
-    if (!tokenResult) {
-      console.error('[AI Proxy] No valid Chutes token found for user:', user.id)
+    if (!poolResult.success || !poolResult.account || !poolResult.accessToken) {
+      console.error('[AI Proxy] No available accounts in pool:', poolResult.error)
       return NextResponse.json(
-        { error: 'Chutes account not linked. Please link your Chutes account first.' },
-        { status: 403 }
+        { error: 'AI service temporarily unavailable. Please try again later.' },
+        { status: 503 }
       )
     }
 
-    const { accessToken: freshAccessToken, refreshed } = tokenResult
-    console.log(`[AI Proxy] Chutes token ready, refreshed: ${refreshed}, length: ${freshAccessToken.length}`)
+    const { accessToken: freshAccessToken, account: poolAccount } = {
+      accessToken: poolResult.accessToken!,
+      account: poolResult.account! as { id: string; account_name: string }
+    }
+    console.log(`[AI Proxy] Using pool account: ${poolAccount.account_name} (${poolAccount.id})`)
 
-    // 4. Получаем тело запроса от IDE (OpenAI-compatible формат)
     const requestBody = await request.json()
 
-    // 5. Логирование запроса
     console.log('[AI Proxy] AI request from user:', {
       user_id: user.id,
       model: requestBody.model,
-      provider: 'edlide',
-      tokenRefreshed: refreshed
+      provider: 'edlide-pool',
+      poolAccount: poolAccount.account_name
     })
 
-    // 6. Проксируем в Supabase Edge Function с СПЕЦИАЛЬНЫМИ HEADERS
-    // Передаем СВЕЖИЙ токен напрямую, чтобы Edge Function использовала его вместо чтения из базы
     const supabaseFunctionUrl = `${supabaseUrl}/functions/v1/ai-proxy`
 
     const response = await fetch(supabaseFunctionUrl, {
       method: 'POST',
-      headers: {
+      headers: new Headers({
         'Authorization': `Bearer ${supabaseServiceKey}`,
         'Content-Type': 'application/json',
-        'x-user-id': user.id,
-        'x-user-email': user.email!,
+        'x-user-id': String(user.id),
+        'x-user-email': String(user.email),
         'x-request-source': 'ide',
         'x-edlide-client': 'electron',
-        'x-chutes-access-token': freshAccessToken
-      },
+        'x-chutes-access-token': freshAccessToken,
+        'x-pool-account-id': poolAccount.id,
+      }),
       body: JSON.stringify(requestBody)
     })
 
@@ -156,19 +139,22 @@ export async function POST(request: NextRequest) {
       console.error('[AI Proxy] Supabase function error:', {
         status: response.status,
         error: errorText,
-        user_id: user.id
+        user_id: user.id,
+        poolAccount: poolAccount.account_name
       })
-      
+
       return NextResponse.json(
         { error: 'AI service error. Please try again later.' },
         { status: response.status }
       )
     }
 
-    // 6. Возвращаем потоковый ответ от Supabase
+    await ChutesAccountPoolManager.recordUsage(poolAccount.id)
+    console.log(`[AI Proxy] Recorded usage for account: ${poolAccount.account_name}`)
+
     const responseHeaders = new Headers()
     responseHeaders.set('Content-Type', 'application/json')
-    responseHeaders.set('x-edlide-proxy', 'v1')
+    responseHeaders.set('x-edlide-proxy', 'v1-pool')
 
     return new NextResponse(response.body, {
       status: response.status,

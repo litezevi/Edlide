@@ -37,6 +37,14 @@ export function MobileMenu() {
             >
               Docs
             </Link>
+
+            <Link
+              href="/admin/pool"
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent"
+              onClick={() => setIsOpen(false)}
+            >
+              Admin Pool
+            </Link>
           </div>
         </div>
       )}
