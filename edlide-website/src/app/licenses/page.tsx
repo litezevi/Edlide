@@ -243,7 +243,7 @@ export default function LicensesPage() {
           Back to Home
         </Link>
 
-        <h1 className="text-3xl font-bold mb-8 text-foreground">Licenses</h1>
+        <h1 className="text-3xl font-bold mb-8 text-primary">Licenses</h1>
 
         <div className="space-y-12">
           <section>
