@@ -123,8 +123,8 @@ export default function IDEConnectPage() {
 
 if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Card className="w-full max-w-md bg-white">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-red-500">Connection Failed</CardTitle>
             <CardDescription>{error}</CardDescription>
@@ -144,10 +144,10 @@ if (error) {
 
   if (inserted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="p-8 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Connected Successfully!</h1>
-          <p className="text-gray-400">You can close this window.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Connected Successfully!</h1>
+          <p className="text-gray-600">You can close this window.</p>
         </Card>
       </div>
     )
@@ -155,8 +155,8 @@ if (error) {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Card className="w-full max-w-md bg-white">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl">Sign In Required</CardTitle>
             <CardDescription>
@@ -171,10 +171,10 @@ if (error) {
     )
   }
 
-  if (error) {
+if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md bg-white">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-red-500">Connection Failed</CardTitle>
             <CardDescription>{error}</CardDescription>
@@ -194,10 +194,10 @@ if (error) {
 
   if (inserted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="p-8 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Connected Successfully!</h1>
-          <p className="text-gray-400">You can close this window.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Connected Successfully!</h1>
+          <p className="text-gray-600">You can close this window.</p>
         </Card>
       </div>
     )
@@ -205,8 +205,8 @@ if (error) {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Card className="w-full max-w-md bg-white">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl">Sign In Required</CardTitle>
             <CardDescription>
@@ -222,10 +222,10 @@ if (error) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0f14]">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <Card className="p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold text-white mb-2">Ready to Connect</h1>
-        <p className="text-gray-400 mb-6">{session.user?.email}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Ready to Connect</h1>
+        <p className="text-gray-600 mb-6">{session.user?.email}</p>
         <Button
           onClick={async () => {
             try {
