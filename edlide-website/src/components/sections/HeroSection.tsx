@@ -40,7 +40,7 @@ export function HeroSection() {
             <Button
               size="lg"
               asChild
-              className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift text-black"
+              className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift dark:bg-gradient-to-r dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
             >
               <Link href="/download">
                 <Download className="mr-3 h-5 w-5" />

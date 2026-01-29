@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MobileMenu } from './MobileMenu'
 import { SupabaseAuthButton } from './layout/supabase-auth-button'
+import { ThemeToggle } from './ui/theme-toggle'
 
 export function Navbar() {
   return (
@@ -31,8 +32,9 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="flex-1 flex justify-end items-center">
-          <div className="hidden md:block">
+        <div className="flex-1 flex justify-end items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <SupabaseAuthButton />
           </div>
 
