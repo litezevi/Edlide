@@ -14,9 +14,8 @@ export function useTheme() {
     if (stored) {
       setThemeState(stored)
     } else {
-      // Sync with inline script from layout.tsx
-      const isDark = document.documentElement.classList.contains('dark')
-      setThemeState(isDark ? 'dark' : 'light')
+      // Default to light theme if no preference stored
+      setThemeState('light')
     }
     setMounted(true)
   }, [])
