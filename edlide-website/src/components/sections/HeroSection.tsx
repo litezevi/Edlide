@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Code, Shield, Zap } from 'lucide-react'
+import { ArrowRight, Download, Lock, Sparkles, Zap } from 'lucide-react'
 
 export function HeroSection() {
   return (
@@ -10,9 +10,9 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
 
       {/* Floating Elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
-      <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-amber-200/40 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/40 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+      <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-emerald-200/40 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
 
       <div className="relative z-10 text-center max-w-6xl mx-auto">
         {/* Main Content */}
@@ -53,9 +53,9 @@ export function HeroSection() {
 
         {/* Features Grid */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in" style={{animationDelay: '0.3s'}}>
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-6 h-6 text-primary" />
+          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="w-7 h-7 text-amber-500" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">The Best Models</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -63,9 +63,9 @@ export function HeroSection() {
             </p>
           </div>
 
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift text-center">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-              <Shield className="w-6 h-6 text-emerald-500" />
+          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Lock className="w-7 h-7 text-emerald-500" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">Your Data, Your Control</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -73,9 +73,9 @@ export function HeroSection() {
             </p>
           </div>
 
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift text-center">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-              <Code className="w-6 h-6 text-blue-500" />
+          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400/20 to-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Zap className="w-7 h-7 text-blue-500" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">Native quantized</h3>
             <p className="text-muted-foreground leading-relaxed">
