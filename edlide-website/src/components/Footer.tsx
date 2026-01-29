@@ -3,7 +3,7 @@ export function Footer() {
     <footer className="border-t bg-secondary/50">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="text-sm text-muted-foreground">
-          © 2025 Edlide. All rights reserved.
+          © 2026 Edlide. All rights reserved.
         </div>
         <div className="flex gap-4 text-sm text-muted-foreground">
           <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</a>
