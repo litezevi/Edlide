@@ -1,12 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, Loader2 } from 'lucide-react'
 
 export default function DownloadPage() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [isLight, setIsLight] = useState(false)
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsLight(document.documentElement.classList.contains('light'))
+    }
+    checkTheme()
+    // Listen for theme changes
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  const windowsLogo = isLight ? '/windowsLogoLight.png' : '/windowsLogoDark.png'
 
   const handleDownload = async (file: string) => {
     setLoading(file)
@@ -42,7 +56,7 @@ export default function DownloadPage() {
         <Card className="h-full flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <img src="/windows.png" alt="Windows" className="w-[26px] h-[26px] object-contain" />
+<img src={windowsLogo} alt="Windows" className="w-[26px] h-[26px] object-contain" />
               Windows x64 <span className="text-sm font-normal text-muted-foreground ml-2">v1.0.4</span> <span className="text-xs bg-green-900/50 text-green-400 px-1.5 py-0.5 rounded ml-2">stable</span>
             </CardTitle>
             <CardDescription className="flex items-center gap-2">
@@ -110,7 +124,7 @@ export default function DownloadPage() {
         <Card className="h-full flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <img src="/windows.png" alt="Windows" className="w-[26px] h-[26px] object-contain" />
+              <img src={windowsLogo} alt="Windows" className="w-[26px] h-[26px] object-contain" />
               Windows ARM <span className="text-sm font-normal text-muted-foreground ml-2">v1.0.4</span> <span className="text-xs bg-green-900/50 text-green-400 px-1.5 py-0.5 rounded ml-2">stable</span>
             </CardTitle>
             <CardDescription className="flex items-center gap-2">

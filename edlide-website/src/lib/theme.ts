@@ -5,14 +5,19 @@ import { useEffect, useState, useCallback } from 'react'
 type Theme = 'light' | 'dark'
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('light')
   const [mounted, setMounted] = useState(false)
 
   // Initialize theme from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('edlide-theme') as Theme
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setThemeState(stored || (systemPrefersDark ? 'dark' : 'light'))
+    if (stored) {
+      setThemeState(stored)
+    } else {
+      // Sync with inline script from layout.tsx
+      const isDark = document.documentElement.classList.contains('dark')
+      setThemeState(isDark ? 'dark' : 'light')
+    }
     setMounted(true)
   }, [])
 
