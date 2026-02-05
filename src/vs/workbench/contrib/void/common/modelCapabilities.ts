@@ -78,7 +78,7 @@ export const defaultModelsOfProvider = {
 	edlide: [
 		'MiniMaxAI/MiniMax-M2.1-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
-		'zai-org/GLM-4.6-TEE:THINKING',
+		'Qwen/Qwen3-Coder-Next',
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'deepseek-ai/DeepSeek-V3.2',
 		'openai/gpt-oss-120b-TEE', // Hidden SCM-only model for commit generation
@@ -1130,9 +1130,9 @@ const awsBedrockSettings: VoidStaticProviderInfo = {
 
 // ---------------- EDLIDE ----------------
 const edlideModelOptions = {
-	'zai-org/GLM-4.6-TEE:THINKING': {
-		contextWindow: 202_752,
-		reservedOutputTokenSpace: 20_000, // Reduced from 32768 to use 96% of context
+	'Qwen/Qwen3-Coder-Next': {
+		contextWindow: 262_144,
+		reservedOutputTokenSpace: 26_014, // Reduced from 32768 to use 96% of context
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
