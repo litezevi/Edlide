@@ -43,7 +43,7 @@ import { ProviderName } from '../../../../../../../workbench/contrib/void/common
 // Helper function to get display name for models (removes provider prefixes)
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
 	if (providerName === 'edlide') {
-		if (modelName === 'moonshotai/Kimi-K2.5-TEE') return 'kimi-2.5'
+		if (modelName === 'moonshotai/Kimi-K2.5-TEE') return 'kimi-k2.5'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
 		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE') return 'minimax-m2.1'
 		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
@@ -145,8 +145,8 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			if (modelName.includes('mimo-v2') || modelName.includes('XiaomiMiMo/MiMo-V2-Flash')) {
 				return 256000; // mimo-v2: 256k tokens
 			}
-			if (modelName.includes('kimi-2.5') || modelName.includes('moonshotai/Kimi-K2.5-TEE') || modelName.includes('moonshotai/Kimi-K2.5-TEE')) {
-				return 262144; // kimi-2.5: 200k tokens
+			if (modelName.includes('kimi-k2.5') || modelName.includes('moonshotai/Kimi-K2.5-TEE') || modelName.includes('moonshotai/Kimi-K2.5-TEE')) {
+				return 262144; // kimi-k2.5: 200k tokens
 			}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens
@@ -3809,8 +3809,8 @@ export const SidebarChat = () => {
 		if (modelName.includes('mimo-v2') || modelName.includes('XiaomiMiMo/MiMo-V2-Flash')) {
 			return 256000; // mimo-v2: 256k tokens
 		}
-		if (modelName.includes('kimi-2.5') || modelName.includes('moonshotai/Kimi-K2.5-TEE') || modelName.includes('moonshotai/Kimi-K2.5-TEE')) {
-			return 262144; // kimi-2.5: 200k tokens
+		if (modelName.includes('kimi-k2.5') || modelName.includes('moonshotai/Kimi-K2.5-TEE') || modelName.includes('moonshotai/Kimi-K2.5-TEE')) {
+			return 262144; // kimi-k2.5: 200k tokens
 		}
 		if (modelName.includes('deepseek') && modelName.includes('terminus')) {
 			return 163840; // deepseek v3.1 terminus: 162k tokens
