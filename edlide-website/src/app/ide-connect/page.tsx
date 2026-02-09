@@ -121,10 +121,10 @@ export default function IDEConnectPage() {
     return () => subscription.unsubscribe()
   }, [])
 
-if (error) {
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="w-full max-w-md bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md bg-card">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-red-500">Connection Failed</CardTitle>
             <CardDescription>{error}</CardDescription>
@@ -144,10 +144,10 @@ if (error) {
 
   if (inserted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="p-8 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Connected Successfully!</h1>
-          <p className="text-gray-600">You can close this window.</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="p-8 max-w-md w-full text-center bg-card">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Connected Successfully!</h1>
+          <p className="text-muted-foreground">You can close this window.</p>
         </Card>
       </div>
     )
@@ -155,58 +155,8 @@ if (error) {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="w-full max-w-md bg-white">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl">Sign In Required</CardTitle>
-            <CardDescription>
-              Please sign in to connect your Edlide account with the IDE
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SupabaseSignInForm />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-md bg-white">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-red-500">Connection Failed</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => window.location.reload()} className="w-full">
-              Try Again
-            </Button>
-            <Button onClick={() => window.close()} variant="outline" className="w-full mt-4">
-              Close Window
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (inserted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="p-8 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Connected Successfully!</h1>
-          <p className="text-gray-600">You can close this window.</p>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="w-full max-w-md bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md bg-card">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl">Sign In Required</CardTitle>
             <CardDescription>
@@ -222,18 +172,18 @@ if (error) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Card className="p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Ready to Connect</h1>
-        <p className="text-gray-600 mb-6">{session.user?.email}</p>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <Card className="p-8 max-w-md w-full bg-card">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Ready to Connect</h1>
+        <p className="text-muted-foreground mb-6">{session.user?.email}</p>
         <Button
           onClick={async () => {
             try {
               if (connectingRef.current) return
               connectingRef.current = true
-              
+
               console.log('[IDE Connect] Manual connect with state:', stateRef.current)
-              
+
               const response = await fetch('/api/ide/create-api-key', {
                 method: 'POST',
                 headers: {
