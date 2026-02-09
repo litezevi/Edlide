@@ -344,8 +344,8 @@ For existing files: use edit_file instead!`,
 
 	analyze_image: {
 		name: 'analyze_image',
-		description: `Analyzes images and describes what's in them. Use this when user shares screenshots, UI mockups, or any images. Images are automatically passed from the user's message - you only need to provide a description of what to analyze.`,
-		params: { description: { description: `Description of what to look for or analyze in the images. For example: "Describe the UI layout and colors" or "What text is visible in the screenshot?"` } }
+		description: `When <has_images>true</has_images> is present, you MUST call this tool. The user's images will be automatically passed. This is NOT optional - you must analyze images before responding.`,
+		params: { description: { description: `What to look for in the images. Examples: "Describe everything in detail" or "What text, UI elements, and layouts are visible?"` } }
 	},
 
 	search_web: {
@@ -585,6 +585,9 @@ TOOLS YOU CANNOT USE:
 
 YOUR GOAL: Analyze codebase, understand requirements, create detailed implementation plan.
 
+IMAGE HANDLING RULE:
+When you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.
+
 CRITICAL RULES:
 1. You CAN READ and ANALYZE code
 2. You CANNOT CREATE, EDIT, or MODIFY anything
@@ -639,7 +642,11 @@ MANDATORY PROTOCOLS:
 3. EDIT VERIFICATION: 3-step process with read_file verification
 4. REQUEST CLARIFICATION: Ask when request is vague
 
-Follow all protocols for 100% success rate.`}
+Follow all protocols for 100% success rate.
+
+IMAGE HANDLING RULE:
+When you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.
+`}
 
 You may receive selected files (SELECTIONS) for context. Assist the user with their query.
 
