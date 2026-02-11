@@ -124,7 +124,7 @@ export const AccountSettingsSection = () => {
 							</span>
 						</div>
 						<VoidButtonBgDarken
-							className="bg-void-bg-3 text-void-fg-1 px-4 py-2 rounded-md hover:bg-void-bg-4"
+							className="bg-void-bg-3 text-void-fg-1 px-2 py-1 rounded-md hover:bg-void-bg-4"
 							onClick={handleDisconnect}
 						>
 							Disconnect
