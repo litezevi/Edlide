@@ -76,6 +76,7 @@ export const defaultProviderSettings = {
 
 export const defaultModelsOfProvider = {
 	edlide: [
+		'MiniMaxAI/MiniMax-M2.5-TEE',
 		'MiniMaxAI/MiniMax-M2.1-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'moonshotai/Kimi-K2.5-TEE',
@@ -1161,6 +1162,16 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
+	'MiniMaxAI/MiniMax-M2.5-TEE': {
+		contextWindow: 204_800,
+		reservedOutputTokenSpace: 20_048,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
+		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
 	'MiniMaxAI/MiniMax-M2.1-TEE': {
 		contextWindow: 196_608,
 		reservedOutputTokenSpace: 19_608,
@@ -1171,7 +1182,6 @@ const edlideModelOptions = {
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
 	},
-
 	'openai/gpt-oss-120b-TEE': {
 		contextWindow: 128_000,
 		reservedOutputTokenSpace: 4_096,
