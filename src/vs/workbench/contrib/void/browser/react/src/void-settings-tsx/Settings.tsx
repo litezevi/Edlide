@@ -17,7 +17,7 @@ import { os } from '../../../../common/helpers/systemInfo.js'
 import { IconLoading } from '../sidebar-tsx/SidebarChat.js'
 import { ToolApprovalType, toolApprovalTypes } from '../../../../common/toolsServiceTypes.js'
 import Severity from '../../../../../../../base/common/severity.js'
-import { getModelCapabilities, modelOverrideKeys, ModelOverrides } from '../../../../common/modelCapabilities.js';
+import { getModelCapabilities, modelOverrideKeys, ModelOverrides, defaultModelsOfProvider } from '../../../../common/modelCapabilities.js';
 import { TransferEditorType } from '../../../extensionTransferTypes.js';
 import { MCPServer } from '../../../../common/mcpServiceTypes.js';
 import { useMCPServiceState } from '../util/services.js';
@@ -716,6 +716,9 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	// Convert the unique models map back to an array
 	modelDump.push(...Array.from(uniqueModelNames.values()));
 
+	// Get edlide model order from defaultModelsOfProvider
+	const edlideModelOrder = defaultModelsOfProvider.edlide;
+
 	// sort by hidden and then by provider priority
 	modelDump.sort((a, b) => {
 		// First sort by enabled status
@@ -725,6 +728,19 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 		// Then sort by provider priority (edlide first, then others)
 		if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
 		if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
+
+		// For edlide models, use order from defaultModelsOfProvider
+		if (a.providerName === 'edlide' && b.providerName === 'edlide') {
+			const aIndex = edlideModelOrder.indexOf(a.modelName as any);
+			const bIndex = edlideModelOrder.indexOf(b.modelName as any);
+			// If both found in default order, use that order
+			if (aIndex !== -1 && bIndex !== -1) {
+				return aIndex - bIndex;
+			}
+			// If only one is in default order, prioritize it
+			if (aIndex !== -1) return -1;
+			if (bIndex !== -1) return 1;
+		}
 
 		// Finally sort by display name
 		const aName = getModelDisplayName(a.modelName, a.providerName);
