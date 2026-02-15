@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { Menu, X, ChevronRight } from 'lucide-react'
 
 const docsSections = [
   {
@@ -52,6 +53,7 @@ const docsSections = [
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('about')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
   useEffect(() => {
@@ -91,6 +93,60 @@ export default function DocsPage() {
 
   return (
     <div className="flex min-h-screen">
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <aside className={`
+        fixed lg:hidden top-16 left-0 z-50 h-[calc(100vh-4rem)] w-64 bg-background border-r border-border/50 
+        transform transition-transform duration-300 ease-in-out overflow-y-auto
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-4 space-y-6">
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="absolute top-4 right-4 p-2 hover:bg-accent rounded-md"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          {docsSections.map((section) => (
+            <div key={section.title} className="mt-8">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                {section.title}
+              </h3>
+              <ul className="space-y-1">
+                {section.items.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => {
+                        scrollToSection(item.id)
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between ${
+                        activeSection === item.id
+                          ? 'bg-accent text-black font-medium'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                      }`}
+                    >
+                      {item.label}
+                      {activeSection === item.id && (
+                        <ChevronRight className="h-4 w-4 ml-auto" />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      {/* Desktop sidebar */}
       <aside className="w-64 hidden lg:block border-r border-border/50 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
         <nav className="p-4 space-y-6">
           {docsSections.map((section) => (
@@ -119,7 +175,15 @@ export default function DocsPage() {
         </nav>
       </aside>
 
-      <main className="flex-1 py-12 px-6 lg:px-12 max-w-4xl">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-30 p-4 bg-primary text-primary-foreground rounded-full shadow-lg"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
+      <main className="flex-1 py-8 px-4 md:px-6 lg:px-12 max-w-4xl w-full">
         <div id="about" ref={(el) => { sectionRefs.current['about'] = el }}>
           <h1 className="text-3xl font-bold text-primary mb-4">About Edlide</h1>
           <p className="text-muted-foreground mb-6">
@@ -143,7 +207,7 @@ export default function DocsPage() {
           </div>
         </div>
 
-        <hr className="my-12 border-border/50" />
+        <hr className="my-8 md:my-12 border-border/50" />
 
         <div id="installation" ref={(el) => { sectionRefs.current['installation'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Installation</h2>
@@ -177,7 +241,7 @@ export default function DocsPage() {
           </div>
         </div>
 
-        <hr className="my-12 border-border/50" />
+        <hr className="my-8 md:my-12 border-border/50" />
 
         <div id="account" ref={(el) => { sectionRefs.current['account'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Account Setup</h2>
@@ -253,7 +317,8 @@ export default function DocsPage() {
           </p>
 
           <div className="border rounded-lg bg-card overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[300px]">
               <thead className="bg-accent/50">
                 <tr>
                   <th className="text-left p-3 font-medium text-primary">Model</th>
@@ -262,19 +327,12 @@ export default function DocsPage() {
               </thead>
               <tbody>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">minimax-m2.5</td>
-                  <td className="p-3 text-muted-foreground">Open Source</td>
-                </tr>
-                <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">glm-4.7</td>
-                  <td className="p-3 text-muted-foreground">Open Source</td>
-                </tr>
-                <tr className="border-t border-border/50">
                   <td className="p-3 text-muted-foreground">kimi-k2.5</td>
                   <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
@@ -410,7 +468,8 @@ export default function DocsPage() {
             Add MCP servers by pasting this configuration into your MCP settings:
           </p>
 
-          <div className="border rounded-lg bg-card p-4 overflow-x-auto">
+          <div className="border rounded-lg bg-card p-4">
+            <div className="overflow-x-auto">
             <pre className="text-sm text-muted-foreground">
 {`{
   "mcpServers": {
@@ -454,6 +513,7 @@ export default function DocsPage() {
   }
 }`}
             </pre>
+            </div>
           </div>
         </div>
 
