@@ -262,11 +262,7 @@ export default function DocsPage() {
               </thead>
               <tbody>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">deepseek-v3.2</td>
-                  <td className="p-3 text-muted-foreground">Open Source</td>
-                </tr>
-                <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">glm-4.6</td>
+                  <td className="p-3 text-muted-foreground">minimax-m2.5</td>
                   <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
                 <tr className="border-t border-border/50">
@@ -274,11 +270,7 @@ export default function DocsPage() {
                   <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">mimo-v2-flash</td>
-                  <td className="p-3 text-muted-foreground">Open Source</td>
-                </tr>
-                <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">minimax-m2.1</td>
+                  <td className="p-3 text-muted-foreground">kimi-k2.5</td>
                   <td className="p-3 text-muted-foreground">Open Source</td>
                 </tr>
               </tbody>
@@ -577,8 +569,8 @@ export default function DocsPage() {
 
           <div className="border rounded-lg p-4 bg-card">
             <p className="text-sm text-muted-foreground">
-              Hover over the context window indicator in the chat for <strong>2+ seconds</strong> 
-              to see your real-time context usage. This helps you understand when auto-compacting 
+              Hover over the context window indicator in the chat for <strong>2+ seconds</strong> to 
+              see your real-time context usage. This helps you understand when auto-compacting 
               will be triggered.
             </p>
           </div>
