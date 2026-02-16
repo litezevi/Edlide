@@ -1496,6 +1496,9 @@ We only need to do it for files that were edited since `from`, ie files between 
 		// get prev and curr selections before clearing the message
 		const currSelns = thread.messages[messageIdx].state.stagingSelections || [] // staging selections for the edited message
 
+		// get images from the old message to preserve them after edit
+		const oldMessageImages = thread.messages[messageIdx].images || []
+
 		// clear messages up to the index
 		const slicedMessages = thread.messages.slice(0, messageIdx)
 		this._setState({
@@ -1507,6 +1510,11 @@ We only need to do it for files that were edited since `from`, ie files between 
 				}
 			}
 		})
+
+		// restore images to thread state so _addUserMessageAndStreamResponse can pick them up
+		for (const img of oldMessageImages) {
+			this.addChatImage(img)
+		}
 
 		// re-add the message and stream it
 		this._addUserMessageAndStreamResponse({ userMessage, _chatSelections: currSelns, threadId })
