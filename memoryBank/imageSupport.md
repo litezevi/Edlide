@@ -1,5 +1,24 @@
 # Image Support in Edlide IDE Chat
 
+## ✅ Fix: Preserve Images on Revert/edit_file Message (2026-01-25)
+
+**Problem:** When user reverts (edits) a message with images in chat, the images were lost.
+
+**Solution:** Updated `editUserMessageAndStreamResponse` in `chatThreadService.ts`:
+1. Get images from the old message before clearing: `const oldMessageImages = thread.messages[messageIdx].images || []`
+2. Restore images to thread state after clearing messages:
+   ```typescript
+   for (const img of oldMessageImages) {
+     this.addChatImage(img)
+   }
+   ```
+3. `_addUserMessageAndStreamResponse` automatically picks up images via `getCurrentChatImages()` and includes them in the new message
+
+**Files modified:**
+- `src/vs/workbench/contrib/void/browser/chatThreadService.ts` (method `editUserMessageAndStreamResponse`, ~line 1487)
+
+---
+
 ## ✅ Status: Fully Implemented with Real-time Streaming + Markdown + Instant Abort (2026-01-23)
 
 ### Changes Made (Latest Update)
