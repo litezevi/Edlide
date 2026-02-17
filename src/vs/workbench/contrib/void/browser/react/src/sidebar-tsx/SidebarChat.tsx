@@ -45,7 +45,6 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 	if (providerName === 'edlide') {
 		if (modelName === 'moonshotai/Kimi-K2.5-TEE') return 'kimi-k2.5'
 		if (modelName === 'deepseek-ai/DeepSeek-V3.2') return 'deepseek-v3.2'
-		if (modelName === 'MiniMaxAI/MiniMax-M2.1-TEE') return 'minimax-m2.1'
 		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 		if (modelName === 'MiniMaxAI/MiniMax-M2.5-TEE') return 'minimax-m2.5'
@@ -157,9 +156,6 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 		if (modelName.includes('MiniMax-M2.5')) {
 			return 204800; // Minimax M2: 200k tokens
-		}
-		if (modelName.includes('MiniMax-M2.1')) {
-			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.1') || modelName.includes('V3.1'))) {
 			return 163840; // deepseek v3.1 variants: 162k tokens
@@ -3824,9 +3820,6 @@ export const SidebarChat = () => {
 		}
 		if (modelName.includes('MiniMax-M2.5')) {
 			return 204800; // Minimax M2: 200k tokens
-		}
-		if (modelName.includes('MiniMax-M2.1')) {
-			return 196608; // Minimax M2: 200k tokens
 		}
 		if (modelName.includes('deepseek') && (modelName.includes('v3.2') || modelName.includes('V3.2'))) {
 			return 163840; // deepseek v3.1 variants: 162k tokens
