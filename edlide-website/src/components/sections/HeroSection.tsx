@@ -24,9 +24,9 @@ export function HeroSection() {
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
             <span className="block gradient-text mb-4">
               Edlide IDE
-            </span>
+            </span>{' '}
             <span className="block text-xl md:text-2xl lg:text-3xl font-normal text-foreground max-w-4xl mx-auto leading-relaxed">
-              Open source AI models have caught up to closed alternatives<br />and cost 10x less
+              Open&nbsp;source&nbsp;AI&nbsp;models have caught up to closed alternatives<br />and cost&nbsp;10x&nbsp;less
             </span>
           </h1>
 

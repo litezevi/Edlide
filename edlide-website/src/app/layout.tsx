@@ -8,7 +8,19 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Edlide IDE | Open Source AI-Powered Code Editor',
-  description: 'Edlide IDE - Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
+  description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
+  openGraph: {
+    title: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Edlide',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
+  },
 }
 
 export default function RootLayout({
