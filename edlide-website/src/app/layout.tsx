@@ -7,12 +7,8 @@ import { Footer } from '@/components/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Edlide IDE',
-  description: 'Specialized IDE for Open Source AI model development',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-  },
+  title: 'Edlide IDE | Open Source AI-Powered Code Editor',
+  description: 'Edlide IDE - Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
 }
 
 export default function RootLayout({
