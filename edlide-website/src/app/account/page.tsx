@@ -6,10 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SupabaseSignInCard } from '@/components/auth/supabase-signin-button'
 import { SupabaseSignUpCard as SupabaseSignUpCardComponent } from '@/components/auth/supabase-signup-button'
-import { ChutesSignInButton } from '@/components/auth/chutes-signin-button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
-import { useChutesIntegration } from '@/lib/chutes-integration'
-import { LogOut, User, Shield, Link2 } from 'lucide-react'
+import { LogOut, User, Crown } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 function AccountContent() {
@@ -18,10 +16,7 @@ function AccountContent() {
   const isSignupMode = mode === 'signup'
 
   const { user, isLoading, signOut } = useSupabaseAuth()
-  const { linkedAccount, unlinkChutesAccount } = useChutesIntegration()
-  const [isUnlinking, setIsUnlinking] = useState(false)
-
-  const isChutesLinked = !!linkedAccount
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null)
 
   const handleSignOut = async () => {
     try {
@@ -32,17 +27,8 @@ function AccountContent() {
     }
   }
 
-  const handleUnlinkChutes = async () => {
-    if (isUnlinking) return
-    setIsUnlinking(true)
-
-    const success = await unlinkChutesAccount()
-    if (success) {
-      localStorage.removeItem('chutes_user')
-      window.location.reload()
-    }
-
-    setIsUnlinking(false)
+  const handleManageSubscription = () => {
+    window.location.href = '/pricing'
   }
 
   if (isLoading) {
@@ -84,55 +70,62 @@ function AccountContent() {
       </div>
 
       <div className="grid gap-6">
-        {/* Integrations Card */}
+        {/* Profile Card */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Integrations
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>
+              Your account information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="text-xl">
+                  {user.email?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-lg">{user.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Member since {new Date(user.created_at || '').toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Subscription Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5" />
+              Subscription
             </CardTitle>
             <CardDescription>
-              Manage your connected services and integrations
+              Manage your subscription plan
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isChutesLinked ? (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                <div className="flex items-center gap-3">
-                  <img
-                    src="/chutesLogo.png"
-                    alt="Chutes"
-                    className="h-8 w-8 object-contain rounded"
-                  />
-                  <div>
-                    <p className="font-medium">Chutes.ai</p>
-                    <p className="text-xs text-muted-foreground">@{linkedAccount?.username}</p>
-                  </div>
+            {subscriptionTier ? (
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                <div>
+                  <p className="font-medium capitalize">{subscriptionTier} Plan</p>
+                  <p className="text-sm text-muted-foreground">Active subscription</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleUnlinkChutes}
-                  disabled={isUnlinking}
-                  className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                >
-                  {isUnlinking ? 'Unlinking...' : 'Unlink'}
+                <Button variant="outline" size="sm" onClick={handleManageSubscription}>
+                  Manage
                 </Button>
               </div>
             ) : (
-              <>
-                <div className="flex items-start gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Shield className="h-3 w-3 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium mb-1">Chutes.ai Integration</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Connect your Chutes account to access AI models in the IDE.
-                    </p>
-                    <ChutesSignInButton variant="outline" size="sm" />
-                  </div>
-                </div>
-              </>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  You don't have an active subscription
+                </p>
+                <Button onClick={handleManageSubscription}>
+                  View Plans
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

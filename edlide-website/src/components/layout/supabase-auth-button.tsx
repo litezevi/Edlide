@@ -12,14 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { SupabaseSignInForm } from '@/components/auth/supabase-signin-button'
-import { useChutesIntegration } from '@/lib/chutes-integration'
-import { User, LogOut, Settings, Link2 } from 'lucide-react'
+import { User, LogOut, Settings } from 'lucide-react'
 
 export function SupabaseAuthButton() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isUnlinking, setIsUnlinking] = useState(false)
   const { user, isLoading, signOut } = useSupabaseAuth()
-  const { linkedAccount, unlinkChutesAccount, refetch } = useChutesIntegration()
 
   const handleSignOut = async () => {
     try {
@@ -28,18 +25,6 @@ export function SupabaseAuthButton() {
     } catch (error) {
       console.error('Sign out error:', error)
     }
-  }
-
-  const handleUnlinkChutes = async () => {
-    if (isUnlinking) return
-    setIsUnlinking(true)
-
-    const success = await unlinkChutesAccount()
-    if (success) {
-      refetch()
-    }
-
-    setIsUnlinking(false)
   }
 
   if (isLoading) {
@@ -100,30 +85,12 @@ export function SupabaseAuthButton() {
             Account
           </a>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {linkedAccount ? (
-          <DropdownMenuItem
-            onClick={handleUnlinkChutes}
-            disabled={isUnlinking}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            {isUnlinking ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            ) : (
-              <LogOut className="h-4 w-4 text-orange-600" />
-            )}
-            <span className="text-orange-600">
-              {isUnlinking ? 'Unlinking...' : 'Unlink Chutes'}
-            </span>
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem asChild>
-            <a href="/account" className="flex items-center gap-2 cursor-pointer text-green-600">
-              <Link2 className="h-4 w-4" />
-              <span>Link Chutes Account</span>
-            </a>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem asChild>
+          <a href="/pricing" className="flex items-center gap-2 cursor-pointer">
+            <Settings className="h-4 w-4" />
+            Subscription
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-red-600">
           <LogOut className="h-4 w-4" />

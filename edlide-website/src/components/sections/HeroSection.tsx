@@ -59,7 +59,7 @@ export function HeroSection() {
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">The Best Models</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Minimax-M2.5, GLM-4.7, KIMI-K2.5. Only the best open source models.
+              Minimax-M2.5.5, GLM-4.7, KIMI-K2.5. Only the best open source models.
             </p>
           </div>
 
