@@ -29,6 +29,10 @@ const PLAN_QUOTA_MAP: Record<string, number> = {
   'pro': 5000,
 }
 
+const REVERSE_PLAN_TIER_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(PLAN_TIER_MAP).map(([k, v]) => [v, k])
+)
+
 const dodoClient = new DodoPayments({
   bearerToken: process.env.DODO_PAYMENTS_API_KEY,
   webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_SECRET,
@@ -95,34 +99,38 @@ async function createAndRedeemCode(chutesUserId: string, tier: string) {
   return await redeemResponse.json()
 }
 
-async function handlePaymentSucceeded(data: any) {
+async function handlePaymentSucceeded(data: Record<string, unknown>) {
   console.log('Payment data:', JSON.stringify(data, null, 2))
-  
-  const customerEmail = data.customer?.email || data.customer_email || data.customer?.metadata?.email
-  const rawProductId = data.product_id || data.metadata?.product_id || data.products?.[0]?.product_id
-  const productId = DODO_PRODUCT_ID_MAP[rawProductId] || rawProductId
-  const subscriptionId = data.subscription_id || data.id
-  const userIdFromMeta = data.customer?.metadata?.user_id || data.metadata?.user_id
-  
+
+  const customer = data.customer as Record<string, unknown> | undefined
+  const customerMeta = customer?.metadata as Record<string, unknown> | undefined
+  const dataMeta = data.metadata as Record<string, unknown> | undefined
+
+  const customerEmail = (customer?.email || data.customer_email || customerMeta?.email) as string | undefined
+  const rawProductId = (data.product_id || dataMeta?.product_id || (data.products as Array<Record<string, unknown>> | undefined)?.[0]?.product_id) as string | undefined
+  const productId = rawProductId ? (DODO_PRODUCT_ID_MAP[rawProductId] || rawProductId) : undefined
+  const subscriptionId = (data.subscription_id || data.id) as string | undefined
+  const userIdFromMeta = (customerMeta?.user_id || dataMeta?.user_id) as string | undefined
+
   let userId = userIdFromMeta
-  
+
   if (!userId && customerEmail) {
     const { data: user } = await supabase
       .from('users')
       .select('id')
       .eq('email', customerEmail)
       .single()
-    
+
     if (user) {
       userId = user.id
     }
   }
-  
+
   if (!userId) {
     console.error('Missing user_id and cannot find by email:', customerEmail)
     return
   }
-  
+
   if (!productId) {
     console.error('Missing product_id in webhook')
     return
@@ -134,23 +142,57 @@ async function handlePaymentSucceeded(data: any) {
     console.log('Available mappings:', PLAN_TIER_MAP)
   }
 
+  // Check if subscription already exists — if so, this is a proration payment
+  // from changePlan. Apply next_plan_tier if set, otherwise skip.
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('subscription_id, plan_tier, status, next_plan_tier')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .single()
+
+  if (existingSub && existingSub.subscription_id === subscriptionId) {
+    // Proration payment from plan change — apply next_plan_tier if pending
+    if (existingSub.next_plan_tier) {
+      console.log(`[Webhook] Proration payment succeeded — applying plan change: ${existingSub.plan_tier} -> ${existingSub.next_plan_tier}`)
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          plan_tier: existingSub.next_plan_tier,
+          next_plan_tier: null,
+          plan_change_date: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('[Webhook] Failed to apply plan change:', updateError)
+      } else {
+        console.log(`[Webhook] Plan changed to ${existingSub.next_plan_tier} for user ${userId}`)
+      }
+    } else {
+      console.log(`[Webhook] Skipping payment.succeeded — subscription ${subscriptionId} already active for user ${userId}, no pending plan change.`)
+    }
+    return
+  }
+
   const isProduction = process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode'
 
   let chutesData: { userId: string; apiKey: string; fingerprint: string } | null = null
 
   if (isProduction) {
-    const chutesAccount = await createChutesAccount(userId, customerEmail)
+    const chutesAccount = await createChutesAccount(userId, customerEmail || '')
     await createAndRedeemCode(chutesAccount.userId, tier)
     chutesData = chutesAccount
   } else {
-    const chutesAccount = await createChutesAccount(userId, customerEmail)
+    const chutesAccount = await createChutesAccount(userId, customerEmail || '')
     chutesData = chutesAccount
   }
 
   const expiresAt = data.expires_at || data.next_billing_date
   const nextBillingDate = data.next_billing_date
 
-  const encryptedApiKey = chutesData?.apiKey 
+  const encryptedApiKey = chutesData?.apiKey
     ? TokenEncryption.encrypt(chutesData.apiKey)
     : { encrypted: '', iv: '' }
 
@@ -170,8 +212,8 @@ async function handlePaymentSucceeded(data: any) {
       chutes_fingerprint_encrypted: encryptedFingerprint.encrypted,
       chutes_fingerprint_iv: encryptedFingerprint.iv,
       status: 'active',
-      expires_at: expiresAt,
-      next_billing_date: nextBillingDate,
+      expires_at: expiresAt as string,
+      next_billing_date: nextBillingDate as string,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, {
@@ -184,6 +226,116 @@ async function handlePaymentSucceeded(data: any) {
   }
 
   console.log(`Subscription activated for user ${userId} with tier ${tier}`)
+}
+
+async function handlePlanChanged(data: Record<string, unknown>) {
+  console.log('[Webhook] subscription.plan_changed:', JSON.stringify(data, null, 2))
+
+  const subscriptionId = (data.subscription_id || data.id) as string | undefined
+  const newProductId = (data.product_id || data.plan_id) as string | undefined
+
+  if (!subscriptionId) {
+    console.error('[Webhook] plan_changed: missing subscription_id')
+    return
+  }
+
+  let newTier: string | undefined
+  if (newProductId) {
+    newTier = PLAN_TIER_MAP[newProductId]
+  }
+
+  const updateData: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+    status: 'active',
+    next_plan_tier: null,
+    plan_change_date: null,
+  }
+
+  if (newTier) {
+    updateData.plan_tier = newTier
+  }
+
+  const nextBillingDate = data.next_billing_date as string | undefined
+  if (nextBillingDate) {
+    updateData.next_billing_date = nextBillingDate
+  }
+
+  const { error: updateError } = await supabase
+    .from('subscriptions')
+    .update(updateData)
+    .eq('subscription_id', subscriptionId)
+
+  if (updateError) {
+    console.error('[Webhook] Failed to update subscription on plan_changed:', updateError)
+    throw updateError
+  }
+
+  console.log(`[Webhook] Plan changed for subscription ${subscriptionId} to tier: ${newTier || 'unknown'}`)
+}
+
+async function handleSubscriptionUpdated(data: Record<string, unknown>) {
+  console.log('[Webhook] subscription.updated:', JSON.stringify(data, null, 2))
+
+  const subscriptionId = (data.subscription_id || data.id) as string | undefined
+  const newProductId = (data.product_id) as string | undefined
+
+  if (!subscriptionId) {
+    console.error('[Webhook] subscription.updated: missing subscription_id')
+    return
+  }
+
+  // Look up existing subscription by subscription_id
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('plan_tier, status')
+    .eq('subscription_id', subscriptionId)
+    .single()
+
+  if (!existingSub) {
+    console.log(`[Webhook] subscription.updated: no matching subscription for ${subscriptionId}`)
+    return
+  }
+
+  // If product_id is present and maps to a different tier, update it
+  // This handles the case where subscription.plan_changed doesn't fire
+  // but subscription.updated does after a changePlan call.
+  if (newProductId) {
+    const newTier = PLAN_TIER_MAP[newProductId]
+    if (newTier && newTier !== existingSub.plan_tier) {
+      console.log(`[Webhook] subscription.updated: tier change detected ${existingSub.plan_tier} -> ${newTier}`)
+
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          plan_tier: newTier,
+          updated_at: new Date().toISOString(),
+          next_plan_tier: null,
+          plan_change_date: null,
+        })
+        .eq('subscription_id', subscriptionId)
+
+      if (updateError) {
+        console.error('[Webhook] Failed to update tier on subscription.updated:', updateError)
+      } else {
+        console.log(`[Webhook] Plan updated to ${newTier} via subscription.updated`)
+      }
+      return
+    }
+  }
+
+  // Update next_billing_date if present
+  const nextBillingDate = data.next_billing_date as string | undefined
+  if (nextBillingDate) {
+    await supabase
+      .from('subscriptions')
+      .update({
+        next_billing_date: nextBillingDate,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('subscription_id', subscriptionId)
+  }
+
+  console.log(`[Webhook] subscription.updated processed for ${subscriptionId}`)
 }
 
 export async function POST(req: NextRequest) {
@@ -231,11 +383,34 @@ export async function POST(req: NextRequest) {
         await handlePaymentSucceeded(eventData)
         break
       
+      case 'subscription.plan_changed':
+        await handlePlanChanged(eventData)
+        break
+
+      case 'subscription.updated':
+        await handleSubscriptionUpdated(eventData)
+        break
+
       case 'payment.failed':
       case 'subscription.failed':
         console.log('Payment failed:', eventData)
         break
-      
+
+      case 'subscription.on_hold': {
+        console.log('[Webhook] Subscription on hold (payment failed):', eventData)
+        const onHoldSubId = (eventData.subscription_id || eventData.id) as string | undefined
+        if (onHoldSubId) {
+          await supabase
+            .from('subscriptions')
+            .update({
+              status: 'on_hold',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('subscription_id', onHoldSubId)
+        }
+        break
+      }
+
       case 'subscription.cancelled':
       case 'subscription.expired':
         console.log('Subscription cancelled/expired:', eventData)

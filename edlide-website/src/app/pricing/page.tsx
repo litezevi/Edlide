@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Check, X, HelpCircle } from 'lucide-react'
+import { Check, HelpCircle } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 interface PricingTier {
@@ -14,6 +15,7 @@ interface PricingTier {
   requestsPerDay: number
   description: string
   productId: string
+  tier: string
   popular?: boolean
 }
 
@@ -25,6 +27,7 @@ const tiers: PricingTier[] = [
     requestsPerDay: 300,
     description: 'Perfect for learning and personal projects',
     productId: 'prod_starter_monthly',
+    tier: 'base',
   },
   {
     id: 'pro',
@@ -33,6 +36,7 @@ const tiers: PricingTier[] = [
     requestsPerDay: 2000,
     description: 'Best for professional developers',
     productId: 'prod_pro_monthly',
+    tier: 'plus',
     popular: true,
   },
   {
@@ -42,6 +46,7 @@ const tiers: PricingTier[] = [
     requestsPerDay: 5000,
     description: 'The ultimate plan for ambitious individual developers.',
     productId: 'prod_ultra_monthly',
+    tier: 'pro',
   },
 ]
 
@@ -50,6 +55,8 @@ const PRODUCT_IDS: Record<string, string> = {
   'prod_pro_monthly': 'pdt_0NX7uDmO6LQ1tZPva4I5A',
   'prod_ultra_monthly': 'pdt_0NX7uQKJc1elOk1df38G7',
 }
+
+const TIER_ORDER = ['base', 'plus', 'pro']
 
 const faqs = [
   {
@@ -60,6 +67,10 @@ const faqs = [
     question: 'Is there a free trial?',
     answer: 'No free trial, but we offer the Starter plan at $6.99 so you can try it out.',
   },
+  {
+    question: 'Can I change my plan later?',
+    answer: 'Yes! You can upgrade or downgrade your plan at any time from your Account page. Upgrades are charged immediately (price difference), and downgrades credit the remaining value to future renewals.',
+  },
 ]
 
 export default function PricingPage() {
@@ -67,10 +78,38 @@ export default function PricingPage() {
   const router = useRouter()
   const [loadingTier, setLoadingTier] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [currentTier, setCurrentTier] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadSubscription() {
+      if (!user) return
+
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('plan_tier, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single()
+
+      if (data?.plan_tier) {
+        setCurrentTier(data.plan_tier)
+      }
+    }
+
+    if (user) {
+      loadSubscription()
+    }
+  }, [user])
 
   const handleSubscribe = async (tier: PricingTier) => {
     if (!user) {
       router.push('/account?mode=signup')
+      return
+    }
+
+    // If user has subscription, redirect to account to manage plan
+    if (currentTier) {
+      router.push('/account')
       return
     }
 
@@ -106,6 +145,20 @@ export default function PricingPage() {
     }
   }
 
+  const getButtonLabel = (tier: PricingTier): string => {
+    if (!user) return 'Sign Up to Subscribe'
+    if (!currentTier) return 'Subscribe Now'
+    if (tier.tier === currentTier) return 'Current Plan'
+
+    const currentIndex = TIER_ORDER.indexOf(currentTier)
+    const tierIndex = TIER_ORDER.indexOf(tier.tier)
+    return tierIndex > currentIndex ? 'Upgrade' : 'Downgrade'
+  }
+
+  const isCurrentPlan = (tier: PricingTier): boolean => {
+    return currentTier === tier.tier
+  }
+
   return (
     <div className="container max-w-4xl py-20">
       <div className="text-center mb-16">
@@ -118,64 +171,76 @@ export default function PricingPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-        {tiers.map((tier) => (
-          <Card
-            key={tier.id}
-            className={`relative ${
-              tier.popular
-                ? 'border-primary shadow-lg shadow-primary/10'
-                : 'border-border'
-            }`}
-          >
-            {tier.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
-                  Most Popular
-                </span>
-              </div>
-            )}
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl">{tier.name}</CardTitle>
-              <CardDescription>{tier.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 flex flex-col flex-grow">
-              <div className="text-center">
-                <span className="text-4xl font-bold">${tier.price}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
+        {tiers.map((tier) => {
+          const isCurrent = isCurrentPlan(tier)
+          const buttonLabel = getButtonLabel(tier)
 
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm">{tier.requestsPerDay.toLocaleString()} requests/day</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm">Access to GLM-4.7, Kimi-K2.5, Minimax-M2.5</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm">Advanced code completion</span>
-                </li>
-              </ul>
+          return (
+            <Card
+              key={tier.id}
+              className={`relative ${
+                isCurrent
+                  ? 'border-primary shadow-lg shadow-primary/10'
+                  : tier.popular && !currentTier
+                  ? 'border-primary shadow-lg shadow-primary/10'
+                  : 'border-border'
+              }`}
+            >
+              {isCurrent && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
+                    Current Plan
+                  </span>
+                </div>
+              )}
+              {!currentTier && tier.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                <CardDescription>{tier.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 flex flex-col flex-grow">
+                <div className="text-center">
+                  <span className="text-4xl font-bold">${tier.price}</span>
+                  <span className="text-muted-foreground">/month</span>
+                </div>
 
-              <div className="mt-auto">
-                <Button
-                  className="w-full"
-                  variant={tier.popular ? 'default' : 'outline'}
-                  onClick={() => handleSubscribe(tier)}
-                  disabled={loadingTier === tier.id}
-                >
-                  {loadingTier === tier.id
-                    ? 'Loading...'
-                    : user
-                    ? 'Subscribe Now'
-                    : 'Sign Up to Subscribe'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">{tier.requestsPerDay.toLocaleString()} requests/day</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Access to GLM-4.7, Kimi-K2.5, Minimax-M2.5</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Advanced code completion</span>
+                  </li>
+                </ul>
+
+                <div className="mt-auto">
+                  <Button
+                    className="w-full"
+                    variant={isCurrent ? 'secondary' : (tier.popular && !currentTier) ? 'default' : 'outline'}
+                    onClick={() => handleSubscribe(tier)}
+                    disabled={loadingTier === tier.id || isCurrent}
+                  >
+                    {loadingTier === tier.id
+                      ? 'Loading...'
+                      : buttonLabel}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       <div className="mt-20 max-w-2xl mx-auto">

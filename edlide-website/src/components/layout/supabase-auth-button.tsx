@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { SupabaseSignInForm } from '@/components/auth/supabase-signin-button'
-import { User, LogOut, Settings } from 'lucide-react'
+import { User, LogOut } from 'lucide-react'
 
 export function SupabaseAuthButton() {
   const [isOpen, setIsOpen] = useState(false)
@@ -83,12 +83,6 @@ export function SupabaseAuthButton() {
           <a href="/account" className="flex items-center gap-2 cursor-pointer">
             <User className="h-4 w-4" />
             Account
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="/pricing" className="flex items-center gap-2 cursor-pointer">
-            <Settings className="h-4 w-4" />
-            Subscription
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
