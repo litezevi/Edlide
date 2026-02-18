@@ -55,8 +55,25 @@ const TIER_DISPLAY_NAMES: Record<string, string> = {
 
 const TIER_ORDER = ['base', 'plus', 'pro']
 
+interface PreviewSummary {
+  currency: string
+  total_amount: number
+  customer_credits: number
+  settlement_amount: number
+  settlement_currency: string
+  settlement_tax?: number | null
+  tax?: number | null
+}
+
+interface PreviewImmediateCharge {
+  summary: PreviewSummary
+  line_items: unknown[]
+}
+
 interface PreviewData {
-  preview: Record<string, unknown>
+  preview: {
+    immediate_charge: PreviewImmediateCharge
+  }
   currentTierName: string
   newTierName: string
   isUpgrade: boolean
@@ -294,13 +311,22 @@ function ChangePlanModal({
                   </div>
 
                   {/* Proration info */}
-                  <div className="p-4 border border-border rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {previewData.isUpgrade
-                        ? 'You will be charged the price difference immediately.'
-                        : 'The remaining value will be credited to future renewals.'}
-                    </p>
-
+                  <div className="p-4 border border-border rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {previewData.isUpgrade
+                          ? 'You will be charged the price difference immediately.'
+                          : 'The remaining value will be credited to future renewals.'}
+                      </p>
+                      {previewData.isUpgrade && previewData.preview?.immediate_charge?.summary && (
+                        <span className="text-sm font-semibold ml-4 whitespace-nowrap">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: previewData.preview.immediate_charge.summary.currency || 'USD',
+                          }).format(previewData.preview.immediate_charge.summary.total_amount / 100)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {changeError && (
