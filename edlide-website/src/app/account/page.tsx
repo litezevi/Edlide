@@ -315,8 +315,8 @@ function ChangePlanModal({
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">
                         {previewData.isUpgrade
-                          ? 'You will be charged the price difference immediately.'
-                          : 'The remaining value will be credited to future renewals.'}
+                          ? 'You will be charged the current price difference now.'
+                          : 'Your downgraded plan will take effect next month.'}
                       </p>
                       {previewData.isUpgrade && previewData.preview?.immediate_charge?.summary && (
                         <span className="text-sm font-semibold ml-4 whitespace-nowrap">
