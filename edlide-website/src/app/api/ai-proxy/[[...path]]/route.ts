@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { ChutesTokenManager } from '@/lib/chutes-token-manager'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -107,20 +106,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Проверяем и обновляем Chutes токен если нужно
-    console.log('[AI Proxy] Checking and refreshing Chutes token if needed...')
-    const tokenResult = await ChutesTokenManager.getValidAccessToken(user.id)
+    // 3. Получаем Chutes API ключ из подписки пользователя
+    console.log('[AI Proxy] Getting Chutes API key from subscription...')
+    const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    const { data: subscription, error: subError } = await adminSupabase
+      .from('subscriptions')
+      .select('chutes_api_key, plan_tier')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single()
 
-    if (!tokenResult) {
-      console.error('[AI Proxy] No valid Chutes token found for user:', user.id)
+    if (subError || !subscription?.chutes_api_key) {
+      console.error('[AI Proxy] No active subscription or Chutes API key for user:', user.id)
       return NextResponse.json(
-        { error: 'Chutes account not linked. Please link your Chutes account first.' },
+        { error: 'No active subscription. Please subscribe to use AI features.' },
         { status: 403 }
       )
     }
 
-    const { accessToken: freshAccessToken, refreshed } = tokenResult
-    console.log(`[AI Proxy] Chutes token ready, refreshed: ${refreshed}, length: ${freshAccessToken.length}`)
+    const chutesApiKey = subscription.chutes_api_key
+    const planTier = subscription.plan_tier
+    console.log(`[AI Proxy] Using Chutes API key for plan: ${planTier}`)
 
     // 4. Получаем тело запроса от IDE (OpenAI-compatible формат)
     const requestBody = await request.json()
@@ -130,11 +137,10 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       model: requestBody.model,
       provider: 'edlide',
-      tokenRefreshed: refreshed
+      plan: planTier
     })
 
-    // 6. Проксируем в Supabase Edge Function с СПЕЦИАЛЬНЫМИ HEADERS
-    // Передаем СВЕЖИЙ токен напрямую, чтобы Edge Function использовала его вместо чтения из базы
+    // 6. Проксируем в Supabase Edge Function с Chutes API ключом
     const supabaseFunctionUrl = `${supabaseUrl}/functions/v1/ai-proxy`
 
     const response = await fetch(supabaseFunctionUrl, {
@@ -146,7 +152,7 @@ export async function POST(request: NextRequest) {
         'x-user-email': user.email!,
         'x-request-source': 'ide',
         'x-edlide-client': 'electron',
-        'x-chutes-access-token': freshAccessToken
+        'x-chutes-api-key': chutesApiKey
       },
       body: JSON.stringify(requestBody)
     })

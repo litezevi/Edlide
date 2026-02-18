@@ -4,14 +4,12 @@ import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
-import { useChutesIntegration } from '@/lib/chutes-integration'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
-  showRelinkButton?: boolean
 }
 
 export function ChatInterface() {
@@ -22,7 +20,6 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
   const { user, session, isAuthenticated } = useSupabaseAuth()
-  const { linkedAccount } = useChutesIntegration()
   
   useEffect(() => {
     setIsClient(true)
@@ -88,11 +85,8 @@ export function ChatInterface() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: isRelinkRequired
-          ? 'Your Chutes session has expired. Please re-link your Chutes account to continue.'
-          : `Sorry, an error occurred: ${errorObj.message || 'Unknown error'}`,
+        content: `Sorry, an error occurred: ${errorObj.message || 'Unknown error'}`,
         timestamp: new Date(),
-        showRelinkButton: isRelinkRequired,
       }
 
       setMessages(prev => [...prev, errorMessage])
@@ -141,32 +135,11 @@ export function ChatInterface() {
     )
   }
 
-  if (!linkedAccount) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-xl">Chat with AI</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <p className="text-muted-foreground mb-4">
-            Please link your Chutes account to access the AI chat
-          </p>
-          <Button onClick={() => window.location.href = '/account'}>
-            Link Chutes Account
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card className="w-full max-w-2xl mx-auto h-[600px] flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl flex items-center justify-between">
-          <span>Chat with AI</span>
-          <span className="text-sm text-muted-foreground">
-            {linkedAccount.username}
-          </span>
+        <CardTitle className="text-xl">
+          Chat with AI
         </CardTitle>
       </CardHeader>
       
@@ -193,15 +166,6 @@ export function ChatInterface() {
                   }`}
                 >
                   <p className="text-sm">{message.content}</p>
-                  {message.showRelinkButton && (
-                    <Button
-                      onClick={() => window.location.href = '/account'}
-                      className="mt-3 w-full text-sm py-2"
-                      size="sm"
-                    >
-                      Re-link Chutes Account
-                    </Button>
-                  )}
                   <p className="text-xs opacity-70 mt-1">
                     {message.timestamp.toLocaleTimeString()}
                   </p>

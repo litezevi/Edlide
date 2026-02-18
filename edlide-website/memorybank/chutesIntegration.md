@@ -264,3 +264,61 @@ CHUTES_PARTNER_API_KEY=ide_qhp
 
 ---
 
+## Новая система AI API (без OAuth)
+
+### Удалённая логика (старый подход):
+- ❌ Chutes OAuth flow (authorize, callback, token exchange)
+- ❌ Шифрование токенов в базе (AES-256-CBC)
+- ❌ Refresh токен каждые 15 минут
+- ❌ Файлы: chutes-auth.ts, chutes-integration.ts, chutes-token-manager.ts
+- ❌ Роуты: /auth/chutes/*, /api/auth/chutes/*
+
+### Новый подход (API Key из подписки):
+
+#### Файлы:
+
+1. **`src/app/api/ai-proxy/[[...path]]/route.ts`**
+   - Принимает запрос от IDE с API ключом пользователя
+   - Проверяет подписку в таблице `subscriptions`
+   - Получает `chutes_api_key` из подписки
+   - Передаёт ключ в Edge Function через заголовок `x-chutes-api-key`
+
+2. **`src/app/api/chat/route.ts`**
+   - Проверяет подписку пользователя
+   - Получает `chutes_api_key` из `subscriptions`
+   - Проксирует запрос в Supabase Edge Function
+
+3. **`src/components/chat/ChatInterface.tsx`**
+   - Удалена логика Chutes account linking
+   - Теперь просто проверяет авторизацию через Supabase
+
+#### Supabase Edge Function (ai-proxy):
+- Уже настроена принимать `x-chutes-api-key` заголовок
+- Использует API ключ напрямую для запросов к Chutes AI
+
+#### Как работает:
+
+```
+IDE → /api/ai-proxy (с edlide_xxx API ключом)
+  ↓
+Проверка сессии пользователя
+  ↓
+Запрос к subscriptions: SELECT chutes_api_key WHERE user_id = ?
+  ↓
+Получение Chutes API ключа (cpk_xxx...)
+  ↓
+Запрос к Edge Function с x-chutes-api-key: cpk_xxx...
+  ↓
+Edge Function → llm.chutes.ai (с Bearer cpk_xxx...)
+  ↓
+Ответ обратно в IDE
+```
+
+#### Преимущества:
+- ✅ Никакого OAuth - простой API ключ
+- ✅ Никакого refresh - ключ вечный
+- ✅ Никакого шифрования - ключ хранится как есть
+- ✅ Автоматическое создание аккаунта при оплате
+
+---
+
