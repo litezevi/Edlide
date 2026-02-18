@@ -21,6 +21,12 @@ function AccountContent() {
   const [subscriptionExpires, setSubscriptionExpires] = useState<string | null>(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(true)
 
+  const tierDisplayNames: Record<string, string> = {
+    'base': 'Starter Plan',
+    'plus': 'Pro Plan',
+    'pro': 'Ultra Plan'
+  }
+
   useEffect(() => {
     async function loadSubscription() {
       if (!user) {
@@ -37,9 +43,9 @@ function AccountContent() {
 
       if (data?.plan_tier) {
         setSubscriptionTier(data.plan_tier)
-        const expDate = data.expires_at || data.next_billing_date
-        if (expDate) {
-          setSubscriptionExpires(new Date(expDate).toLocaleDateString('en-US', {
+        const nextBillDate = data.next_billing_date
+        if (nextBillDate) {
+          setSubscriptionExpires(new Date(nextBillDate).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -147,12 +153,12 @@ function AccountContent() {
             {subscriptionTier ? (
               <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                 <div>
-                  <p className="font-medium capitalize text-lg">{subscriptionTier} Plan</p>
+                  <p className="font-medium text-lg">{tierDisplayNames[subscriptionTier] || subscriptionTier}</p>
                   <p className="text-sm text-muted-foreground">Active subscription</p>
                 </div>
                 {subscriptionExpires && (
                   <p className="text-sm text-muted-foreground">
-                    Expires: {subscriptionExpires}
+                    Next billing: {subscriptionExpires}
                   </p>
                 )}
               </div>
