@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { TokenEncryption } from '@/lib/token-encryption'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -106,26 +107,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Получаем Chutes API ключ из подписки пользователя
-    console.log('[AI Proxy] Getting Chutes API key from subscription...')
+    // 3. Получаем зашифрованный Chutes API ключ из подписки
+    console.log('[AI Proxy] Getting encrypted Chutes API key from subscription...')
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
     
     const { data: subscription, error: subError } = await adminSupabase
       .from('subscriptions')
-      .select('chutes_api_key, plan_tier')
+      .select('chutes_api_key_encrypted, chutes_api_key_iv, plan_tier')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single()
 
-    if (subError || !subscription?.chutes_api_key) {
-      console.error('[AI Proxy] No active subscription or Chutes API key for user:', user.id)
+    if (subError || !subscription?.chutes_api_key_encrypted) {
+      console.error('[AI Proxy] No active subscription for user:', user.id)
       return NextResponse.json(
         { error: 'No active subscription. Please subscribe to use AI features.' },
         { status: 403 }
       )
     }
 
-    const chutesApiKey = subscription.chutes_api_key
+    const chutesApiKey = TokenEncryption.decrypt(
+      subscription.chutes_api_key_encrypted,
+      subscription.chutes_api_key_iv
+    )
+
+    if (!chutesApiKey) {
+      console.error('[AI Proxy] Failed to decrypt Chutes API key for user:', user.id)
+      return NextResponse.json(
+        { error: 'Failed to decrypt API key. Please contact support.' },
+        { status: 500 }
+      )
+    }
+
     const planTier = subscription.plan_tier
     console.log(`[AI Proxy] Using Chutes API key for plan: ${planTier}`)
 

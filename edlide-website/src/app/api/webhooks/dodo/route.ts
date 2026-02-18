@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import DodoPayments from 'dodopayments'
+import { TokenEncryption } from '@/lib/token-encryption'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -149,6 +150,14 @@ async function handlePaymentSucceeded(data: any) {
   const expiresAt = data.expires_at || data.next_billing_date
   const nextBillingDate = data.next_billing_date
 
+  const encryptedApiKey = chutesData?.apiKey 
+    ? TokenEncryption.encrypt(chutesData.apiKey)
+    : { encrypted: '', iv: '' }
+
+  const encryptedFingerprint = chutesData?.fingerprint
+    ? TokenEncryption.encrypt(chutesData.fingerprint)
+    : { encrypted: '', iv: '' }
+
   const { error: upsertError } = await supabase
     .from('subscriptions')
     .upsert({
@@ -156,8 +165,10 @@ async function handlePaymentSucceeded(data: any) {
       subscription_id: subscriptionId,
       plan_tier: tier,
       chutes_user_id: chutesData?.userId,
-      chutes_api_key: chutesData?.apiKey,
-      chutes_fingerprint: chutesData?.fingerprint,
+      chutes_api_key_encrypted: encryptedApiKey.encrypted,
+      chutes_api_key_iv: encryptedApiKey.iv,
+      chutes_fingerprint_encrypted: encryptedFingerprint.encrypted,
+      chutes_fingerprint_iv: encryptedFingerprint.iv,
       status: 'active',
       expires_at: expiresAt,
       next_billing_date: nextBillingDate,

@@ -317,6 +317,56 @@ Edge Function → llm.chutes.ai (с Bearer cpk_xxx...)
 #### Преимущества:
 - ✅ Никакого OAuth - простой API ключ
 - ✅ Никакого refresh - ключ вечный
+- ✅ API ключ и fingerprint зашифрованы в базе (AES-256-CBC)
+
+### Supabase таблица (текущая):
+
+```sql
+CREATE TABLE public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE,
+  subscription_id TEXT,
+  plan_tier TEXT NOT NULL DEFAULT 'base',
+  chutes_user_id TEXT,  -- raw (не шифруем)
+  chutes_api_key_encrypted TEXT,  -- зашифровано
+  chutes_api_key_iv TEXT,         -- IV для дешифрования
+  chutes_fingerprint_encrypted TEXT,  -- зашифровано
+  chutes_fingerprint_iv TEXT,          -- IV для дешифрования
+  status TEXT NOT NULL DEFAULT 'active',
+  expires_at TIMESTAMPTZ,
+  next_billing_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### Шифрование:
+
+- Используется `CHUTES_ENCRYPTION_KEY` из .env
+- Библиотека: `src/lib/token-encryption.ts`
+- Метод: AES-256-CBC
+- Сохраняем: encrypted + IV
+
+### Удалённые файлы:
+
+- `src/app/api/chat/route.ts` - удалён
+- `src/components/chat/ChatInterface.tsx` - удалён
+- `src/app/chat/page.tsx` - удалён
+- `src/app/auth/chutes/*` - удалена папка
+- `src/app/api/auth/chutes/*` - удалена папка
+- `src/components/layout/chutes-auth-button.tsx` - удалён
+- `src/components/auth/chutes-signin-button.tsx` - удалён
+
+### Как дешифровать API ключ:
+
+```typescript
+import { TokenEncryption } from '@/lib/token-encryption'
+
+const chutesApiKey = TokenEncryption.decrypt(
+  subscription.chutes_api_key_encrypted,
+  subscription.chutes_api_key_iv
+)
+```
 - ✅ Никакого шифрования - ключ хранится как есть
 - ✅ Автоматическое создание аккаунта при оплате
 
