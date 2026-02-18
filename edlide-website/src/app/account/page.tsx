@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SupabaseSignInCard } from '@/components/auth/supabase-signin-button'
 import { SupabaseSignUpCard as SupabaseSignUpCardComponent } from '@/components/auth/supabase-signup-button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
-import { LogOut, User, Crown } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { LogOut, User } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 function AccountContent() {
@@ -15,8 +16,43 @@ function AccountContent() {
   const mode = searchParams.get('mode')
   const isSignupMode = mode === 'signup'
 
-  const { user, isLoading, signOut } = useSupabaseAuth()
+  const { user, isLoading: authLoading, signOut } = useSupabaseAuth()
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null)
+  const [subscriptionExpires, setSubscriptionExpires] = useState<string | null>(null)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadSubscription() {
+      if (!user) {
+        setSubscriptionLoading(false)
+        return
+      }
+
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('plan_tier, status, expires_at, next_billing_date')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single()
+
+      if (data?.plan_tier) {
+        setSubscriptionTier(data.plan_tier)
+        const expDate = data.expires_at || data.next_billing_date
+        if (expDate) {
+          setSubscriptionExpires(new Date(expDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }))
+        }
+      }
+      setSubscriptionLoading(false)
+    }
+
+    if (user) {
+      loadSubscription()
+    }
+  }, [user])
 
   const handleSignOut = async () => {
     try {
@@ -31,7 +67,9 @@ function AccountContent() {
     window.location.href = '/pricing'
   }
 
-  if (isLoading) {
+  const isLoading = authLoading || subscriptionLoading
+
+  if (authLoading) {
     return (
       <div className="container max-w-4xl py-12">
         <div className="flex items-center justify-center">
@@ -98,8 +136,7 @@ function AccountContent() {
         {/* Subscription Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5" />
+            <CardTitle>
               Subscription
             </CardTitle>
             <CardDescription>
@@ -110,12 +147,14 @@ function AccountContent() {
             {subscriptionTier ? (
               <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                 <div>
-                  <p className="font-medium capitalize">{subscriptionTier} Plan</p>
+                  <p className="font-medium capitalize text-lg">{subscriptionTier} Plan</p>
                   <p className="text-sm text-muted-foreground">Active subscription</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleManageSubscription}>
-                  Manage
-                </Button>
+                {subscriptionExpires && (
+                  <p className="text-sm text-muted-foreground">
+                    Expires: {subscriptionExpires}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="text-center py-8">

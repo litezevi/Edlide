@@ -179,3 +179,88 @@ alternatively you do not need to use the API key that's given when the account i
 
 ---
 
+## Изменения от 18.02.2026 (продолжение)
+
+### Реализованная интеграция Dodo Payments + Chutes
+
+#### Созданные файлы:
+
+1. **`src/app/api/payments/create-checkout/route.ts`**
+   - Создаёт checkout сессию в Dodo Payments
+   - Принимает productId, userId, userEmail
+   - Возвращает checkout_url для редиректа на оплату
+
+2. **`src/app/api/webhooks/dodo/route.ts`**
+   - Webhook handler для Dodo Payments
+   - URL: `https://edlide.com/api/webhooks/dodo`
+   - Верифицирует подпись через DodoPayments SDK
+   - Обрабатывает события: `payment.succeeded`, `subscription.active`
+   - При успешной оплате:
+     - Создаёт Chutes аккаунт через Partner API (/users POST)
+     - В production: создаёт и редимит код подписки (/codes POST, /codes/redeem POST)
+     - Сохраняет данные в Supabase таблицу subscriptions
+   - Маппинг продуктов:
+     - `prod_starter_monthly` → tier: base
+     - `prod_pro_monthly` → tier: plus
+     - `prod_ultra_monthly` → tier: pro
+
+3. **Обновлён `src/app/pricing/page.tsx`**
+   - Добавлен маппинг productId на Dodo product IDs
+   - Передаёт dodoProductId в API
+
+4. **Обновлён `src/app/account/page.tsx`**
+   - Загружает подписку из Supabase при загрузке страницы
+   - Показывает план подписки (base/plus/pro)
+   - Показывает дату окончания подписки справа
+
+#### Supabase таблица:
+
+```sql
+CREATE TABLE public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE,
+  subscription_id TEXT,
+  plan_tier TEXT NOT NULL DEFAULT 'base',
+  chutes_user_id TEXT,
+  chutes_api_key TEXT,
+  chutes_fingerprint TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  expires_at TIMESTAMPTZ,
+  next_billing_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+#### Environment переменные:
+
+```
+DODO_PAYMENTS_API_KEY=eWdUruCeZ78u847f...
+DODO_PAYMENTS_ENVIRONMENT=test_mode
+DODO_PAYMENTS_WEBHOOK_SECRET=whsec_ysMA2zL
+CHUTES_PARTNER_API_KEY=ide_qhp
+```
+
+#### Product IDs в Dodo:
+
+- Starter: `pdt_0NX7tjKSxW7Dn1oGBdMbE`
+- Pro: `pdt_0NX7uDmO6LQ1tZPva4I5A`
+- Ultra: `pdt_0NX7uQKJc1elOk1df38G7`
+
+#### Логика работы (текущая):
+
+1. Пользователь выбирает план на /pricing
+2. Нажимает "Subscribe Now"
+3. Создаётся checkout сессия → редирект на оплату Dodo
+4. После оплаты Dodo отправляет webhook
+5. Webhook проверяет подпись, создаёт Chutes аккаунт
+6. Данные сохраняются в subscriptions таблицу
+7. На /account отображается план и дата окончания
+
+#### Важно:
+
+- **test_mode**: Chutes аккаунт создаётся, но код подписки НЕ редимится (только в production)
+- **live_mode**: Полный цикл - создание аккаунта + redeem кода
+
+---
+
