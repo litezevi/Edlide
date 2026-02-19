@@ -149,7 +149,7 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
   // 3. Normal renewal (no pending changes)
   const { data: existingSub } = await supabase
     .from('subscriptions')
-    .select('subscription_id, plan_tier, status, next_plan_tier, downgrade_at')
+    .select('subscription_id, plan_tier, status, next_plan_tier, downgrade_at, chutes_user_id')
     .eq('user_id', userId)
     .eq('status', 'active')
     .single()
@@ -193,6 +193,16 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
         console.error('[Webhook] Failed to apply scheduled downgrade:', updateError)
       } else {
         console.log(`[Webhook] Downgrade applied: ${existingSub.next_plan_tier} for user ${userId}`)
+
+        // Redeem new tier code for existing Chutes account
+        if (existingSub.chutes_user_id && existingSub.next_plan_tier) {
+          try {
+            const redeemResult = await createAndRedeemCode(existingSub.chutes_user_id, existingSub.next_plan_tier)
+            console.log(`[Webhook] Redeemed ${existingSub.next_plan_tier} code for Chutes user ${existingSub.chutes_user_id}:`, redeemResult)
+          } catch (redeemError) {
+            console.error('[Webhook] Failed to redeem code after downgrade:', redeemError)
+          }
+        }
       }
     } else if (existingSub.next_plan_tier) {
       // === UPGRADE: proration payment succeeded → apply new tier ===
@@ -212,6 +222,16 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
         console.error('[Webhook] Failed to apply plan change:', updateError)
       } else {
         console.log(`[Webhook] Plan upgraded to ${existingSub.next_plan_tier} for user ${userId}`)
+
+        // Redeem new tier code for existing Chutes account
+        if (existingSub.chutes_user_id && existingSub.next_plan_tier) {
+          try {
+            const redeemResult = await createAndRedeemCode(existingSub.chutes_user_id, existingSub.next_plan_tier)
+            console.log(`[Webhook] Redeemed ${existingSub.next_plan_tier} code for Chutes user ${existingSub.chutes_user_id}:`, redeemResult)
+          } catch (redeemError) {
+            console.error('[Webhook] Failed to redeem code after upgrade:', redeemError)
+          }
+        }
       }
     } else {
       // Normal renewal — just update next_billing_date if available
@@ -230,18 +250,11 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
     return
   }
 
-  const isProduction = process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode'
-
   let chutesData: { userId: string; apiKey: string; fingerprint: string } | null = null
 
-  if (isProduction) {
-    const chutesAccount = await createChutesAccount(userId, customerEmail || '')
-    await createAndRedeemCode(chutesAccount.userId, tier)
-    chutesData = chutesAccount
-  } else {
-    const chutesAccount = await createChutesAccount(userId, customerEmail || '')
-    chutesData = chutesAccount
-  }
+  const chutesAccount = await createChutesAccount(userId, customerEmail || '')
+  await createAndRedeemCode(chutesAccount.userId, tier)
+  chutesData = chutesAccount
 
   const expiresAt = data.expires_at || data.next_billing_date
   const nextBillingDate = data.next_billing_date

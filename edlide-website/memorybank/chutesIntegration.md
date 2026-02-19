@@ -165,17 +165,22 @@ alternatively you do not need to use the API key that's given when the account i
 
 ---
 
-## Как будет работать новая система:
+## Как работает система (актуальная версия от 19.02.2026):
 
 1. Пользователь регистрируется на сайте
 2. Пользователь оплачивает подписку через Dodo Payments
-3. Webhook получает успешный платёж
+3. Webhook получает успешный платёж (payment.succeeded)
 4. На сервере создаём Chutes аккаунт через Partner API (/users POST)
-5. Создаём код подписки (/codes POST) и редием его (/codes/redeem POST) (Критически важная информация делаем redim только в production для тестов в началае мы просто создаем аккаунт получаем api ключ к определенному пользователю)
+5. Создаём код подписки (/codes POST) и ВСЕГДА редимим его (/codes/redeem POST)
 6. Сохраняем Chutes API ключ (зашифрованный) в базу данных Supabase
 7. При запросах к AI - используем API ключ пользователя из базы
 
-Примечание: Критически важная информация делаем redim только в production для тестов в началае мы просто создаем аккаунт получаем api ключ к определенному пользователю
+**При смене плана (upgrade/downgrade):**
+8. Webhook получает payment.succeeded для upgrade или renewal для downgrade
+9. Обновляем plan_tier в subscriptions таблице
+10. Создаём новый код подписки нового тира (/codes POST)
+11. Redeem новый код для существующего chutes_user_id (/codes/redeem POST)
+12. Квота Chutes автоматически обновляется до нового тира
 
 ---
 
@@ -259,8 +264,9 @@ CHUTES_PARTNER_API_KEY=ide_qhp
 
 #### Важно:
 
-- **test_mode**: Chutes аккаунт создаётся, но код подписки НЕ редимится (только в production)
-- **live_mode**: Полный цикл - создание аккаунта + redeem кода
+- ~~**test_mode**: Chutes аккаунт создаётся, но код подписки НЕ редимится (только в production)~~ **УСТАРЕЛО**
+- ~~**live_mode**: Полный цикл - создание аккаунта + redeem кода~~ **УСТАРЕЛО**
+- **С 19.02.2026**: Redeem ВСЕГДА выполняется после успешной оплаты (и в test_mode, и в live_mode)
 
 ---
 
@@ -369,6 +375,55 @@ const chutesApiKey = TokenEncryption.decrypt(
 ```
 - ✅ Никакого шифрования - ключ хранится как есть
 - ✅ Автоматическое создание аккаунта при оплате
+
+---
+
+## Изменения от 19.02.2026 — Redeem всегда + Redeem при смене плана
+
+### Что изменилось:
+
+**Файл: `src/app/api/webhooks/dodo/route.ts`**
+
+#### 1. Убрана проверка `isProduction` для новых подписок
+- **До**: redeem кода только в `live_mode`, в `test_mode` — только createChutesAccount
+- **После**: ВСЕГДА createChutesAccount + createAndRedeemCode, в любом environment
+- Причина: без redeem Chutes аккаунт не получает квоту — API запросы не работают
+
+#### 2. Redeem при upgrade (proration payment.succeeded)
+- Когда webhook получает `payment.succeeded` для уже активной подписки с `next_plan_tier` (без `downgrade_at`) — это upgrade
+- После обновления `plan_tier` в БД → вызывается `createAndRedeemCode(chutes_user_id, next_plan_tier)`
+- Квота Chutes обновляется до нового тира
+
+#### 3. Redeem при scheduled downgrade (renewal payment.succeeded)
+- Когда webhook получает `payment.succeeded` для подписки с `next_plan_tier` + `downgrade_at` — это renewal после запланированного downgrade
+- После обновления `plan_tier` в БД → вызывается `createAndRedeemCode(chutes_user_id, next_plan_tier)`
+- Квота Chutes понижается до нового тира
+
+#### 4. Добавлен `chutes_user_id` в select existingSub
+- Запрос теперь включает `chutes_user_id` чтобы знать какому Chutes аккаунту делать redeem при смене плана
+
+### Логика redeem при смене плана:
+
+```
+payment.succeeded webhook
+  ↓
+Проверяем existingSub (с chutes_user_id)
+  ↓
+Если next_plan_tier + downgrade_at → scheduled downgrade renewal
+  → Обновляем plan_tier в БД
+  → createAndRedeemCode(chutes_user_id, new_tier)
+  ↓
+Если next_plan_tier (без downgrade_at) → upgrade proration
+  → Обновляем plan_tier в БД
+  → createAndRedeemCode(chutes_user_id, new_tier)
+  ↓
+Иначе → normal renewal (без redeem)
+```
+
+### Важно:
+- Все redeem обёрнуты в try/catch — если Chutes API упадёт, подписка в БД всё равно обновится
+- Ошибки redeem логируются но не блокируют обработку webhook
+- `createAndRedeemCode()` создаёт код и сразу редимит его — перезаписывает tier/quota на Chutes стороне
 
 ---
 
