@@ -48,6 +48,13 @@ export function useSupabaseAuth() {
     const supabase = getSupabaseClient()
     
     const getSession = async () => {
+      // On reset-password page — skip getSession, let onAuthStateChange handle it
+      // to avoid setting user from a recovery session
+      if (typeof window !== 'undefined' &&
+          window.location.pathname === '/account/reset-password') {
+        setIsLoading(false)
+        return
+      }
       const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
       setUser(session?.user ?? null)
@@ -56,7 +63,10 @@ export function useSupabaseAuth() {
 
     getSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // PASSWORD_RECOVERY must not establish a user session globally —
+      // the reset-password page handles it in isolation
+      if (event === 'PASSWORD_RECOVERY') return
       setSession(session)
       setUser(session?.user ?? null)
       setIsLoading(false)

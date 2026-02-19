@@ -1,14 +1,28 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        storageKey: 'edlide-supabase-session',
+      },
+    }
+  )
+}
+
 function ResetPasswordContent() {
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   const [isLoading, setIsLoading] = useState(true)
@@ -17,41 +31,32 @@ function ResetPasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  // true = got PASSWORD_RECOVERY event → show form
+  // false + not loading = invalid/expired link
   const [isValidSession, setIsValidSession] = useState(false)
 
-  const recoveryToken = searchParams.get('access_token')
-  const recoveryType = searchParams.get('type')
-
   useEffect(() => {
-    const exchangeTokenForSession = async () => {
-      if (recoveryToken && recoveryType === 'recovery') {
-        try {
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-          const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: {
-              storageKey: 'edlide-supabase-session',
-            }
-          })
+    const supabase = getSupabase()
 
-          const { error } = await supabase.auth.exchangeCodeForSession(recoveryToken)
-          
-          if (error) {
-            console.error('Failed to exchange recovery token:', error)
-            setIsValidSession(false)
-          } else {
-            setIsValidSession(true)
-          }
-        } catch (err) {
-          console.error('Error exchanging recovery token:', err)
-          setIsValidSession(false)
-        }
+    // Supabase automatically parses the hash fragment and fires onAuthStateChange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidSession(true)
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    }
+      // SIGNED_IN intentionally ignored — do not redirect away from reset form
+    })
 
-    exchangeTokenForSession()
-  }, [recoveryToken, recoveryType])
+    // Fallback: if no event fires within 3s, treat as invalid link
+    const timeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 3000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
+  }, [router])
 
   const passwordRequirements = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -66,45 +71,35 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError(null)
 
     if (!allRequirementsMet) {
       setError('Password does not meet all requirements')
-      setIsLoading(false)
       return
     }
 
     if (!passwordsMatch) {
       setError('Passwords do not match')
-      setIsLoading(false)
       return
     }
 
+    setIsLoading(true)
+
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          storageKey: 'edlide-supabase-session',
-        }
-      })
+      const supabase = getSupabase()
+      const { error } = await supabase.auth.updateUser({ password })
 
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      })
+      if (error) throw error
 
-      if (error) {
-        throw error
-      }
+      // Sign out so the recovery session doesn't persist globally
+      await supabase.auth.signOut()
 
       setSuccess(true)
       setTimeout(() => {
         router.push('/account')
       }, 2000)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to reset password'
-      setError(errorMessage)
+      setError(err instanceof Error ? err.message : 'Failed to reset password')
     } finally {
       setIsLoading(false)
     }
@@ -157,10 +152,7 @@ function ResetPasswordContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Button
-            onClick={() => router.push('/account')}
-            className="w-full"
-          >
+          <Button onClick={() => router.push('/account')} className="w-full">
             Go to Sign In
           </Button>
         </CardContent>
@@ -172,9 +164,7 @@ function ResetPasswordContent() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Set New Password</CardTitle>
-        <CardDescription>
-          Enter a new password for your account
-        </CardDescription>
+        <CardDescription>Enter a new password for your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
