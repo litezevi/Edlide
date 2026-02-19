@@ -5,6 +5,19 @@ import { TokenEncryption } from '@/lib/token-encryption'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+// Request limits per plan tier (per day)
+const TIER_REQUEST_LIMITS: Record<string, number> = {
+  'base': 300,
+  'plus': 2000,
+  'pro': 5000,
+}
+
+// Get today's date in UTC as YYYY-MM-DD
+function getTodayUTC(): string {
+  const now = new Date()
+  return now.toISOString().split('T')[0]
+}
+
 export async function POST(request: NextRequest) {
   try {
     // 1. Получаем токен из Authorization header
@@ -142,6 +155,31 @@ export async function POST(request: NextRequest) {
     const planTier = subscription.plan_tier
     console.log(`[AI Proxy] Using Chutes API key for plan: ${planTier}`)
 
+    // 3.5 Check daily request limit BEFORE making the AI call
+    const dailyLimit = TIER_REQUEST_LIMITS[planTier] || 300
+    const todayUTC = getTodayUTC()
+
+    const { data: usageData } = await adminSupabase
+      .from('request_usage')
+      .select('request_count')
+      .eq('user_id', user.id)
+      .eq('request_date', todayUTC)
+      .maybeSingle()
+
+    const currentUsage = usageData?.request_count || 0
+
+    if (currentUsage >= dailyLimit) {
+      console.log(`[AI Proxy] Daily limit reached for user ${user.id}: ${currentUsage}/${dailyLimit}`)
+      return NextResponse.json(
+        {
+          error: `Daily request limit reached (${currentUsage}/${dailyLimit}). Resets at 00:00 UTC.`,
+          code: 'DAILY_LIMIT_REACHED',
+          usage: { used: currentUsage, limit: dailyLimit },
+        },
+        { status: 429 }
+      )
+    }
+
     // 4. Получаем тело запроса от IDE (OpenAI-compatible формат)
     const requestBody = await request.json()
 
@@ -184,7 +222,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 6. Возвращаем потоковый ответ от Supabase
+    // 6. Increment request counter AFTER successful AI response
+    try {
+      const { data: newCount } = await adminSupabase.rpc('increment_request_count', {
+        p_user_id: user.id,
+        p_date: todayUTC,
+      })
+      console.log(`[AI Proxy] Request count incremented for user ${user.id}: ${newCount}/${dailyLimit}`)
+    } catch (incrementError) {
+      // Don't block the response if increment fails
+      console.error('[AI Proxy] Failed to increment request count:', incrementError)
+    }
+
+    // 7. Возвращаем потоковый ответ от Supabase
     const responseHeaders = new Headers()
     responseHeaders.set('Content-Type', 'application/json')
     responseHeaders.set('x-edlide-proxy', 'v1')

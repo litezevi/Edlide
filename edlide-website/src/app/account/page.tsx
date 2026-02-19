@@ -481,6 +481,8 @@ function AccountContent() {
     downgradeAt: string
   } | null>(null)
   const [cancellingDowngrade, setCancellingDowngrade] = useState(false)
+  const [requestsUsed, setRequestsUsed] = useState<number>(0)
+  const [requestsLoading, setRequestsLoading] = useState(true)
 
   const tierDisplayNames: Record<string, string> = {
     'base': 'Starter Plan',
@@ -493,6 +495,24 @@ function AccountContent() {
     'plus': '$19.99/mo',
     'pro': '$34.99/mo',
   }
+
+  const loadRequestUsage = useCallback(async () => {
+    if (!user) {
+      setRequestsLoading(false)
+      return
+    }
+
+    const todayUTC = new Date().toISOString().split('T')[0]
+    const { data } = await supabase
+      .from('request_usage')
+      .select('request_count')
+      .eq('user_id', user.id)
+      .eq('request_date', todayUTC)
+      .maybeSingle()
+
+    setRequestsUsed(data?.request_count || 0)
+    setRequestsLoading(false)
+  }, [user])
 
   const loadSubscription = useCallback(async () => {
     if (!user) {
@@ -538,8 +558,9 @@ function AccountContent() {
   useEffect(() => {
     if (user) {
       loadSubscription()
+      loadRequestUsage()
     }
-  }, [user, loadSubscription])
+  }, [user, loadSubscription, loadRequestUsage])
 
   const handleSignOut = async () => {
     try {
@@ -731,6 +752,71 @@ function AccountContent() {
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">
                   You don&apos;t have an active subscription
+                </p>
+                <Button onClick={handleManageSubscription}>
+                  View Plans
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Requests Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Requests</CardTitle>
+            <CardDescription>
+              Your daily API request usage
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {subscriptionLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : subscriptionTier ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-muted">
+                  <p className="font-medium text-lg">
+                    Included in your {tierDisplayNames[subscriptionTier] || subscriptionTier}
+                  </p>
+                </div>
+
+                {/* Usage progress bar */}
+                {(() => {
+                  const plan = PLANS.find(p => p.tier === subscriptionTier)
+                  const limit = plan?.requestsPerDay || 300
+                  const used = requestsLoading ? 0 : requestsUsed
+                  const percentage = Math.min((used / limit) * 100, 100)
+
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {requestsLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin inline-block mr-1" />
+                          ) : (
+                            <>{used.toLocaleString()} / {limit.toLocaleString()} used today</>
+                          )}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Resets at 00:00 UTC
+                        </span>
+                      </div>
+                      <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-purple-600 transition-all duration-500 ease-out"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  Subscribe to a plan to get API requests
                 </p>
                 <Button onClick={handleManageSubscription}>
                   View Plans
