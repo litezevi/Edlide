@@ -11,16 +11,20 @@ const supabase = createClient(
 const CHUTES_PARTNER_API_URL = 'https://partner-api.chutes.ai'
 const CHUTES_PARTNER_API_KEY = process.env.CHUTES_PARTNER_API_KEY!
 
+const STARTER_PRODUCT_ID = process.env.EDLIDE_STARTER_PLAN_PRODUCT_ID!
+const PRO_PRODUCT_ID = process.env.EDLIDE_PRO_PLAN_PRODUCT_ID!
+const ULTRA_PRODUCT_ID = process.env.EDLIDE_ULTRA_PLAN_PRODUCT_ID!
+
 const PLAN_TIER_MAP: Record<string, string> = {
-  'pdt_0NX7tjKSxW7Dn1oGBdMbE': 'base',
-  'pdt_0NX7uDmO6LQ1tZPva4I5A': 'plus',
-  'pdt_0NX7uQKJc1elOk1df38G7': 'pro',
+  [STARTER_PRODUCT_ID]: 'base',
+  [PRO_PRODUCT_ID]: 'plus',
+  [ULTRA_PRODUCT_ID]: 'pro',
 }
 
 const DODO_PRODUCT_ID_MAP: Record<string, string> = {
-  'prod_starter_monthly': 'pdt_0NX7tjKSxW7Dn1oGBdMbE',
-  'prod_pro_monthly': 'pdt_0NX7uDmO6LQ1tZPva4I5A',
-  'prod_ultra_monthly': 'pdt_0NX7uQKJc1elOk1df38G7',
+  'prod_starter_monthly': STARTER_PRODUCT_ID,
+  'prod_pro_monthly': PRO_PRODUCT_ID,
+  'prod_ultra_monthly': ULTRA_PRODUCT_ID,
 }
 
 const PLAN_QUOTA_MAP: Record<string, number> = {

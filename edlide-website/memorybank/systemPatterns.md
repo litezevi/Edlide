@@ -34,6 +34,13 @@
 │   │       │   ├── signup/route.ts
 │   │       │   ├── signin/route.ts
 │   │       │   └── refresh/route.ts
+│   │       ├── payments/       # Dodo Payments API
+│   │       │   ├── create-checkout/route.ts   # Create checkout via SDK
+│   │       │   ├── change-plan/route.ts       # Upgrade/downgrade plan
+│   │       │   ├── preview-change-plan/route.ts # Preview plan change
+│   │       │   └── cancel-downgrade/route.ts  # Cancel scheduled downgrade
+│   │       ├── webhooks/
+│   │       │   └── dodo/route.ts  # Dodo Payments webhook handler
 │   │       ├── chat/route.ts  # Chat completions API
 │   │       └── download/route.ts  # R2 presigned URL generation
 │   ├── components/            # Reusable UI components

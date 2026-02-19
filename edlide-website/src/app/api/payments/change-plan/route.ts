@@ -13,23 +13,32 @@ const dodoClient = new DodoPayments({
 })
 
 const PLAN_TIER_MAP: Record<string, string> = {
-  'pdt_0NX7tjKSxW7Dn1oGBdMbE': 'base',
-  'pdt_0NX7uDmO6LQ1tZPva4I5A': 'plus',
-  'pdt_0NX7uQKJc1elOk1df38G7': 'pro',
+  [process.env.EDLIDE_STARTER_PLAN_PRODUCT_ID!]: 'base',
+  [process.env.EDLIDE_PRO_PLAN_PRODUCT_ID!]: 'plus',
+  [process.env.EDLIDE_ULTRA_PLAN_PRODUCT_ID!]: 'pro',
+}
+
+const PRODUCT_ALIAS_MAP: Record<string, string> = {
+  'prod_starter_monthly': process.env.EDLIDE_STARTER_PLAN_PRODUCT_ID!,
+  'prod_pro_monthly': process.env.EDLIDE_PRO_PLAN_PRODUCT_ID!,
+  'prod_ultra_monthly': process.env.EDLIDE_ULTRA_PLAN_PRODUCT_ID!,
 }
 
 const TIER_ORDER = ['base', 'plus', 'pro']
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, newProductId } = await req.json()
+    const { userId, newProductId: rawProductId } = await req.json()
 
-    if (!userId || !newProductId) {
+    if (!userId || !rawProductId) {
       return NextResponse.json(
         { error: 'Missing required fields: userId, newProductId' },
         { status: 400 }
       )
     }
+
+    // Resolve alias (prod_starter_monthly) to real Dodo product ID (pdt_*)
+    const newProductId = PRODUCT_ALIAS_MAP[rawProductId] || rawProductId
 
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')

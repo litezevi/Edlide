@@ -50,11 +50,7 @@ const tiers: PricingTier[] = [
   },
 ]
 
-const PRODUCT_IDS: Record<string, string> = {
-  'prod_starter_monthly': 'pdt_0NX7tjKSxW7Dn1oGBdMbE',
-  'prod_pro_monthly': 'pdt_0NX7uDmO6LQ1tZPva4I5A',
-  'prod_ultra_monthly': 'pdt_0NX7uQKJc1elOk1df38G7',
-}
+
 
 const TIER_ORDER = ['base', 'plus', 'pro']
 
@@ -123,7 +119,6 @@ export default function PricingPage() {
         },
         body: JSON.stringify({
           productId: tier.productId,
-          dodoProductId: PRODUCT_IDS[tier.productId],
           userId: user.id,
           userEmail: user.email,
         }),

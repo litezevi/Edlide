@@ -1,59 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
+import DodoPayments from 'dodopayments'
 
-const DODO_API_URL = process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' 
-  ? 'https://dodopayments.com' 
-  : 'https://test.dodopayments.com'
+const dodoClient = new DodoPayments({
+  bearerToken: process.env.DODO_PAYMENTS_API_KEY,
+  environment: (process.env.DODO_PAYMENTS_ENVIRONMENT as 'test_mode' | 'live_mode') || 'test_mode',
+})
 
 const PRODUCT_IDS: Record<string, string> = {
-  'prod_starter_monthly': 'pdt_0NX7tjKSxW7Dn1oGBdMbE',
-  'prod_pro_monthly': 'pdt_0NX7uDmO6LQ1tZPva4I5A',
-  'prod_ultra_monthly': 'pdt_0NX7uQKJc1elOk1df38G7',
+  'prod_starter_monthly': process.env.EDLIDE_STARTER_PLAN_PRODUCT_ID!,
+  'prod_pro_monthly': process.env.EDLIDE_PRO_PLAN_PRODUCT_ID!,
+  'prod_ultra_monthly': process.env.EDLIDE_ULTRA_PLAN_PRODUCT_ID!,
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { productId, dodoProductId, userId, userEmail } = await req.json()
+    const { productId, userId, userEmail } = await req.json()
 
-    if (!dodoProductId || !userId || !userEmail) {
+    if (!productId || !userId || !userEmail) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    const response = await fetch(`${DODO_API_URL}/checkouts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
-      },
-      body: JSON.stringify({
-        product_cart: [{ product_id: dodoProductId, quantity: 1 }],
-        customer: {
-          email: userEmail,
-          metadata: {
-            user_id: userId,
-          },
-        },
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?subscription=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?cancelled=true`,
-        metadata: {
-          user_id: userId,
-          product_id: productId,
-        },
-      }),
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('Dodo Payments error:', error)
+    const resolvedProductId = PRODUCT_IDS[productId]
+    if (!resolvedProductId) {
       return NextResponse.json(
-        { error: 'Failed to create checkout session' },
-        { status: 500 }
+        { error: 'Invalid product ID' },
+        { status: 400 }
       )
     }
 
-    const session = await response.json()
+    const session = await dodoClient.checkoutSessions.create({
+      product_cart: [{ product_id: resolvedProductId, quantity: 1 }],
+      customer: {
+        email: userEmail,
+      },
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?subscription=success`,
+      metadata: {
+        user_id: userId,
+        product_id: productId,
+      },
+    })
 
     return NextResponse.json({
       checkoutUrl: session.checkout_url,

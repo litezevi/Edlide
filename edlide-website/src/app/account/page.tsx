@@ -27,7 +27,7 @@ const PLANS: PlanOption[] = [
     price: 6.99,
     requestsPerDay: 300,
     tier: 'base',
-    dodoProductId: 'pdt_0NX7tjKSxW7Dn1oGBdMbE',
+    dodoProductId: 'prod_starter_monthly',
   },
   {
     id: 'pro',
@@ -35,7 +35,7 @@ const PLANS: PlanOption[] = [
     price: 19.99,
     requestsPerDay: 2000,
     tier: 'plus',
-    dodoProductId: 'pdt_0NX7uDmO6LQ1tZPva4I5A',
+    dodoProductId: 'prod_pro_monthly',
   },
   {
     id: 'ultra',
@@ -43,7 +43,7 @@ const PLANS: PlanOption[] = [
     price: 34.99,
     requestsPerDay: 5000,
     tier: 'pro',
-    dodoProductId: 'pdt_0NX7uQKJc1elOk1df38G7',
+    dodoProductId: 'prod_ultra_monthly',
   },
 ]
 

@@ -461,3 +461,57 @@ Redeem происходит ТОЛЬКО внутри обработчика `pa
 
 ---
 
+## Dodo Payments Production Mode (19.02.2026)
+
+### Что изменилось:
+
+1. **`DODO_PAYMENTS_ENVIRONMENT`** переключён с `test_mode` на `live_mode`
+2. **Product IDs вынесены в env переменные** — больше не захардкожены в коде:
+   - `EDLIDE_STARTER_PLAN_PRODUCT_ID` → `pdt_0NX7tjKSxW7Dn1oGBdMbE`
+   - `EDLIDE_PRO_PLAN_PRODUCT_ID` → `pdt_0NX7uDmO6LQ1tZPva4I5A`
+   - `EDLIDE_ULTRA_PLAN_PRODUCT_ID` → `pdt_0NX7uQKJc1elOk1df38G7`
+3. **`create-checkout/route.ts` переписан на SDK** — raw `fetch` к `dodopayments.com/checkouts` давал `Method Not Allowed` (это frontend URL). Теперь использует `dodoClient.checkoutSessions.create()` как все остальные routes.
+4. **Клиенты передают алиасы, не реальные ID** — `pricing/page.tsx` и `account/page.tsx` отправляют `prod_starter_monthly` и т.д. Серверные routes резолвят через `PRODUCT_ALIAS_MAP` / `PRODUCT_IDS`.
+
+### Архитектура product IDs:
+
+```
+Клиент (browser)                    Сервер (API route)
+─────────────────                   ──────────────────
+prod_starter_monthly  ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7tjKSxW7Dn1oGBdMbE
+prod_pro_monthly      ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7uDmO6LQ1tZPva4I5A
+prod_ultra_monthly    ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7uQKJc1elOk1df38G7
+```
+
+### Все 4 серверных route теперь используют DodoPayments SDK:
+
+| Файл | SDK метод | Назначение |
+|------|-----------|-----------|
+| `create-checkout/route.ts` | `dodoClient.checkoutSessions.create()` | Создание checkout сессии |
+| `change-plan/route.ts` | `dodoClient.subscriptions.changePlan()` | Смена плана |
+| `preview-change-plan/route.ts` | `dodoClient.subscriptions.previewChangePlan()` | Превью смены плана |
+| `webhooks/dodo/route.ts` | `dodoClient.webhooks.unwrap()` | Верификация webhook |
+
+### Vercel env переменные для production:
+
+```
+DODO_PAYMENTS_API_KEY=<production key>
+DODO_PAYMENTS_ENVIRONMENT=live_mode
+DODO_PAYMENTS_WEBHOOK_SECRET=<production webhook secret>
+EDLIDE_STARTER_PLAN_PRODUCT_ID=pdt_0NX7tjKSxW7Dn1oGBdMbE
+EDLIDE_PRO_PLAN_PRODUCT_ID=pdt_0NX7uDmO6LQ1tZPva4I5A
+EDLIDE_ULTRA_PLAN_PRODUCT_ID=pdt_0NX7uQKJc1elOk1df38G7
+```
+
+### Файлы изменённые:
+
+- `.env.local` — `live_mode` + product ID env переменные
+- `src/app/api/payments/create-checkout/route.ts` — переписан на SDK, убран raw fetch
+- `src/app/api/payments/change-plan/route.ts` — `PLAN_TIER_MAP` из env, добавлен `PRODUCT_ALIAS_MAP`
+- `src/app/api/payments/preview-change-plan/route.ts` — то же
+- `src/app/api/webhooks/dodo/route.ts` — `PLAN_TIER_MAP` и `DODO_PRODUCT_ID_MAP` из env
+- `src/app/pricing/page.tsx` — убран `PRODUCT_IDS`, передаёт только `productId` алиас
+- `src/app/account/page.tsx` — `dodoProductId` = алиасы (`prod_*`) вместо `pdt_*`
+
+---
+
