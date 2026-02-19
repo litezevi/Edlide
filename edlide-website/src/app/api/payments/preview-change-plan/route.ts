@@ -24,6 +24,14 @@ const TIER_DISPLAY_NAMES: Record<string, string> = {
   'pro': 'Ultra',
 }
 
+const TIER_PRICES: Record<string, number> = {
+  'base': 6.99,
+  'plus': 19.99,
+  'pro': 34.99,
+}
+
+const TIER_ORDER = ['base', 'plus', 'pro']
+
 export async function POST(req: NextRequest) {
   try {
     const { userId, newProductId } = await req.json()
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
-      .select('subscription_id, plan_tier, status')
+      .select('subscription_id, plan_tier, status, next_billing_date')
       .eq('user_id', userId)
       .eq('status', 'active')
       .single()
@@ -71,29 +79,47 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const preview = await dodoClient.subscriptions.previewChangePlan(
-      subscription.subscription_id,
-      {
-        product_id: newProductId,
-        quantity: 1,
-        proration_billing_mode: 'difference_immediately',
-      }
-    )
-
-    const tierOrder = ['base', 'plus', 'pro']
-    const currentIndex = tierOrder.indexOf(subscription.plan_tier)
-    const newIndex = tierOrder.indexOf(newTier)
+    const currentIndex = TIER_ORDER.indexOf(subscription.plan_tier)
+    const newIndex = TIER_ORDER.indexOf(newTier)
     const isUpgrade = newIndex > currentIndex
 
-    return NextResponse.json({
-      preview,
-      currentTier: subscription.plan_tier,
-      currentTierName: TIER_DISPLAY_NAMES[subscription.plan_tier] || subscription.plan_tier,
-      newTier,
-      newTierName: TIER_DISPLAY_NAMES[newTier] || newTier,
-      isUpgrade,
-      subscriptionId: subscription.subscription_id,
-    })
+    if (isUpgrade) {
+      // Upgrade: call Dodo preview for proration amount
+      const preview = await dodoClient.subscriptions.previewChangePlan(
+        subscription.subscription_id,
+        {
+          product_id: newProductId,
+          quantity: 1,
+          proration_billing_mode: 'difference_immediately',
+        }
+      )
+
+      return NextResponse.json({
+        preview,
+        currentTier: subscription.plan_tier,
+        currentTierName: TIER_DISPLAY_NAMES[subscription.plan_tier] || subscription.plan_tier,
+        newTier,
+        newTierName: TIER_DISPLAY_NAMES[newTier] || newTier,
+        isUpgrade: true,
+        subscriptionId: subscription.subscription_id,
+      })
+    } else {
+      // Downgrade: no charge today, effective at next billing date
+      return NextResponse.json({
+        preview: null,
+        currentTier: subscription.plan_tier,
+        currentTierName: TIER_DISPLAY_NAMES[subscription.plan_tier] || subscription.plan_tier,
+        newTier,
+        newTierName: TIER_DISPLAY_NAMES[newTier] || newTier,
+        isUpgrade: false,
+        isDowngrade: true,
+        noChargeToday: true,
+        downgradeAt: subscription.next_billing_date,
+        newPlanPrice: TIER_PRICES[newTier],
+        currentPlanPrice: TIER_PRICES[subscription.plan_tier],
+        subscriptionId: subscription.subscription_id,
+      })
+    }
   } catch (error) {
     console.error('Preview change plan error:', error)
     return NextResponse.json(

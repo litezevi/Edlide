@@ -18,6 +18,8 @@ const PLAN_TIER_MAP: Record<string, string> = {
   'pdt_0NX7uQKJc1elOk1df38G7': 'pro',
 }
 
+const TIER_ORDER = ['base', 'plus', 'pro']
+
 export async function POST(req: NextRequest) {
   try {
     const { userId, newProductId } = await req.json()
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
-      .select('subscription_id, plan_tier, status')
+      .select('subscription_id, plan_tier, status, next_billing_date')
       .eq('user_id', userId)
       .eq('status', 'active')
       .single()
@@ -65,35 +67,79 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Mark pending plan change before calling Dodo
-    await supabase
-      .from('subscriptions')
-      .update({
-        next_plan_tier: newTier,
-        plan_change_date: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+    const currentIndex = TIER_ORDER.indexOf(subscription.plan_tier)
+    const newIndex = TIER_ORDER.indexOf(newTier)
+    const isUpgrade = newIndex > currentIndex
+
+    if (isUpgrade) {
+      // === UPGRADE: immediate change with difference_immediately ===
+      await supabase
+        .from('subscriptions')
+        .update({
+          next_plan_tier: newTier,
+          plan_change_date: new Date().toISOString(),
+          downgrade_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+
+      await dodoClient.subscriptions.changePlan(
+        subscription.subscription_id,
+        {
+          product_id: newProductId,
+          quantity: 1,
+          proration_billing_mode: 'difference_immediately',
+          on_payment_failure: 'prevent_change',
+        }
+      )
+
+      console.log(`[Change Plan] UPGRADE: User ${userId}: ${subscription.plan_tier} -> ${newTier}`)
+
+      return NextResponse.json({
+        success: true,
+        status: 'processing',
+        type: 'upgrade',
+        subscriptionId: subscription.subscription_id,
+        previousTier: subscription.plan_tier,
+        newTier,
       })
-      .eq('user_id', userId)
+    } else {
+      // === DOWNGRADE: scheduled — do NOT call Dodo now ===
+      // We only record the intent in DB. When the current period ends and
+      // Dodo sends a renewal payment.succeeded webhook, we call changePlan
+      // at that point so the NEXT billing is at the lower price.
+      const downgradeAt = subscription.next_billing_date
 
-    await dodoClient.subscriptions.changePlan(
-      subscription.subscription_id,
-      {
-        product_id: newProductId,
-        quantity: 1,
-        proration_billing_mode: 'difference_immediately',
-        on_payment_failure: 'prevent_change',
+      if (!downgradeAt) {
+        return NextResponse.json(
+          { error: 'Cannot schedule downgrade: no next billing date found' },
+          { status: 400 }
+        )
       }
-    )
 
-    console.log(`[Change Plan] User ${userId}: ${subscription.plan_tier} -> ${newTier}`)
+      // Mark scheduled downgrade in DB — do NOT change plan_tier, do NOT call Dodo
+      await supabase
+        .from('subscriptions')
+        .update({
+          next_plan_tier: newTier,
+          plan_change_date: new Date().toISOString(),
+          downgrade_at: downgradeAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
 
-    return NextResponse.json({
-      success: true,
-      status: 'processing',
-      subscriptionId: subscription.subscription_id,
-      previousTier: subscription.plan_tier,
-      newTier,
-    })
+      console.log(`[Change Plan] DOWNGRADE scheduled: User ${userId}: ${subscription.plan_tier} -> ${newTier} effective ${downgradeAt}`)
+
+      return NextResponse.json({
+        success: true,
+        status: 'scheduled',
+        type: 'downgrade',
+        subscriptionId: subscription.subscription_id,
+        previousTier: subscription.plan_tier,
+        newTier,
+        downgradeAt,
+      })
+    }
   } catch (error) {
     console.error('Change plan error:', error)
 

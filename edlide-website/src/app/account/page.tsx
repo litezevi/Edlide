@@ -8,7 +8,7 @@ import { SupabaseSignInCard } from '@/components/auth/supabase-signin-button'
 import { SupabaseSignUpCard as SupabaseSignUpCardComponent } from '@/components/auth/supabase-signup-button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-import { LogOut, X, Loader2, AlertTriangle } from 'lucide-react'
+import { LogOut, X, Loader2, AlertTriangle, CalendarClock } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 interface PlanOption {
@@ -55,6 +55,12 @@ const TIER_DISPLAY_NAMES: Record<string, string> = {
 
 const TIER_ORDER = ['base', 'plus', 'pro']
 
+const TIER_PRICES: Record<string, number> = {
+  'base': 6.99,
+  'plus': 19.99,
+  'pro': 34.99,
+}
+
 interface PreviewSummary {
   currency: string
   total_amount: number
@@ -73,10 +79,23 @@ interface PreviewImmediateCharge {
 interface PreviewData {
   preview: {
     immediate_charge: PreviewImmediateCharge
-  }
+  } | null
   currentTierName: string
   newTierName: string
   isUpgrade: boolean
+  isDowngrade?: boolean
+  noChargeToday?: boolean
+  downgradeAt?: string
+  newPlanPrice?: number
+  currentPlanPrice?: number
+}
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 function ChangePlanModal({
@@ -85,12 +104,14 @@ function ChangePlanModal({
   userId,
   currentTier,
   onPlanChanged,
+  scheduledDowngrade,
 }: {
   isOpen: boolean
   onClose: () => void
   userId: string
   currentTier: string
   onPlanChanged: () => void
+  scheduledDowngrade?: { nextTier: string; downgradeAt: string } | null
 }) {
   const [selectedPlan, setSelectedPlan] = useState<PlanOption | null>(null)
   const [previewData, setPreviewData] = useState<PreviewData | null>(null)
@@ -99,6 +120,8 @@ function ChangePlanModal({
   const [changingPlan, setChangingPlan] = useState(false)
   const [changeError, setChangeError] = useState<string | null>(null)
   const [changeSuccess, setChangeSuccess] = useState(false)
+  const [changeType, setChangeType] = useState<'upgrade' | 'downgrade' | null>(null)
+  const [downgradeEffectiveDate, setDowngradeEffectiveDate] = useState<string | null>(null)
 
   const resetState = useCallback(() => {
     setSelectedPlan(null)
@@ -108,6 +131,8 @@ function ChangePlanModal({
     setChangingPlan(false)
     setChangeError(null)
     setChangeSuccess(false)
+    setChangeType(null)
+    setDowngradeEffectiveDate(null)
   }, [])
 
   useEffect(() => {
@@ -173,11 +198,15 @@ function ChangePlanModal({
         return
       }
 
+      setChangeType(data.type || (previewData?.isUpgrade ? 'upgrade' : 'downgrade'))
+      if (data.downgradeAt) {
+        setDowngradeEffectiveDate(data.downgradeAt)
+      }
       setChangeSuccess(true)
       setTimeout(() => {
         onPlanChanged()
         onClose()
-      }, 2000)
+      }, 2500)
     } catch {
       setChangeError('Failed to change plan. Please try again.')
     } finally {
@@ -211,33 +240,55 @@ function ChangePlanModal({
         <div className="p-6">
           {changeSuccess ? (
             <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">Plan Change Initiated</h3>
-              <p className="text-muted-foreground text-sm">
-                Your plan is being updated. This may take a moment.
-              </p>
+              {changeType === 'downgrade' ? (
+                <>
+                  <CalendarClock className="h-10 w-10 text-primary mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-2">Plan Change Scheduled</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Your plan will change to {TIER_DISPLAY_NAMES[selectedPlan?.tier || ''] || selectedPlan?.name} on{' '}
+                    {downgradeEffectiveDate ? formatDate(downgradeEffectiveDate) : 'your next billing date'}.
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-2">
+                    You&apos;ll continue to enjoy your current plan until then.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-medium mb-2">Plan Change Initiated</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Your plan is being updated. This may take a moment.
+                  </p>
+                </>
+              )}
             </div>
           ) : !selectedPlan ? (
             /* Step 1: Select a plan */
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground mb-4">
                 Current plan: <span className="font-medium text-foreground">{TIER_DISPLAY_NAMES[currentTier] || currentTier}</span>
+                {scheduledDowngrade && (
+                  <span className="ml-2 text-xs text-amber-500">
+                    (Switching to {TIER_DISPLAY_NAMES[scheduledDowngrade.nextTier]} on {formatDate(scheduledDowngrade.downgradeAt)})
+                  </span>
+                )}
               </p>
               <div className="grid gap-3">
                 {PLANS.map((plan) => {
                   const planIndex = TIER_ORDER.indexOf(plan.tier)
                   const isCurrent = plan.tier === currentTier
-                  const isUpgrade = planIndex > currentPlanIndex
-                  const isDowngrade = planIndex < currentPlanIndex
+                  const isScheduledTarget = scheduledDowngrade?.nextTier === plan.tier
 
                   return (
                     <button
                       key={plan.id}
                       onClick={() => handleSelectPlan(plan)}
-                      disabled={isCurrent}
+                      disabled={isCurrent || isScheduledTarget}
                       className={`flex items-center justify-between p-4 rounded-lg border transition-all text-left ${
                         isCurrent
                           ? 'border-primary/50 bg-primary/5 cursor-default'
-                          : 'border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer'
+                          : isScheduledTarget
+                            ? 'border-amber-500/50 bg-amber-500/5 cursor-default'
+                            : 'border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer'
                       }`}
                     >
                       <div>
@@ -247,6 +298,17 @@ function ChangePlanModal({
                             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                               Current
                             </span>
+                          )}
+                          {isScheduledTarget && (
+                            <span className="text-xs bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">
+                              Scheduled
+                            </span>
+                          )}
+                          {!isCurrent && !isScheduledTarget && planIndex > currentPlanIndex && (
+                            <span className="text-xs text-muted-foreground">Upgrade</span>
+                          )}
+                          {!isCurrent && !isScheduledTarget && planIndex < currentPlanIndex && (
+                            <span className="text-xs text-muted-foreground">Downgrade</span>
                           )}
                         </div>
                         <span className="text-sm text-muted-foreground">
@@ -295,38 +357,67 @@ function ChangePlanModal({
 
               {previewData && (
                 <div className="space-y-4">
+                  <h3 className="text-base font-medium">
+                    Confirm Plan Change
+                  </h3>
+
                   {/* Plan change summary */}
                   <div className="p-4 bg-muted rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Current plan</span>
-                      <span className="font-medium">{previewData.currentTierName}</span>
+                      <span className="text-sm text-muted-foreground">Current Plan</span>
+                      <span className="font-medium">
+                        {previewData.currentTierName} (${TIER_PRICES[TIER_ORDER.find(t => TIER_DISPLAY_NAMES[t] === previewData.currentTierName) || ''] || '?'}/mo)
+                      </span>
                     </div>
                     <div className="flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">&darr;</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">New plan</span>
-                      <span className="font-medium">{previewData.newTierName}</span>
+                      <span className="text-sm text-muted-foreground">New Plan</span>
+                      <span className="font-medium">
+                        {previewData.newTierName} (${previewData.newPlanPrice || TIER_PRICES[TIER_ORDER.find(t => TIER_DISPLAY_NAMES[t] === previewData.newTierName) || ''] || '?'}/mo)
+                      </span>
                     </div>
                   </div>
 
-                  {/* Proration info */}
+                  {/* Proration / schedule info */}
                   <div className="p-4 border border-border rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        {previewData.isUpgrade
-                          ? 'You will be charged the current price difference now.'
-                          : 'Your downgraded plan will take effect next month.'}
-                      </p>
-                      {previewData.isUpgrade && previewData.preview?.immediate_charge?.summary && (
-                        <span className="text-sm font-semibold ml-4 whitespace-nowrap">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: previewData.preview.immediate_charge.summary.currency || 'USD',
-                          }).format(previewData.preview.immediate_charge.summary.total_amount / 100)}
-                        </span>
-                      )}
-                    </div>
+                    {previewData.isUpgrade ? (
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          You will be charged the price difference now.
+                        </p>
+                        {previewData.preview?.immediate_charge?.summary && (
+                          <span className="text-sm font-semibold ml-4 whitespace-nowrap">
+                            {new Intl.NumberFormat('en-US', {
+                              style: 'currency',
+                              currency: previewData.preview.immediate_charge.summary.currency || 'USD',
+                            }).format(previewData.preview.immediate_charge.summary.total_amount / 100)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">No charge today</span>
+                        </div>
+                        {previewData.downgradeAt && (
+                          <p className="text-sm text-muted-foreground">
+                            Your plan will change on{' '}
+                            <span className="font-medium text-foreground">{formatDate(previewData.downgradeAt)}</span>.
+                            {' '}Next bill on {formatDate(previewData.downgradeAt)} at the new rate
+                            {previewData.newPlanPrice && (
+                              <> (<span className="font-medium">${previewData.newPlanPrice}/mo</span>)</>
+                            )}.
+                          </p>
+                        )}
+                        {!previewData.downgradeAt && (
+                          <p className="text-sm text-muted-foreground">
+                            Your plan will change at the end of your current billing period at the new rate.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {changeError && (
@@ -385,6 +476,11 @@ function AccountContent() {
   const [subscriptionExpires, setSubscriptionExpires] = useState<string | null>(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(true)
   const [showChangePlan, setShowChangePlan] = useState(false)
+  const [scheduledDowngrade, setScheduledDowngrade] = useState<{
+    nextTier: string
+    downgradeAt: string
+  } | null>(null)
+  const [cancellingDowngrade, setCancellingDowngrade] = useState(false)
 
   const tierDisplayNames: Record<string, string> = {
     'base': 'Starter Plan',
@@ -406,7 +502,7 @@ function AccountContent() {
 
     const { data } = await supabase
       .from('subscriptions')
-      .select('plan_tier, status, expires_at, next_billing_date')
+      .select('plan_tier, status, expires_at, next_billing_date, next_plan_tier, downgrade_at')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single()
@@ -421,9 +517,20 @@ function AccountContent() {
           day: 'numeric'
         }))
       }
+
+      // Check for scheduled downgrade
+      if (data.next_plan_tier && data.downgrade_at) {
+        setScheduledDowngrade({
+          nextTier: data.next_plan_tier,
+          downgradeAt: data.downgrade_at,
+        })
+      } else {
+        setScheduledDowngrade(null)
+      }
     } else {
       setSubscriptionTier(null)
       setSubscriptionExpires(null)
+      setScheduledDowngrade(null)
     }
     setSubscriptionLoading(false)
   }, [user])
@@ -453,6 +560,34 @@ function AccountContent() {
     setTimeout(() => {
       loadSubscription()
     }, 3000)
+  }
+
+  const handleCancelDowngrade = async () => {
+    if (!user) return
+    setCancellingDowngrade(true)
+
+    try {
+      const response = await fetch('/api/payments/cancel-downgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+
+      if (response.ok) {
+        setScheduledDowngrade(null)
+        // Reload subscription to confirm
+        setTimeout(() => {
+          loadSubscription()
+        }, 1000)
+      } else {
+        const data = await response.json()
+        console.error('Failed to cancel downgrade:', data.error)
+      }
+    } catch (error) {
+      console.error('Cancel downgrade error:', error)
+    } finally {
+      setCancellingDowngrade(false)
+    }
   }
 
   if (authLoading) {
@@ -551,6 +686,37 @@ function AccountContent() {
                     )}
                   </div>
                 </div>
+
+                {/* Scheduled Downgrade Notice */}
+                {scheduledDowngrade && (
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
+                    <div className="flex items-center gap-3">
+                      <CalendarClock className="h-5 w-5 text-amber-500 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          Switching to {TIER_DISPLAY_NAMES[scheduledDowngrade.nextTier] || scheduledDowngrade.nextTier} Plan
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Effective {formatDate(scheduledDowngrade.downgradeAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelDowngrade}
+                      disabled={cancellingDowngrade}
+                      className="shrink-0"
+                    >
+                      {cancellingDowngrade ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        'Cancel'
+                      )}
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex justify-center">
                   <Button
                     variant="outline"
@@ -583,6 +749,7 @@ function AccountContent() {
           userId={user.id}
           currentTier={subscriptionTier}
           onPlanChanged={handlePlanChanged}
+          scheduledDowngrade={scheduledDowngrade}
         />
       )}
     </div>

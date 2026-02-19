@@ -36,6 +36,7 @@ const REVERSE_PLAN_TIER_MAP: Record<string, string> = Object.fromEntries(
 const dodoClient = new DodoPayments({
   bearerToken: process.env.DODO_PAYMENTS_API_KEY,
   webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_SECRET,
+  environment: (process.env.DODO_PAYMENTS_ENVIRONMENT as 'test_mode' | 'live_mode') || 'test_mode',
 })
 
 async function createChutesAccount(userId: string, email: string) {
@@ -142,25 +143,67 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
     console.log('Available mappings:', PLAN_TIER_MAP)
   }
 
-  // Check if subscription already exists — if so, this is a proration payment
-  // from changePlan. Apply next_plan_tier if set, otherwise skip.
+  // Check if subscription already exists — could be:
+  // 1. Proration payment from upgrade (next_plan_tier set, no downgrade_at)
+  // 2. Renewal payment after scheduled downgrade (next_plan_tier + downgrade_at set)
+  // 3. Normal renewal (no pending changes)
   const { data: existingSub } = await supabase
     .from('subscriptions')
-    .select('subscription_id, plan_tier, status, next_plan_tier')
+    .select('subscription_id, plan_tier, status, next_plan_tier, downgrade_at')
     .eq('user_id', userId)
     .eq('status', 'active')
     .single()
 
   if (existingSub && existingSub.subscription_id === subscriptionId) {
-    // Proration payment from plan change — apply next_plan_tier if pending
-    if (existingSub.next_plan_tier) {
-      console.log(`[Webhook] Proration payment succeeded — applying plan change: ${existingSub.plan_tier} -> ${existingSub.next_plan_tier}`)
+    if (existingSub.next_plan_tier && existingSub.downgrade_at) {
+      // === SCHEDULED DOWNGRADE: renewal payment succeeded at OLD price ===
+      // Now call Dodo changePlan to switch to the lower plan for future billing.
+      const newProductId = REVERSE_PLAN_TIER_MAP[existingSub.next_plan_tier]
+      if (newProductId) {
+        try {
+          await dodoClient.subscriptions.changePlan(
+            existingSub.subscription_id,
+            {
+              product_id: newProductId,
+              quantity: 1,
+              proration_billing_mode: 'difference_immediately',
+            }
+          )
+          console.log(`[Webhook] Dodo changePlan called for downgrade: ${existingSub.plan_tier} -> ${existingSub.next_plan_tier}`)
+        } catch (changePlanError) {
+          console.error('[Webhook] Failed to call Dodo changePlan for scheduled downgrade:', changePlanError)
+          // Still update DB — the plan change intent is recorded
+        }
+      }
+
+      console.log(`[Webhook] Renewal after scheduled downgrade — applying: ${existingSub.plan_tier} -> ${existingSub.next_plan_tier}`)
       const { error: updateError } = await supabase
         .from('subscriptions')
         .update({
           plan_tier: existingSub.next_plan_tier,
           next_plan_tier: null,
           plan_change_date: null,
+          downgrade_at: null,
+          next_billing_date: (data.next_billing_date as string) || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('[Webhook] Failed to apply scheduled downgrade:', updateError)
+      } else {
+        console.log(`[Webhook] Downgrade applied: ${existingSub.next_plan_tier} for user ${userId}`)
+      }
+    } else if (existingSub.next_plan_tier) {
+      // === UPGRADE: proration payment succeeded → apply new tier ===
+      console.log(`[Webhook] Proration payment succeeded — applying upgrade: ${existingSub.plan_tier} -> ${existingSub.next_plan_tier}`)
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          plan_tier: existingSub.next_plan_tier,
+          next_plan_tier: null,
+          plan_change_date: null,
+          downgrade_at: null,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId)
@@ -168,10 +211,21 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
       if (updateError) {
         console.error('[Webhook] Failed to apply plan change:', updateError)
       } else {
-        console.log(`[Webhook] Plan changed to ${existingSub.next_plan_tier} for user ${userId}`)
+        console.log(`[Webhook] Plan upgraded to ${existingSub.next_plan_tier} for user ${userId}`)
       }
     } else {
-      console.log(`[Webhook] Skipping payment.succeeded — subscription ${subscriptionId} already active for user ${userId}, no pending plan change.`)
+      // Normal renewal — just update next_billing_date if available
+      const nextBillingDate = data.next_billing_date as string | undefined
+      if (nextBillingDate) {
+        await supabase
+          .from('subscriptions')
+          .update({
+            next_billing_date: nextBillingDate,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId)
+      }
+      console.log(`[Webhook] Normal renewal for subscription ${subscriptionId}, user ${userId}`)
     }
     return
   }
@@ -239,6 +293,31 @@ async function handlePlanChanged(data: Record<string, unknown>) {
     return
   }
 
+  // Check if this is a scheduled downgrade — if so, do NOT update plan_tier yet.
+  // The plan was changed in Dodo immediately (proration_billing_mode: 'none'),
+  // but we keep the current tier in our DB until renewal.
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('downgrade_at, plan_tier')
+    .eq('subscription_id', subscriptionId)
+    .single()
+
+  if (existingSub?.downgrade_at) {
+    console.log(`[Webhook] plan_changed for subscription ${subscriptionId} — scheduled downgrade active, skipping plan_tier update (keeping ${existingSub.plan_tier} until ${existingSub.downgrade_at})`)
+    // Only update next_billing_date if present
+    const nextBillingDate = data.next_billing_date as string | undefined
+    if (nextBillingDate) {
+      await supabase
+        .from('subscriptions')
+        .update({
+          next_billing_date: nextBillingDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('subscription_id', subscriptionId)
+    }
+    return
+  }
+
   let newTier: string | undefined
   if (newProductId) {
     newTier = PLAN_TIER_MAP[newProductId]
@@ -249,6 +328,7 @@ async function handlePlanChanged(data: Record<string, unknown>) {
     status: 'active',
     next_plan_tier: null,
     plan_change_date: null,
+    downgrade_at: null,
   }
 
   if (newTier) {
@@ -287,12 +367,29 @@ async function handleSubscriptionUpdated(data: Record<string, unknown>) {
   // Look up existing subscription by subscription_id
   const { data: existingSub } = await supabase
     .from('subscriptions')
-    .select('plan_tier, status')
+    .select('plan_tier, status, downgrade_at')
     .eq('subscription_id', subscriptionId)
     .single()
 
   if (!existingSub) {
     console.log(`[Webhook] subscription.updated: no matching subscription for ${subscriptionId}`)
+    return
+  }
+
+  // If scheduled downgrade is active, do NOT update plan_tier from Dodo's product_id.
+  // Dodo already switched the plan, but we keep current tier until renewal.
+  if (existingSub.downgrade_at) {
+    console.log(`[Webhook] subscription.updated: scheduled downgrade active for ${subscriptionId}, skipping plan_tier update`)
+    const nextBillingDate = data.next_billing_date as string | undefined
+    if (nextBillingDate) {
+      await supabase
+        .from('subscriptions')
+        .update({
+          next_billing_date: nextBillingDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('subscription_id', subscriptionId)
+    }
     return
   }
 
@@ -311,6 +408,7 @@ async function handleSubscriptionUpdated(data: Record<string, unknown>) {
           updated_at: new Date().toISOString(),
           next_plan_tier: null,
           plan_change_date: null,
+          downgrade_at: null,
         })
         .eq('subscription_id', subscriptionId)
 
