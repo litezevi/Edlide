@@ -417,13 +417,47 @@ payment.succeeded webhook
   → Обновляем plan_tier в БД
   → createAndRedeemCode(chutes_user_id, new_tier)
   ↓
-Иначе → normal renewal (без redeem)
+Иначе → normal renewal → createAndRedeemCode(chutes_user_id, current_tier)
 ```
 
 ### Важно:
 - Все redeem обёрнуты в try/catch — если Chutes API упадёт, подписка в БД всё равно обновится
 - Ошибки redeem логируются но не блокируют обработку webhook
 - `createAndRedeemCode()` создаёт код и сразу редимит его — перезаписывает tier/quota на Chutes стороне
+
+---
+
+## Синхронизация Dodo Payments и Chutes Partner API (19.02.2026)
+
+### Billing Period
+
+- **Chutes Partner API**: после redeem подписка действует **32 дня** (подтверждено Chutes)
+- **Dodo Payments**: billing period изменён на **32 дня** (вместо стандартного monthly ~30 дней)
+- Минуты/часы не важны — redeem происходит в момент webhook, разница в секундах
+
+### Renewal Redeem
+
+**Файл: `src/app/api/webhooks/dodo/route.ts`**
+
+При обычном ежемесячном (32-дневном) renewal добавлен redeem:
+- Dodo отправляет `payment.succeeded` → **оплата уже успешна**
+- Обновляем `next_billing_date` в БД
+- Вызываем `createAndRedeemCode(chutes_user_id, plan_tier)` — продлеваем Chutes на 32 дня
+- Если оплата НЕ успешная → Dodo шлёт `payment.failed` / `subscription.on_hold` → **redeem НЕ вызывается**
+
+### Полная таблица redeem по событиям:
+
+| Событие | Оплата | Redeem |
+|---------|--------|--------|
+| `payment.succeeded` (новая подписка) | Успешная | Создаёт Chutes аккаунт + redeem |
+| `payment.succeeded` (upgrade) | Успешная | Redeem нового тира |
+| `payment.succeeded` (downgrade renewal) | Успешная | Redeem нового тира |
+| `payment.succeeded` (normal renewal) | Успешная | Redeem текущего тира (+32 дня) |
+| `payment.failed` / `subscription.on_hold` | Неуспешная | **Нет redeem** |
+
+### Принцип: сначала оплата, потом redeem
+
+Redeem происходит ТОЛЬКО внутри обработчика `payment.succeeded` → гарантия что деньги списаны до вызова Chutes Partner API. Если Dodo не подтвердил оплату — webhook `payment.succeeded` не приходит → redeem не выполняется.
 
 ---
 

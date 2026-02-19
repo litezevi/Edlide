@@ -234,7 +234,8 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
         }
       }
     } else {
-      // Normal renewal — just update next_billing_date if available
+      // Normal renewal — payment.succeeded means payment was successful
+      // Update next_billing_date and redeem Chutes code for another 32 days
       const nextBillingDate = data.next_billing_date as string | undefined
       if (nextBillingDate) {
         await supabase
@@ -245,7 +246,18 @@ async function handlePaymentSucceeded(data: Record<string, unknown>) {
           })
           .eq('user_id', userId)
       }
-      console.log(`[Webhook] Normal renewal for subscription ${subscriptionId}, user ${userId}`)
+
+      // Redeem code to extend Chutes subscription for another 32 days
+      if (existingSub.chutes_user_id && existingSub.plan_tier) {
+        try {
+          const redeemResult = await createAndRedeemCode(existingSub.chutes_user_id, existingSub.plan_tier)
+          console.log(`[Webhook] Renewal redeem: ${existingSub.plan_tier} code for Chutes user ${existingSub.chutes_user_id}:`, redeemResult)
+        } catch (redeemError) {
+          console.error(`[Webhook] Failed to redeem code on renewal for user ${userId}:`, redeemError)
+        }
+      }
+
+      console.log(`[Webhook] Normal renewal processed for subscription ${subscriptionId}, user ${userId}`)
     }
     return
   }
