@@ -1,13 +1,14 @@
 /**
  * Supabase Authentication Hook
  * Handles sign in, sign up, sign out, and session management
- * Session persistence: 30 days
+ * Uses single shared Supabase client from supabase.ts to prevent race conditions
+ * Session persistence via cookies (@supabase/ssr) + localStorage fallback
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
 export interface SupabaseUser {
@@ -21,33 +22,13 @@ export interface SupabaseUser {
   }
 }
 
-let supabaseInstance: ReturnType<typeof createClient> | null = null
-
-function getSupabaseClient() {
-  if (!supabaseInstance) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-        storageKey: 'edlide-supabase-session',
-      }
-    })
-  }
-  return supabaseInstance
-}
-
 export function useSupabaseAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = getSupabaseClient()
-    
-    const getSession = async () => {
+    const initSession = async () => {
       // On reset-password page — skip getSession, let onAuthStateChange handle it
       // to avoid setting user from a recovery session
       if (typeof window !== 'undefined' &&
@@ -55,13 +36,33 @@ export function useSupabaseAuth() {
         setIsLoading(false)
         return
       }
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
+
+      // Try getSession first (reads from storage without network call)
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+
+      if (currentSession) {
+        setSession(currentSession)
+        setUser(currentSession.user)
+        setIsLoading(false)
+        return
+      }
+
+      // If getSession returned null, the JWT may be expired but refresh_token
+      // may still be valid. getUser() triggers a server-side validation and
+      // automatic token refresh if possible.
+      const { data: { user: recoveredUser } } = await supabase.auth.getUser()
+      if (recoveredUser) {
+        // getUser succeeded — the SDK refreshed the session internally.
+        // Re-read the now-valid session from storage.
+        const { data: { session: refreshedSession } } = await supabase.auth.getSession()
+        setSession(refreshedSession)
+        setUser(refreshedSession?.user ?? recoveredUser)
+      }
+
       setIsLoading(false)
     }
 
-    getSession()
+    initSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // PASSWORD_RECOVERY must not establish a user session globally —
@@ -78,8 +79,6 @@ export function useSupabaseAuth() {
   }, [])
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const supabase = getSupabaseClient()
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -98,8 +97,6 @@ export function useSupabaseAuth() {
   }
 
   const signIn = async (email: string, password: string) => {
-    const supabase = getSupabaseClient()
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -113,25 +110,30 @@ export function useSupabaseAuth() {
   }
 
   const signOut = async () => {
-    const supabase = getSupabaseClient()
-
     try {
       await supabase.auth.signOut()
     } catch (err) {
       console.warn('Supabase signOut exception:', err)
     }
 
-    localStorage.clear()
-    sessionStorage.clear()
-
+    // Only remove specific keys — do NOT clear entire localStorage.
+    // supabase.auth.signOut() already removes the session from its storage.
+    // We only need to clean up app-specific keys that are no longer relevant.
     if (typeof window !== 'undefined') {
+      const keysToRemove = [
+        'chutes_access_token',
+        'chutes_refresh_token',
+        'chutes_user',
+        'chutes_expires_in',
+      ]
+      keysToRemove.forEach((key) => localStorage.removeItem(key))
+      sessionStorage.clear()
+
       window.location.href = '/'
     }
   }
 
   const resetPassword = async (email: string) => {
-    const supabase = getSupabaseClient()
-    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/account/reset-password`,
     })
@@ -142,8 +144,6 @@ export function useSupabaseAuth() {
   }
 
   const updatePassword = async (newPassword: string) => {
-    const supabase = getSupabaseClient()
-    
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
     })
@@ -154,8 +154,6 @@ export function useSupabaseAuth() {
   }
 
   const signInWithOAuth = async (provider: 'google' | 'github' = 'google') => {
-    const supabase = getSupabaseClient()
-    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -172,8 +170,6 @@ export function useSupabaseAuth() {
   }
 
   const signUpWithOAuth = async (provider: 'google' | 'github' = 'google') => {
-    const supabase = getSupabaseClient()
-    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {

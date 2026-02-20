@@ -1,6 +1,17 @@
 /**
- * Supabase Client Configuration
- * Session persistence: 30 days with automatic refresh
+ * Supabase Client Configuration (Browser)
+ *
+ * This is the SINGLE shared Supabase client for all browser-side usage.
+ * Do NOT create additional clients — use this export everywhere to avoid
+ * race conditions during token refresh.
+ *
+ * Session is persisted in localStorage (key: edlide-supabase-session).
+ * Middleware additionally manages cookies for server-side session refresh
+ * via @supabase/ssr (see src/lib/supabase/middleware.ts).
+ *
+ * autoRefreshToken: SDK refreshes JWT while tab is open.
+ * Middleware refresh: JWT refreshed on every request even after long inactivity.
+ * Combined: session stays alive indefinitely as long as refresh_token is valid.
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -14,5 +25,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'edlide-supabase-session',
+    flowType: 'pkce',
   }
 })
