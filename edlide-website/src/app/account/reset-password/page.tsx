@@ -5,23 +5,17 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-        storageKey: 'edlide-supabase-session',
-      },
-    }
-  )
-}
-
+/**
+ * Password Reset Page
+ *
+ * The user arrives here AFTER /auth/confirm has already verified the recovery
+ * token and set session cookies. This page simply:
+ * 1. Checks for a valid session (set by /auth/confirm via cookies)
+ * 2. Shows the new password form
+ * 3. Calls updateUser({ password }) to change the password
+ */
 function ResetPasswordContent() {
   const router = useRouter()
 
@@ -31,32 +25,53 @@ function ResetPasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  // true = got PASSWORD_RECOVERY event → show form
-  // false + not loading = invalid/expired link
   const [isValidSession, setIsValidSession] = useState(false)
 
   useEffect(() => {
-    const supabase = getSupabase()
+    let mounted = true
 
-    // Supabase automatically parses the hash fragment and fires onAuthStateChange
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    const checkSession = async () => {
+      // The /auth/confirm route handler already verified the recovery token
+      // and set session cookies. We just need to pick up that session.
+
+      // Listen for auth events — PASSWORD_RECOVERY fires when session is loaded
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (!mounted) return
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsValidSession(true)
+          setIsLoading(false)
+        }
+      })
+
+      // Also check if there's already a valid session (from cookies set by /auth/confirm)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (mounted && user) {
         setIsValidSession(true)
         setIsLoading(false)
       }
-      // SIGNED_IN intentionally ignored — do not redirect away from reset form
-    })
 
-    // Fallback: if no event fires within 3s, treat as invalid link
-    const timeout = setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+      // Fallback: if no session found within 4s, show invalid link
+      const timeout = setTimeout(() => {
+        if (mounted) {
+          setIsLoading(false)
+        }
+      }, 4000)
+
+      return () => {
+        mounted = false
+        subscription.unsubscribe()
+        clearTimeout(timeout)
+      }
+    }
+
+    const cleanup = checkSession()
 
     return () => {
-      subscription.unsubscribe()
-      clearTimeout(timeout)
+      mounted = false
+      cleanup.then((fn) => fn?.())
     }
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const passwordRequirements = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -86,7 +101,6 @@ function ResetPasswordContent() {
     setIsLoading(true)
 
     try {
-      const supabase = getSupabase()
       const { error } = await supabase.auth.updateUser({ password })
 
       if (error) throw error

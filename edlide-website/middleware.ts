@@ -10,6 +10,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
+  // Skip session refresh for auth confirm callback and password reset page.
+  // /auth/confirm handles token verification server-side with its own Supabase client.
+  // /account/reset-password reads the session set by /auth/confirm.
+  // Running updateSession() here would interfere with token exchange.
+  if (pathname === '/auth/confirm' || pathname === '/account/reset-password') {
+    return NextResponse.next()
+  }
+
   // Refresh Supabase session on every request.
   // This calls supabase.auth.getUser() which validates the JWT and,
   // if expired, uses the refresh_token cookie to get a new JWT.
