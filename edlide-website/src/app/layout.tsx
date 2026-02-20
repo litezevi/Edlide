@@ -7,8 +7,24 @@ import { Footer } from '@/components/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Edlide IDE | Open Source AI-Powered Code Editor',
+  title: {
+    default: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    template: '%s | Edlide IDE',
+  },
   description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
+  keywords: ['edlide', 'ide', 'ai', 'open source', 'code editor', 'ai assistant', 'minimax', 'glm', 'kimi'],
+  authors: [{ name: 'Edlide' }],
+  creator: 'Edlide',
+  publisher: 'Edlide',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://edlide.com'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'Edlide IDE - Open Source AI-Powered Code Editor',
     description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
@@ -21,6 +37,17 @@ export const metadata: Metadata = {
     title: 'Edlide IDE - Open Source AI-Powered Code Editor',
     description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({
@@ -31,6 +58,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
