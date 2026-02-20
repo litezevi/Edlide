@@ -4,6 +4,9 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+// API key validity period: 30 days
+const API_KEY_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000
+
 function addCorsHeaders(response: NextResponse) {
   response.headers.set('Access-Control-Allow-Origin', '*')
   response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -11,6 +14,16 @@ function addCorsHeaders(response: NextResponse) {
   return response
 }
 
+/**
+ * Validates IDE API key and extends its expiry by 30 days.
+ * 
+ * Security model:
+ * - API key (edlide_xxx) is the sole auth mechanism for IDE
+ * - Stored in user_sessions with is_ide_device=true
+ * - Independent of browser/Supabase sessions
+ * - Each successful call extends api_key_expires_at by 30 days
+ * - User must be active in auth.users (verified via admin API)
+ */
 export async function POST(request: NextRequest) {
   try {
     const apiKey = request.headers.get('X-API-Key')
@@ -20,117 +33,74 @@ export async function POST(request: NextRequest) {
       return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
     }
 
+    // Only accept edlide_ prefixed keys
+    if (!apiKey.startsWith('edlide_')) {
+      console.log('[Get Access Token] Invalid API key format')
+      return addCorsHeaders(NextResponse.json({ error: 'Invalid API key format' }, { status: 401 }))
+    }
+
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey)
 
     console.log('[Get Access Token] Looking up API key:', apiKey.substring(0, 20) + '...')
 
+    // 1. Look up the API key in user_sessions
     const { data: sessionData, error: sessionError } = await adminSupabase
       .from('user_sessions')
-      .select('user_id, user_email, access_token, refresh_token, expires_at, api_key_expires_at, status')
+      .select('user_id, user_email, api_key_expires_at, status')
       .eq('api_key', apiKey)
       .eq('is_ide_device', true)
       .eq('status', 'active')
       .single()
 
     if (sessionError || !sessionData) {
-      console.log('[Get Access Token] Invalid or expired API key')
+      console.log('[Get Access Token] Invalid or revoked API key')
       return addCorsHeaders(NextResponse.json({ error: 'Invalid API key' }, { status: 401 }))
     }
 
+    // 2. Check if API key has expired
     if (sessionData.api_key_expires_at) {
       const expiresAt = new Date(sessionData.api_key_expires_at)
       if (expiresAt < new Date()) {
-        console.log('[Get Access Token] API key expired')
-        return addCorsHeaders(NextResponse.json({ error: 'API key expired' }, { status: 401 }))
-      }
-    }
-
-    const userId = sessionData.user_id
-    const userEmail = sessionData.user_email
-    const storedAccessToken = sessionData.access_token
-    const storedRefreshToken = sessionData.refresh_token
-    const storedExpiresAt = sessionData.expires_at
-
-    console.log('[Get Access Token] API key valid for user:', userId)
-
-    const expiresAt = storedExpiresAt ? new Date(storedExpiresAt) : null
-    const now = new Date()
-
-    if (expiresAt && expiresAt > now) {
-      console.log('[Get Access Token] Returning stored tokens (not expired)')
-
-      return addCorsHeaders(NextResponse.json({
-        success: true,
-        tokens: {
-          access_token: storedAccessToken,
-          refresh_token: storedRefreshToken,
-          expires_at: storedExpiresAt,
-          user_id: userId,
-          user_email: userEmail
-        }
-      }))
-    }
-
-    if (!storedRefreshToken) {
-      console.log('[Get Access Token] No refresh token stored, need re-authentication')
-      return addCorsHeaders(NextResponse.json({
-        error: 'Session expired',
-        code: 'RECONNECT_REQUIRED',
-        message: 'Please reconnect your IDE'
-      }, { status: 401 }))
-    }
-
-    console.log('[Get Access Token] Tokens expired, refreshing...')
-
-    const refreshResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'apikey': supabaseServiceKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ refresh_token: storedRefreshToken })
-    })
-
-    if (!refreshResponse.ok) {
-      const errorText = await refreshResponse.text()
-      console.error('[Get Access Token] Token refresh failed:', refreshResponse.status, errorText)
-
-      if (refreshResponse.status === 400 && errorText.includes('invalid_grant')) {
-        await adminSupabase.from('user_sessions').update({
-          status: 'revoked'
-        }).eq('api_key', apiKey)
-
+        console.log('[Get Access Token] API key expired on:', expiresAt.toISOString())
         return addCorsHeaders(NextResponse.json({
-          error: 'Session revoked',
-          code: 'SESSION_REVOKED',
+          error: 'API key expired',
+          code: 'RECONNECT_REQUIRED',
           message: 'Please reconnect your IDE'
         }, { status: 401 }))
       }
-
-      return addCorsHeaders(NextResponse.json({ error: 'Failed to refresh token' }, { status: 500 }))
     }
 
-    const newTokens = await refreshResponse.json()
-    const newExpiresAt = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString()
+    // 3. Verify user still exists in auth.users (security check)
+    const { data: userData, error: userError } = await adminSupabase.auth.admin.getUserById(sessionData.user_id)
+    if (userError || !userData?.user) {
+      console.log('[Get Access Token] User no longer exists:', sessionData.user_id)
+      // Revoke the session since user was deleted
+      await adminSupabase.from('user_sessions').update({
+        status: 'revoked',
+        updated_at: new Date().toISOString()
+      }).eq('api_key', apiKey)
+      return addCorsHeaders(NextResponse.json({ error: 'User not found' }, { status: 401 }))
+    }
 
-    console.log('[Get Access Token] Tokens refreshed successfully')
+    // 4. Extend api_key_expires_at by 30 more days from now (rolling window)
+    const newExpiresAt = new Date(Date.now() + API_KEY_LIFETIME_MS).toISOString()
 
     await adminSupabase.from('user_sessions').update({
-      access_token: newTokens.access_token,
-      refresh_token: newTokens.refresh_token,
-      expires_at: newExpiresAt,
+      api_key_expires_at: newExpiresAt,
       updated_at: new Date().toISOString()
     }).eq('api_key', apiKey)
 
+    console.log('[Get Access Token] API key validated and extended for user:', sessionData.user_id)
+
+    // 5. Return the SAME api_key as access_token (IDE must keep using edlide_xxx)
     return addCorsHeaders(NextResponse.json({
       success: true,
       tokens: {
-        access_token: newTokens.access_token,
-        refresh_token: newTokens.refresh_token,
+        access_token: apiKey,
+        refresh_token: apiKey,
         expires_at: newExpiresAt,
-        user_id: userId,
-        user_email: userEmail
+        user_id: sessionData.user_id,
+        user_email: sessionData.user_email
       }
     }))
 

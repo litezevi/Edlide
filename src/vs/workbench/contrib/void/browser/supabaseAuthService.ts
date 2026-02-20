@@ -15,8 +15,8 @@ export class SupabaseAuthService {
   private static readonly TOKENS_KEY = 'edlide.supabase.tokens';
   private static readonly AUTH_STATE_KEY = 'edlide.supabase.authState';
   private static readonly WEBSITE_URL = 'https://edlide.com';
-  private static readonly REFRESH_INTERVAL_MS = 60 * 1000; // 1 minute for testing
-  private static readonly REFRESH_BEFORE_EXPIRE_MS = 30 * 1000; // 30 seconds for testing
+  private static readonly REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours - api_key valid 30 days, no need to check often
+  private static readonly REFRESH_BEFORE_EXPIRE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days before expiry - extend proactively
 
   private _onDidChangeAuthState = new Emitter<IDEAuthState>();
   readonly onDidChangeAuthState: Event<IDEAuthState> = this._onDidChangeAuthState.event;
@@ -214,16 +214,23 @@ export class SupabaseAuthService {
         return null;
       }
 
+      // Security: ensure access_token is always our api_key (edlide_xxx)
+      // Never allow overwriting with a JWT or other token type
+      const returnedAccessToken = data.tokens.access_token;
+      const safeAccessToken = (returnedAccessToken && returnedAccessToken.startsWith('edlide_'))
+        ? returnedAccessToken
+        : tokens.access_token; // keep original api_key if server returned something unexpected
+
       const newTokens: SupabaseTokens = {
-        access_token: data.tokens.access_token,
-        refresh_token: data.tokens.refresh_token,
+        access_token: safeAccessToken,
+        refresh_token: safeAccessToken, // refresh_token = api_key (same)
         expires_at: data.tokens.expires_at,
-        user_id: data.tokens.user_id,
-        user_email: data.tokens.user_email
+        user_id: data.tokens.user_id || tokens.user_id,
+        user_email: data.tokens.user_email || tokens.user_email
       };
 
       await this.saveTokens(newTokens);
-      console.log('[SupabaseAuth] Access token refreshed successfully');
+      console.log('[SupabaseAuth] API key validated, expiry extended to:', data.tokens.expires_at);
       return newTokens;
     } catch (error) {
       console.error('[SupabaseAuth] Error refreshing tokens:', error);
@@ -281,7 +288,7 @@ export class SupabaseAuthService {
   startAutoRefresh(): void {
     this.stopAutoRefresh();
 
-    console.log('[SupabaseAuth] Starting auto-refresh timer (1 min for testing)');
+    console.log('[SupabaseAuth] Starting auto-refresh timer (12h interval)');
 
     this.refreshTimer = setInterval(async () => {
       try {
