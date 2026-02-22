@@ -3,11 +3,20 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Download, Loader2 } from 'lucide-react'
+import { Download, Loader2, Copy, Check } from 'lucide-react'
 
 export default function DownloadPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [isLight, setIsLight] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const cliCommand = 'curl -fsSL https://github.com/litezevi/edlide-cli-releases/releases/latest/download/install | bash'
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(cliCommand)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   useEffect(() => {
     const checkTheme = () => {
@@ -46,6 +55,8 @@ export default function DownloadPage() {
           Choose your platform below
         </p>
       </div>
+
+      <h2 className="text-2xl font-semibold text-primary mb-6">IDE</h2>
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <h2 className="text-xl font-semibold text-primary">Windows (10 or later, 64-bit)</h2>
@@ -186,6 +197,24 @@ export default function DownloadPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      <h2 className="text-2xl font-semibold text-primary mb-6">CLI</h2>
+
+      <div className="mb-12 p-6 rounded-lg bg-surface border border-border">
+        <p className="text-sm text-muted-foreground mb-4">Install Edlide CLI with a single command:</p>
+        <div className="flex items-center gap-3 bg-background border border-border rounded-lg px-4 py-3">
+          <code className="flex-1 font-mono text-sm text-primary select-all break-all">
+            {cliCommand}
+          </code>
+          <button
+            onClick={handleCopy}
+            className="flex-shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-[#9ca3af] hover:bg-transparent transition-colors"
+            title="Copy to clipboard"
+          >
+            {copied ? <Check className="w-4 h-4 text-muted-foreground" /> : <Copy className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
         <div className="mt-12 p-6 rounded-lg bg-surface border border-border">
