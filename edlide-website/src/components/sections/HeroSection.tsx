@@ -1,87 +1,95 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Lock, Sparkles, Zap } from 'lucide-react'
+import { ArrowRight, Download } from 'lucide-react'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
+    <section className="relative flex flex-col items-center justify-center px-4 pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 hero-gradient"></div>
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute inset-0 hero-gradient" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
 
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-amber-200/40 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/40 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
-      <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-emerald-200/40 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+      {/* Floating glow orbs */}
+      <div className="absolute top-20 left-[10%] w-72 h-72 bg-purple-500/10 rounded-full blur-[120px] animate-float" />
+      <div className="absolute bottom-40 right-[10%] w-96 h-96 bg-purple-600/8 rounded-full blur-[140px] animate-float" style={{ animationDelay: '1.5s' }} />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-purple-500/5 rounded-full blur-[100px]" />
 
-      <div className="relative z-10 text-center max-w-6xl mx-auto">
-        {/* Main Content */}
-        <div className="space-y-8 animate-slide-up">
-          {/* Badge */}
-
-
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
-            <span className="block gradient-text mb-4">
-              Edlide IDE
-            </span>{' '}
-            <span className="block text-xl md:text-2xl lg:text-3xl font-normal text-foreground max-w-4xl mx-auto leading-relaxed">
-              Open&nbsp;source&nbsp;AI&nbsp;models have caught up to closed alternatives<br />and cost&nbsp;10x&nbsp;less
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed">
-            Break free from closed AI ecosystems.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex justify-center">
-            <Button
-              size="lg"
-              asChild
-              className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift dark:bg-gradient-to-r dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
-            >
-              <Link href="/download">
-                <Download className="mr-3 h-5 w-5" />
-                Get Started
-                <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-            </Button>
-          </div>
+      <div className="relative z-10 text-center max-w-5xl mx-auto">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-border/60 bg-card/40 backdrop-blur-sm text-sm text-muted-foreground animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          One subscription — IDE &amp; CLI included
         </div>
 
-        {/* Features Grid */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in" style={{animationDelay: '0.3s'}}>
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Sparkles className="w-7 h-7 text-amber-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-3">The Best Models</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Minimax-M2.5.5, GLM-4.7, KIMI-K2.5. Only the best open source models.
-            </p>
-          </div>
+        {/* Main Heading */}
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-slide-up">
+          <span className="block gradient-text mb-4">
+            Edlide
+          </span>
+          <span className="block text-xl md:text-2xl lg:text-3xl font-normal text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            AI&#8209;powered IDE&nbsp;&amp;&nbsp;CLI built on the best open&nbsp;source models
+          </span>
+        </h1>
 
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Lock className="w-7 h-7 text-emerald-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-3">Your Data, Your Control</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              100% private. Confidential compute on decentralized infrastructure. No vendor eyes on your prompts. Pure inference, pure confidence.
-            </p>
-          </div>
+        {/* Subtitle */}
+        <p className="mt-6 text-base md:text-lg text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          Open source AI models have caught up to closed alternatives and cost&nbsp;10x&nbsp;less. Full privacy, native quantization, no session limits.
+        </p>
 
-          <div className="group p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 hover-lift flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400/20 to-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-7 h-7 text-blue-500" />
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <Button
+            size="lg"
+            asChild
+            className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift dark:bg-gradient-to-r dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
+          >
+            <Link href="/download">
+              <Download className="mr-3 h-5 w-5" />
+              Download IDE
+              <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+            </Link>
+          </Button>
+
+          <Button
+            size="lg"
+            variant="outline"
+            asChild
+            className="min-w-[200px] h-12 px-8 text-base font-semibold border-border/60 hover:bg-card/60 hover:border-purple-500/40 transition-all duration-300"
+          >
+            <Link href="/pricing">
+              View Pricing
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* IDE Screenshot with glow effect */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto mt-16 md:mt-20 px-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+        {/* Purple glow behind screenshot */}
+        <div className="absolute -inset-4 bg-purple-500/10 dark:bg-purple-500/15 rounded-3xl blur-3xl" />
+
+        {/* Window chrome mockup */}
+        <div className="relative rounded-xl overflow-hidden border border-border/40 dark:border-white/10 shadow-2xl dark:shadow-purple-500/10">
+          {/* Title bar */}
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-card/90 dark:bg-[#1a1d25]/95 border-b border-border/40 dark:border-white/5">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-400/80" />
+              <div className="w-3 h-3 rounded-full bg-amber-400/80" />
+              <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-3">Native quantized</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Native quantization or lack thereof has a significant impact on performance.
-            </p>
+            <span className="ml-3 text-xs text-muted-foreground/60 font-mono">Edlide IDE</span>
           </div>
+          {/* Video – autoplay, looped, muted (required for autoplay) */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto"
+          >
+            <source src="/edlide-ide-video.mov" type="video/quicktime" />
+            <source src="/edlide-ide-video.mov" type="video/mp4" />
+          </video>
         </div>
       </div>
     </section>
