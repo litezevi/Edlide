@@ -13,7 +13,6 @@ import {
   Infinity,
   Layers,
   Check,
-  X,
 } from 'lucide-react'
 
 /* ─────────── Models data ─────────── */
@@ -31,7 +30,7 @@ const advantages = [
     icon: Eye,
     title: 'Full Context Window',
     description:
-      'See exactly how much context you are using in real time. No guesswork — full transparency on every token.',
+      'See exactly how much context you are using in real time. No guesswork, full transparency on every token.',
     gradient: 'from-blue-400/20 to-cyan-500/20',
     iconColor: 'text-blue-500',
   },
@@ -39,7 +38,7 @@ const advantages = [
     icon: Cpu,
     title: 'Native Quantization',
     description:
-      'Models are natively quantized from factory. No post-processing artifacts — peak performance out of the box.',
+      'Models are natively quantized from factory. No post-processing artifacts, peak performance out of the box.',
     gradient: 'from-emerald-400/20 to-teal-500/20',
     iconColor: 'text-emerald-500',
   },
@@ -47,7 +46,7 @@ const advantages = [
     icon: ShieldCheck,
     title: 'Complete Privacy',
     description:
-      'Your data is processed on decentralized infrastructure. It is impossible for anyone — including us — to see it.',
+      'Your data is processed on decentralized infrastructure. It is impossible for anyone, including us, to see it.',
     gradient: 'from-purple-400/20 to-pink-500/20',
     iconColor: 'text-purple-500',
   },
@@ -71,21 +70,10 @@ const advantages = [
     icon: Layers,
     title: 'One Subscription',
     description:
-      'A single plan unlocks both the IDE and the CLI. No separate billing — one price, full access.',
+      'A single plan unlocks both the IDE and the CLI. No separate billing, one price, full access.',
     gradient: 'from-indigo-400/20 to-violet-500/20',
     iconColor: 'text-indigo-500',
   },
-]
-
-/* ─────────── Comparison data ─────────── */
-const comparisonRows = [
-  { feature: 'Open source models', edlide: true, claude: false, cursor: false },
-  { feature: 'Full context window visibility', edlide: true, claude: false, cursor: false },
-  { feature: 'Native quantization', edlide: true, claude: false, cursor: false },
-  { feature: 'Complete data privacy', edlide: true, claude: false, cursor: false },
-  { feature: 'No session limits', edlide: true, claude: false, cursor: true },
-  { feature: 'IDE + CLI in one subscription', edlide: true, claude: false, cursor: false },
-  { feature: 'Price from $6.99/mo', edlide: true, claude: false, cursor: false },
 ]
 
 /* ─────────────────────────────────────── */
@@ -107,7 +95,7 @@ export default function Home() {
               Two Products, One Mission
             </h2>
             <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto">
-              Whether you prefer a full graphical IDE or a lightning-fast terminal — Edlide has you covered.
+               Whether you prefer a full graphical IDE or a lightning-fast terminal, Edlide has you covered.
             </p>
           </div>
 
@@ -145,10 +133,10 @@ export default function Home() {
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">Edlide IDE</h3>
               </div>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                A full-featured code editor with integrated AI chat, autocomplete, agent mode, and MCP tool support. Built on VS Code for instant familiarity.
+                A full-featured code editor with integrated AI chat, agent mode, and MCP tool support. Built on VS Code for instant familiarity.
               </p>
               <ul className="space-y-3 text-muted-foreground">
-                {['AI Chat in the sidebar with multiple models', 'Smart autocomplete with FIM support', 'Fast Apply — search/replace blocks for instant edits', 'Agent mode with MCP tool access', 'Full context window with real-time token counter'].map(
+                {['AI Chat in the sidebar with multiple models', 'Agent mode with MCP tool access', 'Full context window with real-time token counter'].map(
                   (item) => (
                     <li key={item} className="flex items-start gap-3">
                       <Check className="w-4 h-4 mt-1 text-emerald-500 shrink-0" />
@@ -176,10 +164,10 @@ export default function Home() {
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">Edlide CLI</h3>
               </div>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                A powerful command-line AI assistant. Pipe files, ask questions, generate code — all from your terminal. Like Claude Code, but with open source models and no session limits.
+                A powerful command-line AI assistant. Ask questions, generate code, all from your terminal. Open source models, no session limits.
               </p>
               <ul className="space-y-3 text-muted-foreground">
-                {['Interactive chat mode in the terminal', 'Pipe files and context directly from stdin', 'Works with your existing shell workflow', 'Same models as the IDE — Minimax, GLM, KIMI', 'Included in every Edlide subscription'].map(
+                {['Interactive chat mode in the terminal', 'Same models as the IDE: Minimax, GLM, KIMI', 'Included in every Edlide subscription'].map(
                   (item) => (
                     <li key={item} className="flex items-start gap-3">
                       <Check className="w-4 h-4 mt-1 text-emerald-500 shrink-0" />
@@ -231,7 +219,7 @@ export default function Home() {
               Why Developers Choose&nbsp;Edlide
             </h2>
             <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto">
-              Every feature exists for a reason. No fluff — just what matters.
+               Every feature exists for a reason. No fluff, just what matters.
             </p>
           </div>
 
@@ -288,85 +276,12 @@ export default function Home() {
           </div>
 
           <p className="mt-10 text-sm text-muted-foreground/60">
-            More models added regularly. All models run on decentralized infrastructure via Chutes.
+            More models added regularly. All models run on decentralized infrastructure.
           </p>
         </div>
       </section>
 
-      {/* ───── 5. Comparison Table ───── */}
-      <section className="relative py-24 md:py-32 px-4 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-5xl font-bold gradient-text mb-4">
-              Edlide vs. The Rest
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              See how Edlide stacks up against closed-source alternatives.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-border/50 overflow-hidden bg-card/30 backdrop-blur-sm">
-            {/* Header */}
-            <div className="grid grid-cols-4 gap-0 border-b border-border/50">
-              <div className="p-4 md:p-5 text-sm font-medium text-muted-foreground">Feature</div>
-              <div className="p-4 md:p-5 text-center">
-                <span className="text-sm font-bold gradient-text">Edlide</span>
-              </div>
-              <div className="p-4 md:p-5 text-center text-sm font-medium text-muted-foreground">
-                Claude Code
-              </div>
-              <div className="p-4 md:p-5 text-center text-sm font-medium text-muted-foreground">
-                Cursor
-              </div>
-            </div>
-
-            {/* Rows */}
-            {comparisonRows.map((row, i) => (
-              <div
-                key={row.feature}
-                className={`grid grid-cols-4 gap-0 ${i < comparisonRows.length - 1 ? 'border-b border-border/30' : ''} hover:bg-card/50 transition-colors`}
-              >
-                <div className="p-4 md:p-5 text-sm text-foreground/80">{row.feature}</div>
-                <div className="p-4 md:p-5 flex justify-center items-center">
-                  {row.edlide ? (
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <X className="w-3.5 h-3.5 text-red-400" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 md:p-5 flex justify-center items-center">
-                  {row.claude ? (
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-red-500/10 flex items-center justify-center">
-                      <X className="w-3.5 h-3.5 text-red-400/60" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 md:p-5 flex justify-center items-center">
-                  {row.cursor ? (
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-red-500/10 flex items-center justify-center">
-                      <X className="w-3.5 h-3.5 text-red-400/60" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ───── 6. Bottom CTA ───── */}
       <section className="relative py-24 md:py-32 px-4 overflow-hidden">
@@ -404,12 +319,7 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Powered by Chutes */}
-          <div className="mt-14 flex items-center justify-center gap-2 text-sm text-muted-foreground/50">
-            <span>Powered by</span>
-            <Image src="/chutesLogo.png" alt="Chutes" width={20} height={20} className="opacity-50" />
-            <span className="font-medium">Chutes</span>
-          </div>
+
         </div>
       </section>
     </div>
