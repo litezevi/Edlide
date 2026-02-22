@@ -15,6 +15,12 @@ const docsSections = [
     ]
   },
   {
+    title: 'CLI',
+    items: [
+      { id: 'cli', label: 'Edlide CLI' },
+    ]
+  },
+  {
     title: 'Models',
     items: [
       { id: 'available-models', label: 'Available Models' },
@@ -310,6 +316,78 @@ export default function DocsPage() {
 
         <hr className="my-12 border-border/50" />
 
+        <div id="cli" ref={(el) => { sectionRefs.current['cli'] = el }} className="scroll-mt-20">
+          <h2 className="text-2xl font-bold text-primary mb-2">Edlide CLI</h2>
+          <p className="text-muted-foreground mb-8">
+            A terminal-based AI coding agent. Same models, same account, works anywhere.
+          </p>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-lg font-semibold text-primary mb-3">1. Install</h3>
+              <p className="text-sm text-muted-foreground mb-3">Download and install the CLI from the download page:</p>
+              <div className="border rounded-lg bg-card p-4">
+                <Link href="/download#cli" className="text-primary hover:underline font-medium">
+                  Go to Download Page
+                </Link>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Find the CLI install command in the CLI section.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-primary mb-3">2. Connect your account</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                After installation, authenticate with your Edlide account:
+              </p>
+              <div className="flex items-center gap-3 bg-background border border-border rounded-lg px-4 py-3">
+                <code className="flex-1 font-mono text-sm text-primary">
+                  /connect
+                </code>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                This opens a browser window where you sign in. The CLI links to your account automatically.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-primary mb-3">3. Start coding</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Launch the agent in any project directory. Works the same way as Edlide IDE. Same models, same requests quota.
+              </p>
+              <div className="flex items-center gap-3 bg-background border border-border rounded-lg px-4 py-3">
+                <code className="flex-1 font-mono text-sm text-primary">
+                  edlide
+                </code>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="border rounded-lg p-4 bg-card">
+                <h4 className="font-semibold text-primary mb-2">MCP Support</h4>
+                <p className="text-sm text-muted-foreground">
+                  Supports the MCP format. Same server configurations as in the IDE.
+                </p>
+              </div>
+              <div className="border rounded-lg p-4 bg-card">
+                <h4 className="font-semibold text-primary mb-2 font-mono text-base">.edliderules</h4>
+                <p className="text-sm text-muted-foreground">
+                  Project-level rules file. Place in your project root. The CLI reads it automatically.
+                </p>
+              </div>
+              <div className="border rounded-lg p-4 bg-card">
+                <h4 className="font-semibold text-primary mb-2 font-mono text-base">EDLIDE.md</h4>
+                <p className="text-sm text-muted-foreground">
+                  Project memory file. The agent reads and updates it to maintain context across sessions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-12 border-border/50" />
+
         <div id="available-models" ref={(el) => { sectionRefs.current['available-models'] = el }} className="scroll-mt-20">
           <h2 className="text-2xl font-bold text-primary mb-4">Available Models</h2>
           <p className="text-muted-foreground mb-6">
@@ -322,13 +400,29 @@ export default function DocsPage() {
               <thead className="bg-accent/50">
                 <tr>
                   <th className="text-left p-3 font-medium text-primary">Model</th>
-                  <th className="text-left p-3 font-medium text-primary">Type</th>
+                  <th className="text-left p-3 font-medium text-primary">Context Window</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground">kimi-k2.5</td>
-                  <td className="p-3 text-muted-foreground">Open Source</td>
+                  <td className="p-3 text-muted-foreground font-mono">minimax-m2.5</td>
+                  <td className="p-3 text-muted-foreground">200k</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground font-mono">glm-4.7</td>
+                  <td className="p-3 text-muted-foreground">200k</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground font-mono">kimi-k2.5</td>
+                  <td className="p-3 text-muted-foreground">256k</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground font-mono">mimo-v2-flash</td>
+                  <td className="p-3 text-muted-foreground">256k</td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="p-3 text-muted-foreground font-mono">deepseek-v3.2</td>
+                  <td className="p-3 text-muted-foreground">163k</td>
                 </tr>
               </tbody>
             </table>
