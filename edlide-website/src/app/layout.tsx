@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    default: 'Edlide IDE - IDE and CLI built for open-source AI models',
     template: '%s | Edlide IDE',
   },
   description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    title: 'Edlide IDE - IDE and CLI built for open-source AI models',
     description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
     type: 'website',
     locale: 'en_US',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    title: 'Edlide IDE - IDE and CLI built for open-source AI models',
     description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
   },
   robots: {

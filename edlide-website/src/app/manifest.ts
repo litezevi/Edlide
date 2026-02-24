@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Edlide IDE - Open Source AI-Powered Code Editor',
+    name: 'Edlide IDE - IDE and CLI built for open-source AI models',
     short_name: 'Edlide IDE',
     description: 'Open source AI models have caught up to closed alternatives and cost 10x less. Break free from closed AI ecosystems.',
     start_url: '/',
