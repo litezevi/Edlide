@@ -238,38 +238,7 @@ export async function POST(request: NextRequest) {
 			plan: planTier,
 		});
 
-		// 6. Проксируем в Supabase Edge Function с Chutes API ключом
-		const supabaseFunctionUrl = `${supabaseUrl}/functions/v1/ai-proxy`;
-
-		const response = await fetch(supabaseFunctionUrl, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${supabaseServiceKey}`,
-				"Content-Type": "application/json",
-				"x-user-id": user.id,
-				"x-user-email": user.email!,
-				"x-request-source": "ide",
-				"x-edlide-client": "electron",
-				"x-chutes-api-key": chutesApiKey,
-			},
-			body: JSON.stringify(requestBody),
-		});
-
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error("[AI Proxy] Supabase function error:", {
-				status: response.status,
-				error: errorText,
-				user_id: user.id,
-			});
-
-			return NextResponse.json(
-				{ error: "AI service error. Please try again later." },
-				{ status: response.status },
-			);
-		}
-
-		// 6. Increment request counter AFTER successful AI response
+		// 6. Increment request counter BEFORE making the AI call
 		try {
 			const { data: newCount } = await adminSupabase.rpc(
 				"increment_request_count",
@@ -282,17 +251,58 @@ export async function POST(request: NextRequest) {
 				`[AI Proxy] Request count incremented for user ${user.id}: ${newCount}/${dailyLimit}`,
 			);
 		} catch (incrementError) {
-			// Don't block the response if increment fails
 			console.error(
 				"[AI Proxy] Failed to increment request count:",
 				incrementError,
 			);
 		}
 
-		// 7. Возвращаем потоковый ответ от Supabase
+		// 7. Проксируем напрямую к Chutes.ai API (без Supabase Edge Function)
+		// Убираем лишний хоп через Supabase EF — он вызывал shutdown/stream truncation
+		const chutesBaseUrl = process.env.CHUTES_BASE_URL;
+		if (!chutesBaseUrl) {
+			console.error("[AI Proxy] Missing CHUTES_BASE_URL environment variable");
+			return NextResponse.json(
+				{ error: "Server configuration error" },
+				{ status: 500 },
+			);
+		}
+
+		const response = await fetch(`${chutesBaseUrl}/chat/completions`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${chutesApiKey}`,
+			},
+			body: JSON.stringify(requestBody),
+		});
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error("[AI Proxy] Chutes AI API error:", {
+				status: response.status,
+				error: errorText,
+				user_id: user.id,
+			});
+
+			return NextResponse.json(
+				{ error: "AI service error. Please try again later." },
+				{ status: response.status },
+			);
+		}
+
+		// 8. Возвращаем ответ — passthrough body напрямую от Chutes.ai
 		const responseHeaders = new Headers();
-		responseHeaders.set("Content-Type", "application/json");
-		responseHeaders.set("x-edlide-proxy", "v1");
+		const isStreaming = requestBody.stream === true;
+		if (isStreaming) {
+			responseHeaders.set("Content-Type", "text/event-stream");
+			responseHeaders.set("Cache-Control", "no-cache, no-transform");
+			responseHeaders.set("Connection", "keep-alive");
+			responseHeaders.set("X-Accel-Buffering", "no");
+		} else {
+			responseHeaders.set("Content-Type", "application/json");
+		}
+		responseHeaders.set("x-edlide-proxy", "v2");
 
 		return new NextResponse(response.body, {
 			status: response.status,
