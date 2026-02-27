@@ -355,7 +355,7 @@ class MoveViewsBetweenPanelsAction extends Action2 {
 	}
 }
 
-// --- Move Panel Views To Void Side Bar
+// --- Move Panel Views To Edlide Side Bar
 
 class MovePanelToSidePanelAction extends MoveViewsBetweenPanelsAction {
 	static readonly ID = 'workbench.action.movePanelToSidePanel';
