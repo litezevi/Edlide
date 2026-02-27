@@ -2,7 +2,49 @@
 
 ## Current Work Focus
 
-### 🎯 **LATEST - Parent Folder Verification (2025-01-18)**
+### 🎯 **LATEST - Stream Truncation Bug Fix & AI Proxy Architecture Change (2026-02-27)**
+
+**✅ FIXED - rewrite_file tool calls hanging/failing silently on large file content:**
+
+**Problem**: When AI model (MiniMax-M2.5-TEE) generates large file content via `rewrite_file` tool, the stream gets truncated — `new_content` parameter never arrives, tool call fails silently with no error shown to user.
+
+**Root Cause (Architecture)**: Two-proxy chain caused stream truncation:
+```
+IDE → Vercel route.ts → Supabase Edge Function → Chutes.ai API
+```
+Supabase Edge Function received `shutdown` signal and killed the stream before `new_content` finished transmitting. The EF was an unnecessary hop — Vercel route.ts already handles auth, rate-limiting, and API key decryption.
+
+**Solution**: Removed Supabase Edge Function from the streaming path. Vercel route.ts now calls Chutes.ai API directly:
+```
+BEFORE: IDE → Vercel → Supabase EF → Chutes.ai (2 proxies, stream truncated)
+AFTER:  IDE → Vercel → Chutes.ai directly (1 proxy, stream completes)
+```
+
+**Changes Made:**
+
+1. **`edlide-website/src/app/api/ai-proxy/[[...path]]/route.ts`** — Main fix:
+   - Replaced `fetch(supabaseFunctionUrl)` with `fetch(chutesBaseUrl + '/chat/completions')` using decrypted Chutes API key directly
+   - Added `CHUTES_BASE_URL` env var check
+   - Added proper streaming headers (`text/event-stream`, `Cache-Control: no-cache, no-transform`, `X-Accel-Buffering: no`)
+   - Moved request counter increment BEFORE the AI call
+   - Changed `x-edlide-proxy` header from `v1` to `v2`
+
+2. **`src/vs/workbench/contrib/void/electron-main/llmMessage/sendLLMMessage.impl.ts`** — IDE resilience:
+   - Added `tryRecoverPartialJSON()` helper for truncated JSON recovery
+   - Changed `rawToolCallObjOfParamsStr` to return `{ result, truncated }` instead of `RawToolCallObj | null`
+   - Both call sites (OpenAI line ~529, Gemini line ~1008): if `truncated === true` → always `onError()` → triggers retry (3 attempts via `chatThreadService.ts`)
+   - Added progressive parsing during streaming (throttled 500ms) so UI shows tool call params in real-time
+
+3. **Vercel Environment Variables** — Added:
+   - `CHUTES_BASE_URL` — Chutes.ai API base URL
+
+**Supabase Edge Function `ai-proxy`**: Still exists but no longer called for chat streaming. Can be kept for models list endpoint or removed.
+
+**Status: STREAM TRUNCATION BUG FIXED** ✅
+
+---
+
+### 🎯 **PREVIOUS - Parent Folder Verification (2025-01-18)**
 
 **✅ FIXED - File appears in chat but doesn't exist on disk:**
 
