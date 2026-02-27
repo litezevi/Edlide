@@ -234,7 +234,7 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 			new SubmenuAction('workbench.action.panel.position', localize('activity bar position', "Activity Bar Position"), positionActions),
 			toAction({ id: ToggleSidebarPositionAction.ID, label: currentPositionRight ? localize('move second side bar left', "Move Edlide Side Bar Left") : localize('move second side bar right', "Move Edlide Side Bar Right"), run: () => this.commandService.executeCommand(ToggleSidebarPositionAction.ID) }),
 			toggleShowLabelsAction,
-			toAction({ id: ToggleAuxiliaryBarAction.ID, label: localize('hide second side bar', "Hide Void Side Bar"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
+			toAction({ id: ToggleAuxiliaryBarAction.ID, label: localize('hide second side bar', "Hide Edlide Side Bar"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
 		]);
 	}
 
