@@ -718,13 +718,9 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	// Get edlide model order from defaultModelsOfProvider
 	const edlideModelOrder = defaultModelsOfProvider.edlide;
 
-	// sort by hidden and then by provider priority
+	// sort: edlide first, then group by provider, then by model name
 	modelDump.sort((a, b) => {
-		// First sort by enabled status
-		const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
-		if (enabledDiff !== 0) return enabledDiff;
-
-		// Then sort by provider priority (edlide first, then others)
+		// edlide provider always first
 		if (a.providerName === 'edlide' && b.providerName !== 'edlide') return -1;
 		if (b.providerName === 'edlide' && a.providerName !== 'edlide') return 1;
 
@@ -732,16 +728,23 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 		if (a.providerName === 'edlide' && b.providerName === 'edlide') {
 			const aIndex = edlideModelOrder.indexOf(a.modelName as any);
 			const bIndex = edlideModelOrder.indexOf(b.modelName as any);
-			// If both found in default order, use that order
-			if (aIndex !== -1 && bIndex !== -1) {
-				return aIndex - bIndex;
-			}
-			// If only one is in default order, prioritize it
+			if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
 			if (aIndex !== -1) return -1;
 			if (bIndex !== -1) return 1;
 		}
 
-		// Finally sort by display name
+		// Group by provider — all models from the same provider stay together
+		if (a.providerName !== b.providerName) {
+			// Enabled providers before disabled ones
+			const enabledDiff = Number(b.providerEnabled) - Number(a.providerEnabled);
+			if (enabledDiff !== 0) return enabledDiff;
+			// Then alphabetically by provider title
+			const aTitle = displayInfoOfProviderName(a.providerName).title;
+			const bTitle = displayInfoOfProviderName(b.providerName).title;
+			return aTitle.localeCompare(bTitle);
+		}
+
+		// Within same provider, sort by display name
 		const aName = getModelDisplayName(a.modelName, a.providerName);
 		const bName = getModelDisplayName(b.modelName, b.providerName);
 		return aName.localeCompare(bName);
@@ -806,10 +809,10 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 				className={`flex items-center justify-between gap-4 hover:bg-black/10 dark:hover:bg-gray-300/10 py-1 px-3 rounded-sm overflow-hidden cursor-default truncate group
 				`}
 			>
-				{/* left part is width:full */}
-				<div className={`flex flex-grow items-center gap-4`}>
-					<span className='w-full max-w-32'>{isNewProviderName ? providerTitle : ''}</span>
-  <span className='w-fit max-w-[400px] truncate'>{displayName}</span>
+				{/* left part */}
+				<div className={`flex flex-grow items-center gap-4 min-w-0`}>
+					<span className='w-32 shrink-0 truncate'>{isNewProviderName ? providerTitle : ''}</span>
+					<span className='truncate'>{displayName}</span>
 				</div>
 
 				{/* right part is anything that fits */}
