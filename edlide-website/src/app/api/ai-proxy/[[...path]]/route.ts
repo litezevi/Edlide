@@ -285,8 +285,24 @@ export async function POST(request: NextRequest) {
 				user_id: user.id,
 			});
 
+			// Парсим ошибку от Chutes.ai и возвращаем понятное сообщение
+			let userFriendlyError = "AI service error. Please try again later.";
+			try {
+				const parsedError = JSON.parse(errorText);
+				const detail = parsedError.detail || parsedError.error?.detail || "";
+				
+				// Ошибка лимита изображений
+				if (typeof detail === 'string' && detail.includes('At most 2 image(s) may be provided')) {
+					userFriendlyError = "Maximum of 2 images allowed in a single prompt for qwen-3.5 model.";
+				} else if (typeof detail === 'object' && detail?.error?.message?.includes('At most 2 image(s) may be provided')) {
+					userFriendlyError = "Maximum of 2 images allowed in a single prompt for qwen-3.5 model.";
+				}
+			} catch (parseError) {
+				// Не удалось распарсить — используем default сообщение
+			}
+
 			return NextResponse.json(
-				{ error: "AI service error. Please try again later." },
+				{ error: userFriendlyError },
 				{ status: response.status },
 			);
 		}
