@@ -49,6 +49,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 		if (modelName === 'MiniMaxAI/MiniMax-M2.5-TEE') return 'minimax-m2.5'
 		if (modelName === 'zai-org/GLM-5-TEE') return 'glm-5'
+		if (modelName === 'Qwen/Qwen3.5-397B-A17B-TEE') return 'qwen-3.5'
 	}
 	return modelName
 }
@@ -166,6 +167,9 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 		}
 		if (modelName.includes('glm-5') || modelName.includes('GLM-5') || modelName.includes('zai-org/GLM-5-TEE')) {
 			return 202752; // glm-4.7: 200k tokens
+		}
+		if (modelName.includes('qwen-3.5') || modelName.includes('QWEN3.5') || modelName.includes('Qwen/Qwen3.5-397B-A17B-TEE')) {
+			return 262144; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback
 		};
@@ -3833,6 +3837,9 @@ export const SidebarChat = () => {
 		}
 		if (modelName.includes('glm-5') || modelName.includes('GLM-5') || modelName.includes('zai-org/GLM-5-TEE')) {
 			return 202752; // glm-4.7: 200k tokens
+		}
+		if (modelName.includes('qwen-3.5') || modelName.includes('QWEN3.5') || modelName.includes('Qwen/Qwen3.5-397B-A17B-TEE')) {
+			return 262144; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback
 	};

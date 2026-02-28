@@ -31,6 +31,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 		if (modelName === 'MiniMaxAI/MiniMax-M2.5-TEE') return 'minimax-m2.5'
 		if (modelName === 'zai-org/GLM-5-TEE') return 'glm-5'
+		if (modelName === 'Qwen/Qwen3.5-397B-A17B-TEE') return 'qwen-3.5'
 	}
 	return modelName
 }

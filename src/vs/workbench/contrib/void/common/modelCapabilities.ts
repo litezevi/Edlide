@@ -79,6 +79,7 @@ export const defaultModelsOfProvider = {
 		'MiniMaxAI/MiniMax-M2.5-TEE',
 		'zai-org/GLM-5-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
+		'Qwen/Qwen3.5-397B-A17B-TEE',
 		'moonshotai/Kimi-K2.5-TEE',
 		'XiaomiMiMo/MiMo-V2-Flash',
 		'deepseek-ai/DeepSeek-V3.2',
@@ -1209,6 +1210,15 @@ const edlideModelOptions = {
 		supportsFIM: false,
 		supportsSystemMessage: 'system-role',
 		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'Qwen/Qwen3.5-397B-A17B-TEE': {
+		contextWindow: 262_144,
+		reservedOutputTokenSpace: 26_014,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
 		reasoningCapabilities: false,
 	},
 } as const satisfies { [s: string]: VoidStaticModelInfo }
