@@ -1,7 +1,8 @@
 # Native Image Support (Vision Models)
 
 ## Дата реализации
-2025-02-28
+2025-02-28 (первичная реализация)
+2026-02-28 (фикс: NATIVE VISION инструкция в системном промпте)
 
 ---
 
@@ -556,9 +557,10 @@ const userHistoryElt: ChatMessage = {
 | `common/modelCapabilities.ts` | Добавлен `supportsVision?: boolean` в тип `VoidStaticModelInfo`; `supportsVision: true` для `moonshotai/Kimi-K2.5-TEE` | ~169, ~1142 |
 | `common/sendLLMMessageTypes.ts` | Новые типы `OpenAIImageContentPart`, `OpenAITextContentPart`, `OpenAIUserContentPart`; user role в `OpenAILLMChatMessage` поддерживает `content: string \| OpenAIUserContentPart[]` | ~43-63 |
 | `browser/convertToLLMMessageService.ts` | Новые импорты; `images` в `SimpleLLMMessage` user; 3 vision helper функции; strip images в `prepareMessages_openai_tools`; передача images в `_chatMessagesToSimpleMessages`; vision post-processing в `prepareLLMChatMessages` | ~8-11, ~27-42, ~49-114, ~149-157, ~720-724, ~763-850 |
-| `common/prompt/prompts.ts` | `availableTools` получила `supportsVision?` параметр; если true — `analyze_image` исключается | ~377-404 |
+| `common/prompt/prompts.ts` | `availableTools` получила `supportsVision?`; `systemToolsXMLPrompt`, `agentSystemMessage`, `chat_systemMessage` получили `supportsVision?`; в Plan и Agent mode: условная замена IMAGE HANDLING RULE → NATIVE VISION инструкция; `agentSystemMessage` добавляет NATIVE VISION в `parts[]` | ~377-404, ~428, ~560-568, ~571-689 |
 | `electron-main/llmMessage/sendLLMMessage.impl.ts` | `openAITools` получила `supportsVision?`; `_sendOpenAICompatibleChat` извлекает и передаёт `supportsVision` | ~251-264, ~295-315 |
 | `browser/chatThreadService.ts` | Импорт `getModelCapabilities`; условное добавление `<has_images>` флага в зависимости от `supportsVision` модели | ~17, ~1434-1461 |
+| `browser/convertToLLMMessageService.ts` | `_generateChatMessagesSystemMessage` получила `supportsVision?`; пробрасывается в `agentSystemMessage` и `chat_systemMessage`; вызов из `prepareLLMChatMessages` передаёт `supportsVision` | ~669, ~687-688, ~777 |
 
 ---
 
@@ -567,6 +569,38 @@ const userHistoryElt: ChatMessage = {
 | Модель | Provider | Статус |
 |--------|----------|--------|
 | `moonshotai/Kimi-K2.5-TEE` | edlide | ✅ Активна |
+| `Qwen/Qwen3.5-397B-A17B-TEE` | edlide | ✅ Активна |
+
+---
+
+## ✅ Фикс: NATIVE VISION инструкция в системном промпте (2026-02-28)
+
+**Проблема:** Vision-модели (Kimi-K2.5-TEE, Qwen3.5-397B) всё равно пытались вызвать `analyze_image` tool, хотя:
+- tool был исключён из API tools list ✅
+- tool был исключён из XML tool definitions ✅
+- флаг `<has_images>` не добавлялся ✅
+
+**Причина:** Системный промпт не содержал **позитивной инструкции** о том, что модель нативно видит изображения. Модель получала multimodal content с картинками, но не знала, что может их обрабатывать сама. Особенно критично для моделей с XML tool format — они могли галлюцинировать XML-вызов `analyze_image` из обучающих данных.
+
+**Решение:** Добавлена трёхслойная защита:
+
+1. **`systemToolsXMLPrompt()`** — добавлен `supportsVision?` параметр, пробрасывается в `availableTools()`
+2. **`agentSystemMessage()`** — добавлен `supportsVision?`; если `true` — в `parts[]` добавляется:
+   ```
+   NATIVE VISION: You natively support images and can see them directly in user messages.
+   Do NOT call analyze_image — process images yourself without any tool.
+   ```
+3. **`chat_systemMessage()` Plan + Agent mode** — условная замена:
+   - **Было** (для всех моделей): `IMAGE HANDLING RULE: When you see <has_images>true</has_images>, you MUST call analyze_image tool first.`
+   - **Стало** (для vision-моделей): `NATIVE VISION: You natively support images. You can see and analyze images directly in user messages. Do NOT call analyze_image — process images yourself without any tool.`
+   - **Стало** (для обычных моделей): прежняя инструкция без изменений
+
+**`convertToLLMMessageService.ts`** — `_generateChatMessagesSystemMessage()` получила `supportsVision?` параметр, который теперь извлекается в `prepareLLMChatMessages()` через `getModelCapabilities()` и передаётся по всей цепочке.
+
+**Итог трёх слоёв защиты:**
+- Layer 1 (API tools list): `availableTools()` фильтрует `analyze_image` ✅
+- Layer 2 (`<has_images>` flag): `chatThreadService` не добавляет флаг ✅
+- Layer 3 (system prompt text): явная инструкция "ты нативно видишь картинки, не вызывай analyze_image" ✅
 
 ---
 

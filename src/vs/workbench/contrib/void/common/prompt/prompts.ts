@@ -425,8 +425,8 @@ export const reParsedToolXMLString = (toolName: ToolName, toolParams: RawToolPar
 
 /* We expect tools to come at the end - not a hard limit, but that's just how we process them, and the flow makes more sense that way. */
 // - You are allowed to call multiple tools by specifying them consecutively. However, there should be NO text or writing between tool calls or after them.
-const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined) => {
-	const tools = availableTools(chatMode, mcpTools)
+const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, supportsVision?: boolean) => {
+	const tools = availableTools(chatMode, mcpTools, supportsVision)
 	if (!tools || tools.length === 0) return null
 
 	const toolXMLDefinitions = (`\
@@ -557,17 +557,18 @@ YOU: The @path gives you the exact location - just read the file directly
 # STARTUP
 get_dir_tree on workspace root first`
 
-export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
+export const agentSystemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, mcpTools, includeXMLToolDefinitions, supportsVision }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, supportsVision?: boolean }) => {
 	const userInfo = `\nUser OS: ${os ?? 'unknown'}. Workspace: ${workspaceFolders[0]}`;
-	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt('agent', mcpTools) : null;
+	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt('agent', mcpTools, supportsVision) : null;
 
 	const parts = [agentSystemMessageText, userInfo];
+	if (supportsVision) parts.push('NATIVE VISION: You natively support images and can see them directly in user messages. Do NOT call analyze_image — process images yourself without any tool.');
 	if (toolDefinitions) parts.push(toolDefinitions);
 
 	return parts.join('\n\n\n').trim().replace('\t', '  ');
 };
 
-export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean }) => {
+export const chat_systemMessage = ({ workspaceFolders, openedURIs, activeURI, persistentTerminalIDs, directoryStr, chatMode: mode, mcpTools, includeXMLToolDefinitions, supportsVision }: { workspaceFolders: string[], directoryStr: string, openedURIs: string[], activeURI: string | undefined, persistentTerminalIDs: string[], chatMode: ChatMode, mcpTools: InternalToolInfo[] | undefined, includeXMLToolDefinitions: boolean, supportsVision?: boolean }) => {
 	const header = `You are an expert coding assistant helping with programming tasks.
 
 ${mode === 'plan' ? `YOUR CURRENT MODE: PLAN - READ ONLY
@@ -581,8 +582,7 @@ TOOLS YOU CAN USE:
 ✅ search_in_file - Search within file
 ✅ read_lint_errors - View lint errors
 ✅ search_web - Search the internet for current information
-✅ analyze_image - Analyze images from user messages
-
+${!supportsVision ? '✅ analyze_image - Analyze images from user messages\n' : ''}
 TOOLS YOU CANNOT USE:
 ❌ create_file_or_folder - Forbidden in Plan mode
 ❌ delete_file_or_folder - Forbidden in Plan mode
@@ -595,8 +595,7 @@ TOOLS YOU CANNOT USE:
 
 YOUR GOAL: Analyze codebase, understand requirements, create detailed implementation plan.
 
-IMAGE HANDLING RULE:
-When you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.
+${!supportsVision ? 'IMAGE HANDLING RULE:\nWhen you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.' : 'NATIVE VISION: You natively support images. You can see and analyze images directly in user messages. Do NOT call analyze_image — process images yourself without any tool.'}
 
 CRITICAL RULES:
 1. You CAN READ and ANALYZE code
@@ -641,8 +640,7 @@ ALL TOOLS AVAILABLE:
 ✅ edit_file, rewrite_file
 ✅ run_command, run_persistent_command
 ✅ open_persistent_terminal, kill_persistent_terminal
-✅ analyze_image - Analyze images from user messages
-✅ search_web - Search the internet for current information
+${!supportsVision ? '✅ analyze_image - Analyze images from user messages\n' : ''}✅ search_web - Search the internet for current information
 
 YOUR GOAL: Complete tasks autonomously using all available tools.
 
@@ -654,8 +652,7 @@ MANDATORY PROTOCOLS:
 
 Follow all protocols for 100% success rate.
 
-IMAGE HANDLING RULE:
-When you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.
+${!supportsVision ? 'IMAGE HANDLING RULE:\nWhen you see <has_images>true</has_images>, you MUST call analyze_image tool first. This is NOT optional.' : 'NATIVE VISION: You natively support images. You can see and analyze images directly in user messages. Do NOT call analyze_image — process images yourself without any tool.'}
 `}
 
 You may receive selected files (SELECTIONS) for context. Assist the user with their query.
@@ -684,7 +681,7 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 
 	const fsInfo = `File System:\n${directoryStr}`;
 
-	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools) : null;
+	const toolDefinitions = includeXMLToolDefinitions ? systemToolsXMLPrompt(mode, mcpTools, supportsVision) : null;
 
 	const details = [];
 
