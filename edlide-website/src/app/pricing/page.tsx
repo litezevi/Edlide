@@ -212,7 +212,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Access to GLM-4.7, Kimi-K2.5, Minimax-M2.5</span>
+                     <span className="text-sm">Access to <span className="whitespace-nowrap">GLM&#8209;4.7</span>, <span className="whitespace-nowrap">GLM&#8209;5</span>, <span className="whitespace-nowrap">Kimi&#8209;K2.5</span>, <span className="whitespace-nowrap">Minimax&#8209;M2.5</span>, <span className="whitespace-nowrap">Qwen&#8209;3.5</span></span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
