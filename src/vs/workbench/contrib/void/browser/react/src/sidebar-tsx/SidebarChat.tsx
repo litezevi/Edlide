@@ -48,6 +48,7 @@ const getModelDisplayName = (modelName: string, providerName: ProviderName): str
 		if (modelName === 'XiaomiMiMo/MiMo-V2-Flash') return 'mimo-v2-flash'
 		if (modelName === 'zai-org/GLM-4.7-TEE:THINKING') return 'glm-4.7'
 		if (modelName === 'MiniMaxAI/MiniMax-M2.5-TEE') return 'minimax-m2.5'
+		if (modelName === 'zai-org/GLM-5-TEE') return 'glm-5'
 	}
 	return modelName
 }
@@ -161,6 +162,9 @@ const useContextTracker = (threadId: string, featureName: FeatureName) => {
 			return 163840; // deepseek v3.1 variants: 162k tokens
 		}
 		if (modelName.includes('glm-4.7') || modelName.includes('GLM-4.7') || modelName.includes('zai-org/GLM-4.7-TEE:THINKING')) {
+			return 202752; // glm-4.7: 200k tokens
+		}
+		if (modelName.includes('glm-5') || modelName.includes('GLM-5') || modelName.includes('zai-org/GLM-5-TEE')) {
 			return 202752; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback
@@ -3825,6 +3829,9 @@ export const SidebarChat = () => {
 			return 163840; // deepseek v3.1 variants: 162k tokens
 		}
 		if (modelName.includes('glm-4.7') || modelName.includes('GLM-4.7') || modelName.includes('zai-org/GLM-4.7-TEE:THINKING')) {
+			return 202752; // glm-4.7: 200k tokens
+		}
+		if (modelName.includes('glm-5') || modelName.includes('GLM-5') || modelName.includes('zai-org/GLM-5-TEE')) {
 			return 202752; // glm-4.7: 200k tokens
 		}
 		return 128000; // Default fallback

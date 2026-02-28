@@ -77,6 +77,7 @@ export const defaultProviderSettings = {
 export const defaultModelsOfProvider = {
 	edlide: [
 		'MiniMaxAI/MiniMax-M2.5-TEE',
+		'zai-org/GLM-5-TEE',
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'moonshotai/Kimi-K2.5-TEE',
 		'XiaomiMiMo/MiMo-V2-Flash',
@@ -1189,6 +1190,15 @@ const edlideModelOptions = {
 		supportsFIM: false,
 		supportsSystemMessage: 'system-role',
 		specialToolFormat: 'openai-style',
+		reasoningCapabilities: false,
+	},
+	'zai-org/GLM-5-TEE': {
+		contextWindow: 202_752,
+		reservedOutputTokenSpace: 20_752,
+		cost: { input: 0, output: 0 },
+		downloadable: false,
+		supportsFIM: false,
+		supportsSystemMessage: 'system-role',
 		reasoningCapabilities: false,
 	},
 	'XiaomiMiMo/MiMo-V2-Flash': {
