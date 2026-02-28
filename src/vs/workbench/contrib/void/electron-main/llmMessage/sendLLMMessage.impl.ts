@@ -248,8 +248,12 @@ const toOpenAICompatibleTool = (toolInfo: InternalToolInfo) => {
 	} satisfies OpenAI.Chat.Completions.ChatCompletionTool
 }
 
-const openAITools = (chatMode: ChatMode | null, mcpTools: InternalToolInfo[] | undefined) => {
-	const allowedTools = availableTools(chatMode, mcpTools)
+const openAITools = (
+	chatMode: ChatMode | null,
+	mcpTools: InternalToolInfo[] | undefined,
+	supportsVision?: boolean,
+) => {
+	const allowedTools = availableTools(chatMode, mcpTools, supportsVision)
 	if (!allowedTools || Object.keys(allowedTools).length === 0) return null
 
 	const openAITools: OpenAI.Chat.Completions.ChatCompletionTool[] = []
@@ -294,6 +298,7 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 		specialToolFormat,
 		reasoningCapabilities,
 		additionalOpenAIPayload,
+		supportsVision,
 	} = getModelCapabilities(providerName, modelName_, overridesOfModel)
 
 	const { providerReasoningIOSettings } = getProviderCapabilities(providerName)
@@ -307,8 +312,8 @@ const _sendOpenAICompatibleChat = async ({ messages, onText, onFinalMessage, onE
 		...additionalOpenAIPayload
 	}
 
-	// tools
-	const potentialTools = openAITools(chatMode, mcpTools)
+	// tools — vision-capable models don't get analyze_image (they receive images natively)
+	const potentialTools = openAITools(chatMode, mcpTools, supportsVision)
 	const nativeToolsObj = potentialTools && specialToolFormat === 'openai-style' ?
 		{ tools: potentialTools } as const
 		: {}

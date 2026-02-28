@@ -15,6 +15,7 @@ import { chat_userMessageContent, isABuiltinToolName } from '../common/prompt/pr
 import { AnthropicReasoning, getErrorMessage, RawToolCallObj, RawToolParamsObj } from '../common/sendLLMMessageTypes.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { FeatureName, ModelSelection, ModelSelectionOptions } from '../common/voidSettingsTypes.js';
+import { getModelCapabilities } from '../common/modelCapabilities.js';
 import { IVoidSettingsService } from '../common/voidSettingsService.js';
 import { approvalTypeOfBuiltinToolName, BuiltinToolCallParams, ToolCallParams, ToolName, ToolResult } from '../common/toolsServiceTypes.js';
 import { IToolsService } from './toolsService.js';
@@ -1431,10 +1432,28 @@ We only need to do it for files that were edited since `from`, ie files between 
 
 		const userMessageContent = await chat_userMessageContent(instructions, currSelns, { directoryStrService: this._directoryStringService, fileService: this._fileService }) // user message + names of files (NOT content)
 		const chatImages = this.getCurrentChatImages()
-		const hasImagesFlag = chatImages.length > 0 ? '<has_images>true</has_images>\n' : '<has_images>false</has_images>\n'
+
+		// For vision-capable models, images are sent natively — no <has_images> flag needed.
+		// For other models, the flag signals the model to call the analyze_image tool.
+		const { modelSelection } = this._currentModelSelectionProps()
+		const { overridesOfModel } = this._settingsService.state
+		const currentModelSupportsVision = modelSelection
+			? getModelCapabilities(modelSelection.providerName, modelSelection.modelName, overridesOfModel).supportsVision === true
+			: false
+
+		let messageContent: string
+		if (currentModelSupportsVision) {
+			// Vision model: no flag, images are injected as multimodal content by convertToLLMMessageService
+			messageContent = userMessageContent
+		} else {
+			// Non-vision model: add has_images flag so the model knows to call analyze_image tool
+			const hasImagesFlag = chatImages.length > 0 ? '<has_images>true</has_images>\n' : '<has_images>false</has_images>\n'
+			messageContent = hasImagesFlag + userMessageContent
+		}
+
 		const userHistoryElt: ChatMessage = {
 			role: 'user',
-			content: hasImagesFlag + userMessageContent,
+			content: messageContent,
 			displayContent: instructions,
 			selections: currSelns,
 			images: chatImages,

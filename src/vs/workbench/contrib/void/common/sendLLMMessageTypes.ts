@@ -40,9 +40,18 @@ export type AnthropicLLMChatMessage = {
 		{ type: 'text'; text: string; } | { type: 'tool_result'; tool_use_id: string; content: string; }
 	)[]
 }
+// multimodal content part for vision-capable models (image_url with base64 data URI)
+export type OpenAIImageContentPart = { type: 'image_url'; image_url: { url: string } }
+export type OpenAITextContentPart = { type: 'text'; text: string }
+export type OpenAIUserContentPart = OpenAITextContentPart | OpenAIImageContentPart
+
 export type OpenAILLMChatMessage = {
-	role: 'system' | 'user' | 'developer';
+	role: 'system' | 'developer';
 	content: string;
+} | {
+	role: 'user';
+	// string for regular messages, array for multimodal (vision-capable models with images)
+	content: string | OpenAIUserContentPart[];
 } | {
 	role: 'assistant',
 	content: string | (AnthropicReasoning | { type: 'text'; text: string })[];

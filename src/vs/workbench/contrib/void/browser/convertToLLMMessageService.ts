@@ -5,10 +5,10 @@ import { registerSingleton, InstantiationType } from '../../../../platform/insta
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { ChatMessage } from '../common/chatThreadServiceTypes.js';
+import { ChatImageAttachment, ChatMessage } from '../common/chatThreadServiceTypes.js';
 import { getIsReasoningEnabledState, getReservedOutputTokenSpace, getModelCapabilities } from '../common/modelCapabilities.js';
 import { reParsedToolXMLString, chat_systemMessage, agentSystemMessage } from '../common/prompt/prompts.js';
-import { AnthropicLLMChatMessage, AnthropicReasoning, GeminiLLMChatMessage, LLMChatMessage, LLMFIMMessage, OpenAILLMChatMessage, RawToolParamsObj } from '../common/sendLLMMessageTypes.js';
+import { AnthropicLLMChatMessage, AnthropicReasoning, GeminiLLMChatMessage, LLMChatMessage, LLMFIMMessage, OpenAIImageContentPart, OpenAILLMChatMessage, OpenAITextContentPart, RawToolParamsObj } from '../common/sendLLMMessageTypes.js';
 import { IVoidSettingsService } from '../common/voidSettingsService.js';
 import { ChatMode, FeatureName, ModelSelection, ProviderName } from '../common/voidSettingsTypes.js';
 import { IDirectoryStrService } from '../common/directoryStrService.js';
@@ -33,6 +33,8 @@ type SimpleLLMMessage = {
 } | {
 	role: 'user';
 	content: string;
+	// images are carried here so vision-capable models can receive them directly (as multimodal content)
+	images?: ChatImageAttachment[];
 } | {
 	role: 'assistant';
 	content: string;
@@ -43,6 +45,73 @@ type SimpleLLMMessage = {
 
 const CHARS_PER_TOKEN = 4 // assume abysmal chars per token
 const TRIM_TO_LEN = 120
+
+// ---- Vision helpers ----
+
+/**
+ * Resize image to at most maxSize×maxSize (preserving aspect ratio) via Canvas API.
+ * Returns base64 string (no data-URI prefix) encoded as JPEG with quality 0.8.
+ * Browser-process only (uses HTMLImageElement + HTMLCanvasElement).
+ */
+const resizeImageForVision = (dataUrl: string, maxSize = 1024): Promise<string> => {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => {
+			let { width, height } = img
+			if (width > maxSize || height > maxSize) {
+				if (width > height) {
+					height = Math.round((height * maxSize) / width)
+					width = maxSize
+				} else {
+					width = Math.round((width * maxSize) / height)
+					height = maxSize
+				}
+			}
+			const canvas = document.createElement('canvas')
+			canvas.width = width
+			canvas.height = height
+			const ctx = canvas.getContext('2d')
+			ctx?.drawImage(img, 0, 0, width, height)
+			const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
+			// return only the base64 portion
+			resolve(resizedDataUrl.split(',')[1] ?? '')
+		}
+		img.onerror = reject
+		img.src = dataUrl
+	})
+}
+
+/**
+ * Convert an array of ChatImageAttachment into OpenAI multimodal content parts.
+ * Images are resized to ≤1024×1024 to avoid 413 errors.
+ */
+const imagesToOpenAIContentParts = async (images: ChatImageAttachment[]): Promise<OpenAIImageContentPart[]> => {
+	const parts: OpenAIImageContentPart[] = []
+	for (const img of images) {
+		try {
+			const base64 = await resizeImageForVision(img.previewUrl)
+			if (base64) {
+				parts.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64}` } })
+			}
+		} catch (e) {
+			console.error('[Vision] Failed to resize image for native vision:', e)
+		}
+	}
+	return parts
+}
+
+/**
+ * Build the multimodal OpenAI user content: [text part, ...image parts].
+ * Called per-message when model supportsVision.
+ */
+const buildVisionUserContent = async (
+	text: string,
+	images: ChatImageAttachment[],
+): Promise<(OpenAITextContentPart | OpenAIImageContentPart)[]> => {
+	const imageParts = await imagesToOpenAIContentParts(images)
+	const textPart: OpenAITextContentPart = { type: 'text', text: text || '' }
+	return [textPart, ...imageParts]
+}
 
 
 
@@ -78,7 +147,13 @@ const prepareMessages_openai_tools = (messages: SimpleLLMMessage[]): AnthropicOr
 		const currMsg = messages[i]
 
 		if (currMsg.role !== 'tool') {
-			newMessages.push(currMsg)
+			// strip the `images` field — it's only used for vision pre-processing, not sent to OpenAI directly
+			if (currMsg.role === 'user') {
+				const { images: _images, ...userMsgWithoutImages } = currMsg
+				newMessages.push(userMsgWithoutImages)
+			} else {
+				newMessages.push(currMsg)
+			}
 			continue
 		}
 
@@ -645,6 +720,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 				simpleLLMMessages.push({
 					role: m.role,
 					content: m.content,
+					images: m.images && m.images.length > 0 ? m.images : undefined,
 				})
 			}
 		}
@@ -694,6 +770,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 			specialToolFormat,
 			contextWindow,
 			supportsSystemMessage,
+			supportsVision,
 		} = getModelCapabilities(providerName, modelName, overridesOfModel)
 
 		const { disableSystemMessage } = this.voidSettingsService.state.globalSettings;
@@ -719,6 +796,57 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 			reservedOutputTokenSpace,
 			providerName,
 		})
+
+		// For vision-capable models: transform user messages that carry images into multimodal content arrays.
+		// We build a lookup from user-message text → images using the original SimpleLLMMessages,
+		// then walk the final prepared messages and inject multimodal content where needed.
+		if (supportsVision) {
+			// Build map: message content string → images (for user messages that have images)
+			const userContentToImages = new Map<string, ChatImageAttachment[]>()
+			for (const simple of llmMessages) {
+				if (simple.role === 'user' && simple.images && simple.images.length > 0) {
+					userContentToImages.set(simple.content, simple.images)
+				}
+			}
+
+			if (userContentToImages.size > 0) {
+				const transformedMessages: LLMChatMessage[] = []
+				for (const msg of messages) {
+					const asOpenAI = msg as OpenAILLMChatMessage
+					if (asOpenAI.role === 'user' && typeof asOpenAI.content === 'string') {
+						// Check if this prepared message corresponds to one of the original user messages with images.
+						// Exact match first; fall back to prefix match (in case message was trimmed).
+						let matchedImages: ChatImageAttachment[] | undefined
+
+						// 1. Exact match
+						if (userContentToImages.has(asOpenAI.content)) {
+							matchedImages = userContentToImages.get(asOpenAI.content)
+						}
+
+						// 2. Prefix match (prepared content may be trimmed from the end)
+						if (!matchedImages) {
+							for (const [originalContent, imgs] of userContentToImages) {
+								const prefix = originalContent.substring(0, Math.min(80, originalContent.length))
+								if (prefix.length > 10 && asOpenAI.content.startsWith(prefix)) {
+									matchedImages = imgs
+									break
+								}
+							}
+						}
+
+						if (matchedImages && matchedImages.length > 0) {
+							const multimodalContent = await buildVisionUserContent(asOpenAI.content, matchedImages)
+							transformedMessages.push({ role: 'user', content: multimodalContent } as OpenAILLMChatMessage)
+							console.log(`[Vision] Injected ${matchedImages.length} image(s) natively into message for model ${modelName}`)
+							continue
+						}
+					}
+					transformedMessages.push(msg)
+				}
+				return { messages: transformedMessages, separateSystemMessage }
+			}
+		}
+
 		return { messages, separateSystemMessage };
 	}
 

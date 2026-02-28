@@ -166,6 +166,7 @@ export type VoidStaticModelInfo = { // not stateful
 	supportsSystemMessage: false | 'system-role' | 'developer-role' | 'separated'; // typically you should use 'system-role'. 'separated' means the system message is passed as a separate field (e.g. anthropic)
 	specialToolFormat?: 'openai-style' | 'anthropic-style' | 'gemini-style', // typically you should use 'openai-style'. null means "can't call tools by default", and asks the LLM to output XML in agent mode
 	supportsFIM: boolean; // whether the model was specifically designed for autocomplete or "FIM" ("fill-in-middle" format)
+	supportsVision?: boolean; // whether the model natively accepts images in messages (multimodal); if true, images are sent directly instead of using analyze_image tool
 
 	additionalOpenAIPayload?: { [key: string]: any } // additional payload in the message body for requests that are openai-compatible (ollama, vllm, openai, openrouter, etc)
 
@@ -1138,6 +1139,7 @@ const edlideModelOptions = {
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
+		supportsVision: true, // natively accepts images in multimodal content arrays
 		supportsSystemMessage: 'system-role',
 		specialToolFormat: 'openai-style',
 		reasoningCapabilities: false,
@@ -1218,6 +1220,7 @@ const edlideModelOptions = {
 		cost: { input: 0, output: 0 },
 		downloadable: false,
 		supportsFIM: false,
+		supportsVision: true, // natively accepts images in multimodal content arrays
 		supportsSystemMessage: 'system-role',
 		reasoningCapabilities: false,
 	},

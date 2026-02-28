@@ -374,17 +374,27 @@ export const isABuiltinToolName = (toolName: string): toolName is BuiltinToolNam
 
 
 
-export const availableTools = (chatMode: ChatMode | null, mcpTools: InternalToolInfo[] | undefined) => {
+export const availableTools = (
+	chatMode: ChatMode | null,
+	mcpTools: InternalToolInfo[] | undefined,
+	// if model natively handles images (supportsVision), exclude analyze_image — the model receives images directly
+	supportsVision?: boolean,
+) => {
 
 	const builtinToolNames: BuiltinToolName[] | undefined = chatMode === 'ask' ? undefined
 		: chatMode === 'plan' ? (Object.keys(builtinTools) as BuiltinToolName[]).filter(toolName => !(toolName in approvalTypeOfBuiltinToolName))
 			: chatMode === 'agent' ? Object.keys(builtinTools) as BuiltinToolName[]
 				: undefined
 
-	const effectiveBuiltinTools = builtinToolNames?.map(toolName => builtinTools[toolName]) ?? undefined
+	// Vision-capable models don't need analyze_image — they receive images natively in the message content
+	const filteredBuiltinToolNames = supportsVision
+		? builtinToolNames?.filter(toolName => toolName !== 'analyze_image')
+		: builtinToolNames
+
+	const effectiveBuiltinTools = filteredBuiltinToolNames?.map(toolName => builtinTools[toolName]) ?? undefined
 	const effectiveMCPTools = (chatMode === 'agent' || chatMode === 'plan') ? mcpTools : undefined
 
-	const tools: InternalToolInfo[] | undefined = !(builtinToolNames || mcpTools) ? undefined
+	const tools: InternalToolInfo[] | undefined = !(filteredBuiltinToolNames || mcpTools) ? undefined
 		: [
 			...effectiveBuiltinTools ?? [],
 			...effectiveMCPTools ?? [],
