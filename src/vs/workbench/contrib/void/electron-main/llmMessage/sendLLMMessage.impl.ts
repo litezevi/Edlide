@@ -55,7 +55,12 @@ type SendFIMParams_Internal = InternalCommonMessageParams & { messages: LLMFIMMe
 export type ListParams_Internal<ModelResponse> = ModelListParams<ModelResponse>
 
 
-const invalidApiKeyMessage = (providerName: ProviderName) => `Invalid ${displayInfoOfProviderName(providerName).title} API key.`
+const invalidApiKeyMessage = (providerName: ProviderName) => {
+	if (providerName === 'edlide') {
+		return "Reconnect to your Edlide account: go to Settings, click 'Disconnect', then click 'Connect'.";
+	}
+	return `Invalid ${displayInfoOfProviderName(providerName).title} API key.`;
+}
 
 // ------------ OPENAI-COMPATIBLE (HELPERS) ------------
 
