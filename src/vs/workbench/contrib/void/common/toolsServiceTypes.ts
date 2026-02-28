@@ -52,7 +52,17 @@ export type BuiltinToolCallParams = {
 	'read_lint_errors': { uri: URI },
 	// ---
 	'rewrite_file': { uri: URI, newContent: string },
-	'edit_file': { uri: URI, oldString: string, newString: string, replaceAll: boolean },
+	'edit_file': {
+		uri: URI,
+		// Hashline mode (preferred): address by line hash reference
+		fromHash: string | null,
+		toHash: string | null,
+		newContent: string | null,
+		// Legacy mode (fallback): reproduce old text
+		oldString: string | null,
+		newString: string | null,
+		replaceAll: boolean,
+	},
 	'create_file_or_folder': { uri: URI, isFolder: boolean },
 	'delete_file_or_folder': { uri: URI, isRecursive: boolean, isFolder: boolean },
 	// ---

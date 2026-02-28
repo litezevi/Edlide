@@ -3059,14 +3059,17 @@ const builtinToolNameToComponent: { [T in BuiltinToolName]: { resultWrapper: Res
 	},
 	'edit_file': {
 		resultWrapper: (params) => {
-			// Create searchReplaceBlocks from oldString and newString for UI display
-			const { oldString, newString } = params.toolMessage.params
-			const searchReplaceBlocks = `<<<<<<< ORIGINAL
-${oldString}
-=======
-${newString}
->>>>>>> UPDATED`
-			console.log('🔧 [CHAT EDIT] Creating searchReplaceBlocks for edit_file:', searchReplaceBlocks.substring(0, 200) + '...')
+			const { oldString, newString, fromHash, toHash, newContent } = params.toolMessage.params as {
+				oldString: string | null; newString: string | null;
+				fromHash: string | null; toHash: string | null; newContent: string | null;
+			}
+			// Hashline mode: show hash addresses + new content
+			if (fromHash && toHash && newContent !== null) {
+				const searchReplaceBlocks = `<<<<<<< ORIGINAL\n[lines ${fromHash} → ${toHash}]\n=======\n${newContent}\n>>>>>>> UPDATED`
+				return <EditTool {...params} content={searchReplaceBlocks} />
+			}
+			// Legacy mode: show old/new string diff
+			const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${oldString ?? ''}\n=======\n${newString ?? ''}\n>>>>>>> UPDATED`
 			return <EditTool {...params} content={searchReplaceBlocks} />
 		}
 	},

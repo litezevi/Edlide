@@ -164,7 +164,10 @@ export const builtinTools: {
 
 	read_file: {
 		name: 'read_file',
-		description: `Returns full contents of a file. Always read files before editing to understand content.`,
+		description: `Returns file contents with hash annotations for precise editing.
+Each line is prefixed: "lineNumber:hash|content" (e.g. "15:a3f|const x = 5;").
+Use the hash references with edit_file (from_hash/to_hash) — no text reproduction needed.
+Always read files before editing.`,
 		params: {
 			...uriParam('file'),
 			start_line: { description: 'Optional. Start line number for reading.' },
@@ -269,19 +272,33 @@ WORKFLOW:
 
 	edit_file: {
 		name: 'edit_file',
-		description: `Edit file content.
+		description: `Edit file content using hash-addressed lines (Hashline mode) or text matching (legacy mode).
 
-WORKFLOW:
-1. read_file({ uri: "/path/file.ts" }) // BEFORE
-2. edit_file({ uri, old_string: "exact", new_string: "new" })
-3. read_file({ uri: "/path/file.ts" }) // AFTER - VERIFY!
+HASHLINE MODE (preferred — high accuracy):
+read_file returns lines with hash annotations: "15:a3f|const x = 5;"
+Use from_hash + to_hash to address the block to replace.
+No need to reproduce exact text — just reference the hashes.
 
-old_string: MUST be unique, include 5+ lines context.`,
+WORKFLOW (Hashline):
+1. read_file({ uri: "/path/file.ts" })  // get lines with hashes
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement code" })
+3. read_file({ uri: "/path/file.ts" })  // verify
+
+SINGLE LINE: set from_hash = to_hash (same hash reference).
+INSERT AFTER line N: from_hash = to_hash = "N:xxx", include original line in new_content.
+DELETE block: set new_content to empty string "".
+
+LEGACY MODE (fallback if hashes unavailable):
+edit_file({ uri, old_string: "exact text", new_string: "replacement" })
+old_string MUST be unique — include 5+ lines of context.`,
 		params: {
 			uri: { description: `Absolute path to file to modify.` },
-			old_string: { description: `Exact text to replace. MUST be UNIQUE - include 5+ lines of surrounding context.` },
-			new_string: { description: `Replacement text. Must be valid code.` },
-			replace_all: { description: `Replace all occurrences. Default false.` }
+			from_hash: { description: `(Hashline) Start line reference from read_file output, e.g. "15:a3f". Use with to_hash.` },
+			to_hash: { description: `(Hashline) End line reference from read_file output, e.g. "17:cd1". Same as from_hash for single line.` },
+			new_content: { description: `(Hashline) Replacement code for the addressed block. Empty string to delete.` },
+			old_string: { description: `(Legacy) Exact text to replace. MUST be UNIQUE — include 5+ lines of surrounding context.` },
+			new_string: { description: `(Legacy) Replacement text. Must be valid code.` },
+			replace_all: { description: `(Legacy) Replace all occurrences. Default false.` },
 		},
 	},
 
@@ -442,9 +459,20 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
 | edit_file | Modify existing code | FAST |
 | rewrite_file | NEW file OR 90%+ changes | SLOW |
 
+# HASHLINE EDIT SYSTEM (use this for all edits)
+read_file returns lines with hash annotations: "15:a3f|const x = 5;"
+Format: "lineNumber:hash|content"
+Use from_hash + to_hash — no text reproduction needed.
+
 # WORKFLOW: EDIT FILE
-1. read_file({ uri: "/path/file.ts" })
-2. edit_file({ uri, old_string: "exact", new_string: "new" })
+1. read_file({ uri: "/path/file.ts" })          // get hashes: "15:a3f|code"
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "new code" })
+3. read_file({ uri: "/path/file.ts" })          // verify
+
+SINGLE LINE: from_hash = to_hash
+INSERT AFTER line N: include original line in new_content
+DELETE block: new_content = ""
+LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -475,8 +503,6 @@ WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
 CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 
 # RULES
-- old_string: 5+ lines context, MUST be unique
-- If uncertain: say "I don't know"
 - Absolute paths ONLY
 - NO hallucinations`)
 
@@ -497,9 +523,22 @@ const agentSystemMessageText = `TASK: Edit code files following exact workflow.
 | edit_file | Modify existing code | FAST |
 | rewrite_file | NEW file OR 90%+ changes | SLOW |
 
+# HASHLINE EDIT SYSTEM (use this for all edits)
+read_file returns lines with hash annotations: "15:a3f|const x = 5;"
+Format: "lineNumber:hash|content"
+Use from_hash + to_hash to address blocks — no text reproduction needed.
+
 # WORKFLOW: EDIT FILE
-1. read_file({ uri: "/path/file.ts" })
-2. edit_file({ uri, old_string: "exact", new_string: "new" })
+1. read_file({ uri: "/path/file.ts" })         // lines have hashes: "15:a3f|code"
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "new code" })
+3. read_file({ uri: "/path/file.ts" })         // verify
+
+SINGLE LINE: from_hash = to_hash
+INSERT AFTER line: include original line in new_content
+DELETE block: new_content = ""
+
+LEGACY FALLBACK (only if hashes unavailable):
+edit_file({ uri, old_string: "exact unique text 5+ lines", new_string: "new" })
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -706,11 +745,11 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 		details.push('   - If SUCCESS → rewrite_file({ uri, new_content: "..." })');
 		details.push('   - If FAIL → retry create_file_or_folder');
 		details.push('');
-		details.push('3. EDIT FILE');
-		details.push('   - read_file BEFORE editing');
-		details.push('   - edit_file with UNIQUE old_string (5+ lines context)');
+		details.push('3. EDIT FILE (Hashline system)');
+		details.push('   - read_file BEFORE editing (lines have hashes: "15:a3f|code")');
+		details.push('   - edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "..." })');
 		details.push('   - read_file AFTER editing');
-		details.push('   - Report: "SUCCESS: file.ts:lineN-lineM"');
+		details.push('   - FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "..." })');
 		details.push('');
 		details.push('4. CREATE FOLDERS (ONE LEVEL)');
 		details.push('   - create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!');

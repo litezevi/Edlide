@@ -19,6 +19,7 @@ import { IMarkerService, MarkerSeverity } from '../../../../platform/markers/com
 import { timeout } from '../../../../base/common/async.js'
 import { RawToolParamsObj } from '../common/sendLLMMessageTypes.js'
 import { MAX_CHILDREN_URIs_PAGE, MAX_FILE_CHARS_PAGE, MAX_TERMINAL_BG_COMMAND_TIME, MAX_TERMINAL_INACTIVE_TIME } from '../common/prompt/prompts.js'
+import { annotateWithHashes } from '../common/hashlineService.js'
 import { IVoidSettingsService } from '../common/voidSettingsService.js'
 import { generateUuid } from '../../../../base/common/uuid.js'
 import { IChatThreadService } from './chatThreadService.js'
@@ -337,31 +338,52 @@ export class ToolsService implements IToolsService {
 				return { uri, newContent }
 			},
 
-			edit_file: (params: RawToolParamsObj) => {
-				const { uri: uriUnknown, old_string: oldStringUnknown, new_string: newStringUnknown, replace_all: replaceAllUnknown } = params
-				
-				// Validate required parameters
-				if (uriUnknown === undefined || uriUnknown === null) {
-					throw new Error(`Invalid LLM output: uri parameter is required and cannot be undefined. Must be an absolute path.`)
-				}
-				if (oldStringUnknown === undefined || oldStringUnknown === null) {
-					throw new Error(`Invalid LLM output: old_string parameter is required and cannot be undefined. Must match the exact original code.`)
-				}
-				if (newStringUnknown === undefined || newStringUnknown === null) {
-					throw new Error(`Invalid LLM output: new_string parameter is required and cannot be undefined. Must contain the replacement code.`)
-				}
-				
-const uriStr = validateStr('uri', uriUnknown)
+		edit_file: (params: RawToolParamsObj) => {
+			const {
+				uri: uriUnknown,
+				// Hashline params (preferred, high accuracy)
+				from_hash: fromHashUnknown,
+				to_hash: toHashUnknown,
+				new_content: newContentHashUnknown,
+				// Legacy params (fallback with 9-level matching)
+				old_string: oldStringUnknown,
+				new_string: newStringUnknown,
+				replace_all: replaceAllUnknown,
+			} = params
+
+			if (uriUnknown === undefined || uriUnknown === null) {
+				throw new Error(`Invalid LLM output: uri parameter is required and cannot be undefined. Must be an absolute path.`)
+			}
+
+			const uriStr = validateStr('uri', uriUnknown)
+			const uri = validateURI(uriStr)
+
+			// Hashline path: from_hash + to_hash + new_content
+			const fromHash = validateOptionalStr('from_hash', fromHashUnknown)
+			const toHash = validateOptionalStr('to_hash', toHashUnknown)
+
+			if (fromHash !== null && toHash !== null) {
+				// new_content is required for hashline mode (can be empty string for deletion)
+				const newContent = newContentHashUnknown !== undefined && newContentHashUnknown !== null
+					? validateStr('new_content', newContentHashUnknown)
+					: ''
+				return { uri, fromHash, toHash, newContent, oldString: null, newString: null, replaceAll: false }
+			}
+
+			// Legacy path: old_string + new_string
+			if (oldStringUnknown === undefined || oldStringUnknown === null) {
+				throw new Error(`Invalid LLM output: either (from_hash + to_hash) or old_string is required. Use hashline format from read_file output.`)
+			}
+			if (newStringUnknown === undefined || newStringUnknown === null) {
+				throw new Error(`Invalid LLM output: new_string parameter is required when using old_string mode.`)
+			}
+
 			const oldString = validateStr('old_string', oldStringUnknown)
 			const newString = validateStr('new_string', newStringUnknown)
 			const replaceAll = replaceAllUnknown === 'true'
 
-			// Let validateURI handle URI construction automatically
-			// It will properly handle both file:// URIs and plain paths (including Windows paths)
-			const uri = validateURI(uriStr)
-
-			return { uri, oldString, newString, replaceAll }
-			},
+			return { uri, fromHash: null, toHash: null, newContent: null, oldString, newString, replaceAll }
+		},
 
 			// ---
 
@@ -423,11 +445,14 @@ const uriStr = validateStr('uri', uriUnknown)
 
 				const totalNumLines = model.getLineCount()
 
+				// Annotate with hashline format: "1:a3f|content" for precise editing
+				const annotated = annotateWithHashes(contents)
+
 				const fromIdx = MAX_FILE_CHARS_PAGE * (pageNumber - 1)
 				const toIdx = MAX_FILE_CHARS_PAGE * pageNumber - 1
-				const fileContents = contents.slice(fromIdx, toIdx + 1) // paginate
-				const hasNextPage = (contents.length - 1) - toIdx >= 1
-				const totalFileLen = contents.length
+				const fileContents = annotated.slice(fromIdx, toIdx + 1) // paginate
+				const hasNextPage = (annotated.length - 1) - toIdx >= 1
+				const totalFileLen = annotated.length
 				return { result: { fileContents, totalFileLen, hasNextPage, totalNumLines } }
 			},
 
@@ -582,24 +607,27 @@ const uriStr = validateStr('uri', uriUnknown)
 				return { result: lintErrorsPromise }
 			},
 
-			edit_file: async ({ uri, oldString, newString, replaceAll }) => {
-				console.log('🔧 [EDLIDE TOOLS] edit_file called with OpenCode parameters')
-				console.log('🔧 [EDLIDE TOOLS] URI:', uri)
-				console.log('🔧 [EDLIDE TOOLS] oldString length:', oldString?.length || 0)
-				console.log('🔧 [EDLIDE TOOLS] newString length:', newString?.length || 0)
-				console.log('🔧 [EDLIDE TOOLS] replaceAll:', replaceAll)
-				
+			edit_file: async ({ uri, fromHash, toHash, newContent, oldString, newString, replaceAll }) => {
 				await voidModelService.initializeModel(uri)
 				if (this.commandBarService.getStreamState(uri) === 'streaming') {
 					throw new Error(`Another LLM is currently making changes to this file. Please stop streaming for now and ask the user to resume later.`)
 				}
 				await editCodeService.callBeforeApplyOrEdit(uri)
-				
-				// Use OpenCode-style single replacement instead of SEARCH/REPLACE blocks
-				editCodeService.instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll })
-				console.log('🔧 [EDLIDE TOOLS] edit_file completed successfully with 9-level replacement')
 
-				// at end, get lint errors
+				if (fromHash !== null && toHash !== null && newContent !== null) {
+					// Hashline path — hash-addressed replacement, no text reproduction needed
+					console.log('🔧 [HASHLINE] edit_file hashline mode:', fromHash, '→', toHash)
+					editCodeService.instantlyApplyHashlineEdit({ uri, fromHash, toHash, newContent })
+					console.log('🔧 [HASHLINE] edit_file completed successfully')
+				} else if (oldString !== null && newString !== null) {
+					// Legacy path — 9-level fuzzy matching fallback
+					console.log('🔧 [EDLIDE TOOLS] edit_file legacy mode, oldString length:', oldString.length)
+					editCodeService.instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll })
+					console.log('🔧 [EDLIDE TOOLS] edit_file completed successfully with 9-level replacement')
+				} else {
+					throw new Error('edit_file: provide either (from_hash + to_hash + new_content) or (old_string + new_string).')
+				}
+
 				const lintErrorsPromise = Promise.resolve().then(async () => {
 					await timeout(2000)
 					const { lintErrors } = this._getLintErrors(uri)

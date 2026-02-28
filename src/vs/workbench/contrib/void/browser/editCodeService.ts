@@ -47,6 +47,7 @@ import { acceptBg, acceptBorder, buttonFontSize, buttonTextColor, rejectBg, reje
 import { DiffArea, Diff, CtrlKZone, VoidFileSnapshot, DiffAreaSnapshotEntry, diffAreaSnapshotKeys, DiffZone, TrackingZone, ComputedDiff } from '../common/editCodeServiceTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
 import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel, edlideReplace } from '../common/edlideCodeApplySystem.js';
+import { applyHashlineEdit, extractOriginalBlock, isHashlineError } from '../common/hashlineService.js';
 import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 // import { isMacintosh } from '../../../../base/common/platform.js';
 // import { VOID_OPEN_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
@@ -1363,6 +1364,75 @@ ${newString}
 		console.log('🔧 [EDLIDE OPENCODE] instantlyApplyOpenCodeEdit completed successfully')
 	}
 
+
+	/**
+	 * Hashline Edit: applies a block replacement addressed by hash references.
+	 * from_hash and to_hash are "lineNum:hash" strings (e.g. "15:a3f").
+	 * More accurate than old_string matching — no text reproduction needed.
+	 */
+	public instantlyApplyHashlineEdit({ uri, fromHash, toHash, newContent }: { uri: URI; fromHash: string; toHash: string; newContent: string }) {
+		console.log('🔧 [HASHLINE] instantlyApplyHashlineEdit called')
+		console.log('🔧 [HASHLINE] URI:', uri.toString())
+		console.log('🔧 [HASHLINE] from_hash:', fromHash, '→ to_hash:', toHash)
+
+		const { model } = this._voidModelService.getModel(uri)
+		if (!model) {
+			throw new Error(`File does not exist: ${uri.toString()}`)
+		}
+
+		const modelStr = model.getValue(EndOfLinePreference.LF)
+
+		// Extract original block for diff display
+		const originalBlock = extractOriginalBlock(modelStr, fromHash, toHash)
+		if (isHashlineError(originalBlock)) {
+			throw new Error(originalBlock.error)
+		}
+
+		// Apply hashline replacement
+		const newCode = applyHashlineEdit(modelStr, fromHash, toHash, newContent)
+		if (isHashlineError(newCode)) {
+			throw new Error(newCode.error)
+		}
+
+		console.log('🔧 [HASHLINE] Replacement applied. Original length:', modelStr.length, '→ New length:', newCode.length)
+
+		// Build search/replace block for UI diff display
+		const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${originalBlock}\n=======\n${newContent}\n>>>>>>> UPDATED`
+
+		// Start diff zone + write new content
+		const res = this._startStreamingDiffZone({
+			uri,
+			streamRequestIdRef: { current: null },
+			startBehavior: 'keep-conflicts',
+			linkedCtrlKZone: null,
+			onWillUndo: () => { },
+		})
+		if (!res) return
+		const { diffZone, onFinishEdit } = res
+
+		const onDone = () => {
+			diffZone._streamState = { isStreaming: false }
+			this._onDidChangeStreamingInDiffZone.fire({ uri, diffareaid: diffZone.diffareaid })
+			this._refreshStylesAndDiffsInURI(uri)
+			onFinishEdit()
+
+			if (this._settingsService.state.globalSettings.autoAcceptLLMChanges) {
+				this.acceptOrRejectAllDiffAreas({ uri, removeCtrlKs: false, behavior: 'accept' })
+			}
+		}
+
+		try {
+			this._writeURIText(uri, newCode, 'wholeFileRange', { shouldRealignDiffAreas: true })
+		} catch (e) {
+			this._undoHistory(uri)
+			throw e
+		}
+
+		onDone()
+		console.log('🔧 [HASHLINE] instantlyApplyHashlineEdit completed successfully')
+		// Return the searchReplaceBlocks for caller (UI display)
+		return searchReplaceBlocks
+	}
 
 	private _findOverlappingDiffArea({ startLine, endLine, uri, filter }: { startLine: number, endLine: number, uri: URI, filter?: (diffArea: DiffArea) => boolean }): DiffArea | null {
 		// check if there's overlap with any other diffAreas and return early if there is

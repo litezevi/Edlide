@@ -1,166 +1,261 @@
-📌 В чём проблема старых подходов
+# Hashline Edit System — Implementation Log
 
-Инструменты вроде:
+## Концепция (оригинал Бёлюка)
 
-Cursor
+Вместо того чтобы AI воспроизводил старый текст дословно — каждая строка файла получает короткий хеш.
+AI адресует строки по хешу, а не по тексту.
 
-Aider
+```
+1:a3f|function hello() {
+2:f1c|  return "world";
+3:0e2|}
+```
 
-Claude Code
+AI говорит: `REPLACE 2:f1c → новый код`. Система находит строку по хешу, верифицирует, применяет.
 
-используют два основных способа редактирования:
+**Ключевые свойства:**
+- Модель не угадывает текст — просто ссылается на `"15:a3f"`
+- Нет проблем с пробелами и отступами
+- Если файл изменился — хеш не совпадёт → ошибка возвращается AI с инструкцией перечитать файл
+- Разделение ответственности: модель думает о логике, инструмент думает о механике
 
-1️⃣ Patch / Diff формат
+---
 
-Модель должна сгенерировать корректный diff.
+## Статус реализации
 
-Проблема:
+**✅ РЕАЛИЗОВАНО И РАБОТАЕТ** — подтверждено логами от 2026-02-28
 
-Нужно точно воспроизвести контекст
+Из логов видно:
+```
+🔧 [HASHLINE] edit_file hashline mode: 9:5d8 → 9:5d8
+🔧 [HASHLINE] instantlyApplyHashlineEdit called
+🔧 [HASHLINE] Replacement applied. Original length: 250 → New length: 526
+🔧 [EDLIDE WRITE] Needs write check: YES - content differs
+🔧 [EDLIDE WRITE] Applying edits to model...
+🔧 [HASHLINE] instantlyApplyHashlineEdit completed successfully
+[text file model] doSave(1) - before write() → file saved to disk
+```
 
-Малейшая ошибка — патч не применится
+AI (GLM-5-TEE) самостоятельно использовал hashline режим:
+```xml
+<edit_file>
+<uri>/path/to/utils.ts</uri>
+<from_hash>9:5d8</from_hash>
+<to_hash>9:5d8</to_hash>
+<new_content>}
+...new code...
+</new_content>
+</edit_file>
+```
 
-Многие модели просто не обучены этому формату
+Файл успешно изменён (250 → 526 chars), сохранён на диск.
 
-2️⃣ str_replace (поиск и замена строки)
+---
 
-Нужно полностью повторить старую строку.
+## Изменённые файлы
 
-Проблема:
+### 1. НОВЫЙ: `src/vs/workbench/contrib/void/common/hashlineService.ts`
 
-Один лишний пробел → ошибка
+Ядро системы. Все функции без зависимостей.
 
-Сломанные отступы
+**Экспорты:**
+- `hashLine(line: string): string` — djb2 хеш, 3 hex символа (4096 вариантов)
+- `annotateWithHashes(content: string): string` — возвращает `"1:a3f|code"`
+- `stripHashAnnotations(annotated: string): string` — убирает аннотации
+- `parseHashRef(ref: string)` — парсит `"15:a3f"` → `{ lineNum, hash }`
+- `verifyHashRef(content, ref)` — верифицирует хеш, возвращает строку или `{ error }`
+- `applyHashlineEdit(content, fromHash, toHash, newContent)` — применяет замену
+- `extractOriginalBlock(content, fromHash, toHash)` — извлекает оригинальный блок (для UI diff)
+- `isHashlineError(value)` — type guard
 
-Постоянные “String not found”
-
-В итоге модель тратит интеллект не на логику, а на угадывание пробелов.
-
-🚀 Что придумал Бёлюк — Hashline
-
-Он изменил одну вещь: способ адресации строк.
-
-Вместо:
-
-function hello() {
-  return "world";
+**Алгоритм хеша (djb2):**
+```typescript
+function hashLine(line: string): string {
+  let h = 5381
+  for (let i = 0; i < line.length; i++) {
+    h = ((h << 5) + h) ^ line.charCodeAt(i)
+  }
+  return ((h >>> 0) % 0x1000).toString(16).padStart(3, '0')
 }
+```
 
-Модель видит:
+**Верификация при hash mismatch:**
+Если файл изменился между `read_file` и `edit_file` → возвращает:
+```
+"Hash mismatch at line 15: expected hash "a3f" but got "b2c". The file has changed since you last read it. Use read_file to get fresh content."
+```
 
-1:a3|function hello() {
-2:f1|  return "world";
-3:0e|}
+---
 
-Каждая строка имеет короткий хеш.
+### 2. ИЗМЕНЁН: `src/vs/workbench/contrib/void/browser/editCodeService.ts`
 
-Теперь модель не должна вспоминать текст.
+**Добавлен импорт:**
+```typescript
+import { applyHashlineEdit, extractOriginalBlock, isHashlineError } from '../common/hashlineService.js';
+```
 
-Она говорит:
+**Добавлен метод `instantlyApplyHashlineEdit()`:**
+```typescript
+public instantlyApplyHashlineEdit({ uri, fromHash, toHash, newContent }) {
+  // 1. Получает содержимое модели
+  // 2. Извлекает оригинальный блок (для UI diff)
+  // 3. Применяет applyHashlineEdit() — находит строки по хешам
+  // 4. При HashlineError → throws с понятным сообщением для AI
+  // 5. Запускает _startStreamingDiffZone() + _writeURIText() — пишет в файл
+  // 6. Вызывает onDone() → обновляет UI diff zones
+}
+```
 
-Замени строку 2:f1
+Метод находится рядом с `instantlyApplyOpenCodeEdit()` (~line 1367).
 
-Вставь после 3:0e
+---
 
-Замени блок 1:a3 → 3:0e
+### 3. ИЗМЕНЁН: `src/vs/workbench/contrib/void/browser/editCodeServiceInterface.ts`
 
-Это как GPS-координаты для кода.
+Добавлен в интерфейс `IEditCodeService`:
+```typescript
+instantlyApplyHashlineEdit(opts: { uri: URI; fromHash: string; toHash: string; newContent: string }): string | undefined;
+```
 
-🧠 Почему это работает
+---
 
-Модель больше не угадывает текст
+### 4. ИЗМЕНЁН: `src/vs/workbench/contrib/void/browser/toolsService.ts`
 
-Нет проблем с пробелами и отступами
+**Добавлен импорт:**
+```typescript
+import { annotateWithHashes } from '../common/hashlineService.js'
+```
 
-Нет сломанных патчей
+**`read_file` callTool** — файл теперь аннотируется хешами перед отправкой AI:
+```typescript
+const annotated = annotateWithHashes(contents)
+// fileContents теперь: "1:a3f|import React...\n2:b1c|\n3:0e2|function App() {"
+```
 
-Если файл изменился — хеш не совпадёт → правка отменяется
+**`edit_file` validateParams** — поддержка обоих режимов:
+```typescript
+// Hashline mode (from_hash + to_hash + new_content):
+return { uri, fromHash, toHash, newContent, oldString: null, newString: null, replaceAll: false }
 
-То есть:
-Модель думает о логике.
-Инструмент думает о механике.
+// Legacy mode (old_string + new_string):
+return { uri, fromHash: null, toHash: null, newContent: null, oldString, newString, replaceAll }
+```
 
-Разделение ответственности.
+**`edit_file` callTool** — роутинг:
+```typescript
+if (fromHash !== null && toHash !== null && newContent !== null) {
+  // Hashline path — точное нахождение по хешу
+  editCodeService.instantlyApplyHashlineEdit({ uri, fromHash, toHash, newContent })
+} else if (oldString !== null && newString !== null) {
+  // Legacy path — 9-level fuzzy matching (fallback)
+  editCodeService.instantlyApplyOpenCodeEdit({ uri, oldString, newString, replaceAll })
+}
+```
 
-📊 Почему точность выросла в 10 раз?
+---
 
-Потому что раньше половина ошибок были механическими, а не интеллектуальными.
+### 5. ИЗМЕНЁН: `src/vs/workbench/contrib/void/common/toolsServiceTypes.ts`
 
-Например:
-Модель знала, что нужно добавить guard clause,
-но не могла корректно вставить строку.
+Тип `BuiltinToolCallParams['edit_file']` расширен:
+```typescript
+'edit_file': {
+  uri: URI,
+  fromHash: string | null,    // hashline mode
+  toHash: string | null,
+  newContent: string | null,
+  oldString: string | null,   // legacy mode
+  newString: string | null,
+  replaceAll: boolean,
+},
+```
 
-С hashline она просто говорит:
+---
 
-Insert after 15:ab
+### 6. ИЗМЕНЁН: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
 
-И всё.
+**`read_file` tool description** — объяснён формат хешей:
+```
+Returns file contents with hash annotations for precise editing.
+Each line is prefixed: "lineNumber:hash|content" (e.g. "15:a3f|const x = 5;").
+Use the hash references with edit_file (from_hash/to_hash) — no text reproduction needed.
+```
 
-🧩 Как ты можешь применить это в своей IDE
+**`edit_file` tool description** — полная документация hashline режима:
+```
+HASHLINE MODE (preferred):
+edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "code" })
+LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
+```
 
-Ты можешь внедрить это на уровне прокси или инструмента редактирования.
+**`agentSystemMessageText`** — добавлено объяснение hashline workflow:
+```
+# HASHLINE EDIT SYSTEM (use this for all edits)
+read_file returns lines with hash annotations: "15:a3f|const x = 5;"
+Use from_hash + to_hash — no text reproduction needed.
+```
 
-Логика такая:
+**`toolCallXMLGuidelines`** — то же для XML tool mode.
 
-Шаг 1 — При чтении файла
+**`chat_systemMessage` agent mode** — обновлён EDIT FILE protocol.
 
-Разбиваешь файл на строки
+---
 
-Каждой строке добавляешь короткий хеш (например, md5(line).slice(0,3))
+### 7. ИЗМЕНЁН: `src/vs/workbench/contrib/void/browser/react/src/sidebar-tsx/SidebarChat.tsx`
 
-Отправляешь модели "пронумерированный" файл
+`edit_file` resultWrapper обновлён для поддержки обоих режимов.
+Читает `from_hash/fromHash` и `to_hash/toHash` (snake_case и camelCase) из params.
 
-Шаг 2 — Формат ответа модели
+**Статус UI**: Файл редактируется корректно, UI отображение diff — минорная проблема (показывает `null null` в legacy ветке когда параметры hashline). Это косметическая проблема, не влияет на работу системы. UI будет доработан отдельно.
 
-Ты просишь модель отвечать так:
+---
 
-REPLACE 2:f1
-  return "new value";
+## Архитектура pipeline
 
-или
+```
+AI получает read_file → видит "15:a3f|const x = 5;"
+    ↓
+AI генерирует:
+  <edit_file>
+  <from_hash>15:a3f</from_hash>
+  <to_hash>17:cd1</to_hash>
+  <new_content>новый код</new_content>
+  </edit_file>
+    ↓
+toolsService.validateParams.edit_file()
+  → видит from_hash + to_hash → hashline mode
+  → возвращает { uri, fromHash, toHash, newContent, oldString: null, ... }
+    ↓
+toolsService.callTool.edit_file()
+  → fromHash !== null → hashline path
+  → editCodeService.instantlyApplyHashlineEdit()
+    ↓
+hashlineService.verifyHashRef() → проверяет хеш совпадает
+hashlineService.applyHashlineEdit() → заменяет блок строк
+    ↓
+editCodeService._writeURIText() → пишет в VSCode model
+editCodeService.onFinishEdit() → сохраняет на диск
+    ↓
+✅ Файл сохранён, diff zone обновлён
+```
 
-INSERT AFTER 3:0e
-console.log("debug");
-Шаг 3 — Ты сам применяешь изменения
+---
 
-Ты:
+## Что НЕ изменялось
 
-Находишь строку по хешу
+- `edlideCodeApplySystem.ts` — 9-level system сохранена как fallback для old_string
+- `rewrite_file` — без изменений
+- `extractCodeFromResult.ts` — без изменений (Fast Apply legacy path)
+- Все остальные tools — без изменений
 
-Применяешь замену
+---
 
-Проверяешь совпадение
+## Известные проблемы / TODO
 
-🔥 Почему это особенно интересно тебе
+1. **UI diff display** — при hashline mode в SidebarChat показывает `null null` вместо diff.
+   Причина: React build не пересобран, или params читаются из старого треда.
+   Решение: пересобрать React build + доработать SidebarChat.tsx resultWrapper.
+   **Не критично** — файлы редактируются корректно, это только визуальный баг в чате.
 
-Ты работаешь с AI-интеграциями и IDE-обвязкой (edlide + AI proxy).
+2. **start_line / end_line в read_file** — при частичном чтении файла (с `start_line`) хеши остаются правильными (номера строк соответствуют реальным), но AI должен учитывать что видит только часть файла.
 
-Это идеальный кейс для тебя:
-
-Вместо:
-
-доверять diff-формату моделей
-
-ловить ошибки форматирования
-
-Ты можешь сделать свой lightweight hashline слой.
-
-Это:
-
-снизит токены
-
-уменьшит ретраи
-
-увеличит точность
-
-сделает твою систему стабильнее
-
-🎯 Главное понимание
-
-Это не про новую модель.
-
-Это про:
-
-Модель умная. Инструменты тупые.
-
-Hashline делает инструменты умными.
+3. **Большие файлы** — аннотация хешами увеличивает размер файла ~20% (6 символов на строку). При 1000 строк = ~1750 токенов дополнительно. Приемлемо.
