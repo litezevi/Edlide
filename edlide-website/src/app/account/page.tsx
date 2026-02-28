@@ -22,14 +22,6 @@ interface PlanOption {
 
 const PLANS: PlanOption[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 6.99,
-    requestsPerDay: 300,
-    tier: 'base',
-    dodoProductId: 'prod_starter_monthly',
-  },
-  {
     id: 'pro',
     name: 'Pro',
     price: 19.99,
@@ -48,15 +40,13 @@ const PLANS: PlanOption[] = [
 ]
 
 const TIER_DISPLAY_NAMES: Record<string, string> = {
-  'base': 'Starter',
   'plus': 'Pro',
   'pro': 'Ultra',
 }
 
-const TIER_ORDER = ['base', 'plus', 'pro']
+const TIER_ORDER = ['plus', 'pro']
 
 const TIER_PRICES: Record<string, number> = {
-  'base': 6.99,
   'plus': 19.99,
   'pro': 34.99,
 }

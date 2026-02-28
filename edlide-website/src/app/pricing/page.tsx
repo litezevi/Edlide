@@ -21,20 +21,11 @@ interface PricingTier {
 
 const tiers: PricingTier[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 6.99,
-    requestsPerDay: 300,
-    description: 'Perfect for learning and personal projects',
-    productId: 'prod_starter_monthly',
-    tier: 'base',
-  },
-  {
     id: 'pro',
     name: 'Pro',
     price: 19.99,
     requestsPerDay: 2000,
-    description: 'Best for professional developers',
+    description: 'Best for professional\ndevelopers',
     productId: 'prod_pro_monthly',
     tier: 'plus',
     popular: true,
@@ -52,7 +43,7 @@ const tiers: PricingTier[] = [
 
 
 
-const TIER_ORDER = ['base', 'plus', 'pro']
+const TIER_ORDER = ['plus', 'pro']
 
 const faqs = [
   {
@@ -61,7 +52,7 @@ const faqs = [
   },
   {
     question: 'Is there a free trial?',
-    answer: 'No free trial, but we offer the Starter plan at $6.99 so you can try it out.',
+    answer: 'No free trial at this time. You can subscribe to Pro or Ultra and cancel at any time.',
   },
   {
     question: 'Can I change my plan later?',
@@ -165,7 +156,7 @@ export default function PricingPage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
         {tiers.map((tier) => {
           const isCurrent = isCurrentPlan(tier)
           const buttonLabel = getButtonLabel(tier)
@@ -197,7 +188,7 @@ export default function PricingPage() {
               )}
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                <CardDescription>{tier.description}</CardDescription>
+                <CardDescription className="whitespace-pre-line">{tier.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 flex flex-col flex-grow">
                 <div className="text-center">
