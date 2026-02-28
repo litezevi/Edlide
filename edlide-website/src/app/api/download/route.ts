@@ -7,7 +7,7 @@ const R2_ACCOUNT_ID = process.env.CLOUDFLARE_R2_ACCOUNT_ID
 const R2_ACCESS_KEY_ID = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID
 const R2_SECRET_ACCESS_KEY = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY_ID
 
-const VERSION = '1.0.6'
+const VERSION = '1.0.7'
 
 const FILE_MAP: Record<string, string> = {
   arm64: `Edlide-${VERSION}-arm64.dmg`,
