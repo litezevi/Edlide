@@ -17,9 +17,11 @@ import {
 
 /* ─────────── Models data ─────────── */
 const models = [
-  { name: 'Minimax-M2.5', color: 'from-amber-400 to-orange-500' },
   { name: 'GLM-4.7', color: 'from-emerald-400 to-teal-500' },
+  { name: 'GLM-5', color: 'from-green-400 to-emerald-500' },
+  { name: 'Qwen-3.5', color: 'from-sky-400 to-blue-500' },
   { name: 'KIMI-K2.5', color: 'from-blue-400 to-cyan-500' },
+  { name: 'Minimax-M2.5', color: 'from-amber-400 to-orange-500' },
   { name: 'MIMO-V2-FLASH', color: 'from-purple-400 to-pink-500' },
   { name: 'Deepseek-V3.2', color: 'from-rose-400 to-red-500' },
 ]
@@ -262,11 +264,11 @@ export default function Home() {
             Carefully selected and natively quantized. Each model is battle-tested for real coding tasks.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3">
             {models.map((model) => (
               <div
                 key={model.name}
-                className="group relative px-6 py-3 rounded-full border border-border/50 bg-card/50 backdrop-blur-sm hover:border-purple-500/40 hover-lift transition-all duration-300"
+                className="group relative px-5 py-2.5 rounded-full border border-border/50 bg-card/50 backdrop-blur-sm hover:border-purple-500/40 hover-lift transition-all duration-300"
               >
                 {/* subtle gradient bar at top */}
                 <div className={`absolute top-0 left-4 right-4 h-px bg-gradient-to-r ${model.color} opacity-50 group-hover:opacity-100 transition-opacity`} />
