@@ -81,8 +81,8 @@ export const defaultModelsOfProvider = {
 		'zai-org/GLM-4.7-TEE:THINKING',
 		'Qwen/Qwen3.5-397B-A17B-TEE',
 		'moonshotai/Kimi-K2.5-TEE',
-		'XiaomiMiMo/MiMo-V2-Flash',
-		'deepseek-ai/DeepSeek-V3.2',
+		//'XiaomiMiMo/MiMo-V2-Flash',
+		//'deepseek-ai/DeepSeek-V3.2',
 		'openai/gpt-oss-120b-TEE', // Hidden SCM-only model for commit generation
 		'zai-org/GLM-4.6V'
 	],
