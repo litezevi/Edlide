@@ -143,7 +143,7 @@ alternatively you do not need to use the API key that's given when the account i
 
 #### 2. Создана Pricing страница
 - Файл: `src/app/pricing/page.tsx`
-- 3 тарифа: Starter ($6.99, 300 req/day), Pro ($19.99, 2000 req/day), Ultra ($34.99, 5000 req/day)
+- 2 тарифа: Pro ($14.99, 2000 req/day), Ultra ($29.99, 5000 req/day)
 - Модели: GLM-4.7, Kimi-K2.5, Minimax-M2.5
 - FAQ секция с 2 вопросами
 
@@ -205,9 +205,8 @@ alternatively you do not need to use the API key that's given when the account i
      - В production: создаёт и редимит код подписки (/codes POST, /codes/redeem POST)
      - Сохраняет данные в Supabase таблицу subscriptions
    - Маппинг продуктов:
-     - `prod_starter_monthly` → tier: base
-     - `prod_pro_monthly` → tier: plus
-     - `prod_ultra_monthly` → tier: pro
+      - `prod_pro_monthly` → tier: plus
+      - `prod_ultra_monthly` → tier: pro
 
 3. **Обновлён `src/app/pricing/page.tsx`**
    - Добавлен маппинг productId на Dodo product IDs
@@ -248,7 +247,6 @@ CHUTES_PARTNER_API_KEY=ide_qhp
 
 #### Product IDs в Dodo:
 
-- Starter: `pdt_0NX7tjKSxW7Dn1oGBdMbE`
 - Pro: `pdt_0NX7uDmO6LQ1tZPva4I5A`
 - Ultra: `pdt_0NX7uQKJc1elOk1df38G7`
 
@@ -478,7 +476,6 @@ Redeem происходит ТОЛЬКО внутри обработчика `pa
 ```
 Клиент (browser)                    Сервер (API route)
 ─────────────────                   ──────────────────
-prod_starter_monthly  ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7tjKSxW7Dn1oGBdMbE
 prod_pro_monthly      ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7uDmO6LQ1tZPva4I5A
 prod_ultra_monthly    ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0NX7uQKJc1elOk1df38G7
 ```
@@ -498,7 +495,6 @@ prod_ultra_monthly    ──────►  PRODUCT_ALIAS_MAP[alias] → pdt_0N
 DODO_PAYMENTS_API_KEY=<production key>
 DODO_PAYMENTS_ENVIRONMENT=live_mode
 DODO_PAYMENTS_WEBHOOK_SECRET=<production webhook secret>
-EDLIDE_STARTER_PLAN_PRODUCT_ID=pdt_0NX7tjKSxW7Dn1oGBdMbE
 EDLIDE_PRO_PLAN_PRODUCT_ID=pdt_0NX7uDmO6LQ1tZPva4I5A
 EDLIDE_ULTRA_PLAN_PRODUCT_ID=pdt_0NX7uQKJc1elOk1df38G7
 ```

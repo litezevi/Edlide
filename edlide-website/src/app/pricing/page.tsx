@@ -23,7 +23,7 @@ const tiers: PricingTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 19.99,
+    price: 14.99,
     requestsPerDay: 2000,
     description: 'Best for professional\ndevelopers',
     productId: 'prod_pro_monthly',
@@ -33,7 +33,7 @@ const tiers: PricingTier[] = [
   {
     id: 'ultra',
     name: 'Ultra',
-    price: 34.99,
+    price: 29.99,
     requestsPerDay: 5000,
     description: 'The ultimate plan for ambitious individual developers.',
     productId: 'prod_ultra_monthly',

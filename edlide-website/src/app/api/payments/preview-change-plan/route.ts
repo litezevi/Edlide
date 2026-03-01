@@ -26,8 +26,8 @@ const TIER_DISPLAY_NAMES: Record<string, string> = {
 
 const TIER_PRICES: Record<string, number> = {
   'base': 6.99,
-  'plus': 19.99,
-  'pro': 34.99,
+  'plus': 14.99,
+  'pro': 29.99,
 }
 
 const PRODUCT_ALIAS_MAP: Record<string, string> = {

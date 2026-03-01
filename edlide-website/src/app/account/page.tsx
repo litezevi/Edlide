@@ -24,7 +24,7 @@ const PLANS: PlanOption[] = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 19.99,
+    price: 14.99,
     requestsPerDay: 2000,
     tier: 'plus',
     dodoProductId: 'prod_pro_monthly',
@@ -32,7 +32,7 @@ const PLANS: PlanOption[] = [
   {
     id: 'ultra',
     name: 'Ultra',
-    price: 34.99,
+    price: 29.99,
     requestsPerDay: 5000,
     tier: 'pro',
     dodoProductId: 'prod_ultra_monthly',
@@ -47,8 +47,8 @@ const TIER_DISPLAY_NAMES: Record<string, string> = {
 const TIER_ORDER = ['plus', 'pro']
 
 const TIER_PRICES: Record<string, number> = {
-  'plus': 19.99,
-  'pro': 34.99,
+  'plus': 14.99,
+  'pro': 29.99,
 }
 
 interface PreviewSummary {
@@ -482,8 +482,8 @@ function AccountContent() {
 
   const tierPrices: Record<string, string> = {
     'base': '$6.99/mo',
-    'plus': '$19.99/mo',
-    'pro': '$34.99/mo',
+    'plus': '$14.99/mo',
+    'pro': '$29.99/mo',
   }
 
   const loadRequestUsage = useCallback(async () => {

@@ -22,10 +22,8 @@ const models = [
   { name: 'Qwen-3.5', color: 'from-sky-400 to-blue-500' },
   { name: 'KIMI-K2.5', color: 'from-blue-400 to-cyan-500' },
   { name: 'Minimax-M2.5', color: 'from-amber-400 to-orange-500' },
-  { name: 'MIMO-V2-FLASH', color: 'from-purple-400 to-pink-500' },
-  { name: 'Deepseek-V3.2', color: 'from-rose-400 to-red-500' },
 ]
-
+    
 /* ─────────── Advantages data ─────────── */
 const advantages = [
   {

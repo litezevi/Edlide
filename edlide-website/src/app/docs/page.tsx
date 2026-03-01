@@ -416,16 +416,9 @@ export default function DocsPage() {
                   <td className="p-3 text-muted-foreground font-mono">kimi-k2.5</td>
                   <td className="p-3 text-muted-foreground">256k</td>
                 </tr>
-                <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground font-mono">mimo-v2-flash</td>
-                  <td className="p-3 text-muted-foreground">256k</td>
-                </tr>
-                <tr className="border-t border-border/50">
-                  <td className="p-3 text-muted-foreground font-mono">deepseek-v3.2</td>
-                  <td className="p-3 text-muted-foreground">163k</td>
-                </tr>
               </tbody>
             </table>
+    
             </div>
           </div>
         </div>

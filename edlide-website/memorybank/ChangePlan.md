@@ -2,11 +2,11 @@
 
 ## Overview
 
-Allows users with an active subscription (Starter/Pro/Ultra) to upgrade or downgrade their plan. **Upgrade** uses Dodo Payments `changePlan` API immediately. **Downgrade** is scheduled — the user keeps their current plan until the end of the billing period, then the downgrade is applied upon successful renewal payment. No refunds on downgrade.
+Allows users with an active subscription (Pro/Ultra) to upgrade or downgrade their plan. **Upgrade** uses Dodo Payments `changePlan` API immediately. **Downgrade** is scheduled — the user keeps their current plan until the end of the billing period, then the downgrade is applied upon successful renewal payment. No refunds on downgrade.
 
 ## Key Behavior
 
-- **Upgrade**: Dodo immediately charges the price difference from the saved card (e.g. Starter $6.99 → Pro $19.99 = $13.00 charged). Plan changes instantly.
+- **Upgrade**: Dodo immediately charges the price difference from the saved card (e.g. Pro $14.99 → Ultra $29.99 = $15.00 charged). Plan changes instantly.
 - **Downgrade (SCHEDULED)**: No charge, no refund. Plan stays the same until `next_billing_date`. At renewal, Dodo bills at the OLD price, then webhook triggers `changePlan` to the lower tier for future billing. User sees "Switching to X on Y date" badge.
 - **Cancel Downgrade**: User can cancel a scheduled downgrade at any time — just clears DB fields, no Dodo API call needed.
 - **No checkout redirect**: `changePlan` works via saved card, no new payment page
@@ -20,20 +20,20 @@ Allows users with an active subscription (Starter/Pro/Ultra) to upgrade or downg
 ### How It Works
 
 ```
-User on Pro ($19.99), paid until Feb 18
-  -> Clicks downgrade to Starter
+User on Ultra ($29.99), paid until Feb 18
+  -> Clicks downgrade to Pro
   -> Preview shows: "No charge today. Plan changes on Feb 18, 2026."
   -> Confirms downgrade
   -> Dodo is NOT called. Only DB updated:
-     next_plan_tier=base, downgrade_at=Feb 18
-  -> User continues on Pro with full Pro quota until Feb 18
+     next_plan_tier=plus, downgrade_at=Feb 18
+  -> User continues on Ultra with full Ultra quota until Feb 18
   
-Feb 18: Dodo renews at $19.99 (current plan) -> payment.succeeded webhook
+Feb 18: Dodo renews at $29.99 (current plan) -> payment.succeeded webhook
   -> Webhook sees next_plan_tier + downgrade_at
-  -> Calls dodoClient.subscriptions.changePlan(sub, starter_product_id, difference_immediately)
-  -> Dodo creates credit ($19.99 - $6.99 = $13.00) applied to future renewals
-  -> DB updated: plan_tier=base, next_plan_tier=null, downgrade_at=null
-  -> Next renewal: $6.99 minus credit
+  -> Calls dodoClient.subscriptions.changePlan(sub, pro_product_id, difference_immediately)
+  -> Dodo creates credit ($29.99 - $14.99 = $15.00) applied to future renewals
+  -> DB updated: plan_tier=plus, next_plan_tier=null, downgrade_at=null
+  -> Next renewal: $14.99 minus credit
 ```
 
 ### Why Not Call Dodo Immediately?
@@ -44,9 +44,9 @@ Dodo does NOT support `proration_billing_mode: 'none'`. Tested on Feb 19, 2026 �
 
 Tested full downgrade cycle via simulated webhook:
 
-1. Set scheduled downgrade in DB: `plan_tier=pro, next_plan_tier=base, downgrade_at=2026-03-18`
+1. Set scheduled downgrade in DB: `plan_tier=pro, next_plan_tier=plus, downgrade_at=2026-03-18`
 2. Sent fake `payment.succeeded` webhook via curl to `http://localhost:3000/api/webhooks/dodo`
-3. Result: `plan_tier` changed from `pro` to `base`, `next_plan_tier=null`, `downgrade_at=null`, `next_billing_date` updated to next month
+3. Result: `plan_tier` changed from `pro` to `plus`, `next_plan_tier=null`, `downgrade_at=null`, `next_billing_date` updated to next month
 4. Cancel downgrade also tested — clears DB fields, no Dodo call needed
 
 **Test curl command** (for future testing):
@@ -128,12 +128,10 @@ The `dodoClient` in `webhooks/dodo/route.ts` was missing the `environment` param
 
 | Display Name | Internal Tier | Dodo Product ID              | Price   | Requests/day |
 |-------------|---------------|------------------------------|---------|-------------|
-| Starter     | `base`        | `pdt_0NX7tjKSxW7Dn1oGBdMbE` | $6.99   | 300         |
-| Pro         | `plus`        | `pdt_0NX7uDmO6LQ1tZPva4I5A` | $19.99  | 2,000       |
-| Ultra       | `pro`         | `pdt_0NX7uQKJc1elOk1df38G7` | $34.99  | 5,000       |
+| Pro         | `plus`        | `pdt_0NX7uDmO6LQ1tZPva4I5A` | $14.99  | 2,000       |
+| Ultra       | `pro`         | `pdt_0NX7uQKJc1elOk1df38G7` | $29.99  | 5,000       |
 
 Additional product ID aliases (from checkout metadata):
-- `prod_starter_monthly` → `pdt_0NX7tjKSxW7Dn1oGBdMbE`
 - `prod_pro_monthly` → `pdt_0NX7uDmO6LQ1tZPva4I5A`
 - `prod_ultra_monthly` → `pdt_0NX7uQKJc1elOk1df38G7`
 
