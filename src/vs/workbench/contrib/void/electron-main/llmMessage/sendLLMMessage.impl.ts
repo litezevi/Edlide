@@ -269,11 +269,41 @@ const openAITools = (
 }
 
 
+// Try to recover a truncated JSON object by closing open strings/brackets
+const tryRecoverPartialJSON = (s: string): string => {
+	// Close any open string by adding a quote, then close brackets/braces
+	let result = s.trim()
+	// Remove trailing comma
+	result = result.replace(/,\s*$/, '')
+	// Count unclosed braces/brackets
+	let braces = 0, brackets = 0, inString = false, escaped = false
+	for (let i = 0; i < result.length; i++) {
+		const c = result[i]
+		if (escaped) { escaped = false; continue }
+		if (c === '\\' && inString) { escaped = true; continue }
+		if (c === '"') { inString = !inString; continue }
+		if (!inString) {
+			if (c === '{') braces++
+			else if (c === '}') braces--
+			else if (c === '[') brackets++
+			else if (c === ']') brackets--
+		}
+	}
+	if (inString) result += '"'
+	for (let i = 0; i < brackets; i++) result += ']'
+	for (let i = 0; i < braces; i++) result += '}'
+	return result
+}
+
 // convert LLM tool call to our tool format
 const rawToolCallObjOfParamsStr = (name: string, toolParamsStr: string, id: string): RawToolCallObj | null => {
 	let input: unknown
 	try { input = JSON.parse(toolParamsStr) }
-	catch (e) { return null }
+	catch (e) {
+		// JSON truncated by provider — try to recover
+		try { input = JSON.parse(tryRecoverPartialJSON(toolParamsStr)) }
+		catch (e2) { return null }
+	}
 
 	if (input === null) return null
 	if (typeof input !== 'object') return null
