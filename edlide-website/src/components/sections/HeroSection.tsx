@@ -33,7 +33,7 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <p className="mt-6 text-base md:text-lg text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          Open source AI models have caught up to closed alternatives and cost&nbsp;10x&nbsp;less. Full privacy, native quantization, no session limits.
+          Open source AI models have caught up to closed alternatives and cost&nbsp;10x&nbsp;less. Full privacy, native quantization.
         </p>
 
         {/* CTA Buttons */}
