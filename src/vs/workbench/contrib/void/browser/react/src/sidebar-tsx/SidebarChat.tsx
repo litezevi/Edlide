@@ -1601,18 +1601,20 @@ const EditTool = ({ toolMessage, threadId, messageIdx, content }: Parameters<Res
 
 	const { rawParams, params, name } = toolMessage
 	const desc1OnClick = () => voidOpenFileFn(params.uri, accessor)
-	const componentParams: ToolHeaderParams = { title, desc1, desc1OnClick, desc1Info, isError, icon, isRejected, }
+	const componentParams: ToolHeaderParams = { title, desc1, desc1OnClick, desc1Info, isError, icon, isRejected, hideChevron: toolMessage.name === 'edit_file' }
 
 
 	const editToolType = toolMessage.name === 'edit_file' ? 'diff' : 'rewrite'
 	if (toolMessage.type === 'running_now' || toolMessage.type === 'tool_request') {
-		componentParams.children = <ToolChildrenWrapper className='bg-void-bg-3'>
-			<EditToolChildren
-				uri={params.uri}
-				code={content}
-				type={editToolType}
-			/>
-		</ToolChildrenWrapper>
+		if (editToolType !== 'diff') {
+			componentParams.children = <ToolChildrenWrapper className='bg-void-bg-3'>
+				<EditToolChildren
+					uri={params.uri}
+					code={content}
+					type={editToolType}
+				/>
+			</ToolChildrenWrapper>
+		}
 		// JumpToFileButton removed in favor of FileLinkText
 	}
 	else if (toolMessage.type === 'success' || toolMessage.type === 'rejected' || toolMessage.type === 'tool_error') {
@@ -1630,14 +1632,16 @@ const EditTool = ({ toolMessage, threadId, messageIdx, content }: Parameters<Res
 			threadId={threadId}
 		/>
 
-		// add children
-		componentParams.children = <ToolChildrenWrapper className='bg-void-bg-3'>
-			<EditToolChildren
-				uri={params.uri}
-				code={content}
-				type={editToolType}
-			/>
-		</ToolChildrenWrapper>
+		// add children only for rewrite mode; edit_file hides code preview
+		if (editToolType !== 'diff') {
+			componentParams.children = <ToolChildrenWrapper className='bg-void-bg-3'>
+				<EditToolChildren
+					uri={params.uri}
+					code={content}
+					type={editToolType}
+				/>
+			</ToolChildrenWrapper>
+		}
 
 		if (toolMessage.type === 'success' || toolMessage.type === 'rejected') {
 			const { result } = toolMessage
@@ -2427,7 +2431,7 @@ const EditToolHeaderButtons = ({ applyBoxId, uri, codeStr, toolName, threadId }:
 	return <div className='flex items-center gap-1'>
 		{/* <StatusIndicatorForApplyButton applyBoxId={applyBoxId} uri={uri} /> */}
 		{/* <JumpToFileButton uri={uri} /> */}
-		{streamState === 'idle-no-changes' && <CopyButton codeStr={codeStr} toolTipName='Copy' />}
+		{toolName === 'rewrite_file' && streamState === 'idle-no-changes' && <CopyButton codeStr={codeStr} toolTipName='Copy' />}
 		<EditToolAcceptRejectButtonsHTML type={toolName} codeStr={codeStr} applyBoxId={applyBoxId} uri={uri} threadId={threadId} />
 	</div>
 }
