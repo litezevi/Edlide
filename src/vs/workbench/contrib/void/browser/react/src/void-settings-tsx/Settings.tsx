@@ -8,7 +8,7 @@ import { ProviderName, SettingName, displayInfoOfSettingName, providerNames, Voi
 import ErrorBoundary from '../sidebar-tsx/ErrorBoundary.js'
 import { VoidButtonBgDarken, VoidCustomDropdownBox, VoidInputBox2, VoidSimpleInputBox, VoidSwitch } from '../util/inputs.js'
 import { useAccessor, useIsDark, useIsOptedOut, useRefreshModelListener, useRefreshModelState, useSettingsState } from '../util/services.js'
-import { X, RefreshCw, Loader2, Check, Asterisk, Plus, Edit, Trash2 } from 'lucide-react'
+import { X, RefreshCw, Loader2, Check, Asterisk, Plus, Edit, Trash2, Eye } from 'lucide-react'
 import { ModelDropdown } from './ModelDropdown.js'
 import { ChatMarkdownRender } from '../markdown/ChatMarkdownRender.js'
 import { WarningBox } from './WarningBox.js'
@@ -799,6 +799,9 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 
 			const displayName = getModelDisplayName(modelName, providerName)
 
+			const caps = getModelCapabilities(providerName, modelName, undefined)
+			const hasVision = caps?.supportsVision === true
+
 			const detailAboutModel = type === 'autodetected' ?
 				<Asterisk size={14} className="inline-block align-text-top brightness-115 stroke-[2] text-[#0e70c0]" data-tooltip-id='void-tooltip' data-tooltip-place='right' data-tooltip-content='Detected locally' />
 				: type === 'custom' ?
@@ -815,6 +818,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 				<div className={`flex flex-grow items-center gap-4 min-w-0`}>
 					<span className='w-32 shrink-0 truncate'>{isNewProviderName ? providerTitle : ''}</span>
 					<span className='truncate'>{displayName}</span>
+				{hasVision && <Eye size={12} className='shrink-0 text-void-fg-4 opacity-60' data-tooltip-id='void-tooltip' data-tooltip-place='right' data-tooltip-content='Native vision support' />}
 				</div>
 
 				{/* right part is anything that fits */}
