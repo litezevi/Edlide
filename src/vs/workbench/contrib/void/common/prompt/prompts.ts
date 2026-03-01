@@ -46,7 +46,7 @@ export const FINAL = `>>>>>>> UPDATED`
 
 
 
-const createOpenCodeToolCalls_systemMessage = `\
+const searchReplaceApply_systemMessage = `\
 TASK: Edit code files following exact workflow.
 
 # TOOL SUMMARY
@@ -56,9 +56,10 @@ TASK: Edit code files following exact workflow.
 | rewrite_file | NEW file OR 90%+ changes | SLOW |
 | create_file_or_folder | Create empty file/folder | - |
 
-# WORKFLOW: EDIT EXISTING FILE
-1. read_file({ uri: "/path/file.ts" })
-2. edit_file({ uri, old_string: "exact", new_string: "new" })
+# WORKFLOW: EDIT EXISTING FILE (Hashline system)
+1. read_file({ uri: "/path/file.ts" })  // returns "15:a3f|code" per line
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "new code" })
+3. read_file({ uri, start_line: 13, end_line: 22 })  // REQUIRED: re-read after edit
 
 # WORKFLOW: CREATE NEW FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -70,9 +71,6 @@ TASK: Edit code files following exact workflow.
 - If file EXISTS → use edit_file (FAST)
 - If file NEW → use rewrite_file (after create_file_or_folder)
 - If 90%+ content changes → use rewrite_file
-
-WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
-CORRECT: create_file_or_folder({ uri: "new.ts" }) → read_file → rewrite_file
 
 # CRITICAL: rewrite_file DOES NOT CREATE FILES!
 WRONG: rewrite_file({ uri: "new.ts", new_content: "..." })  // FILE DOES NOT EXIST!
@@ -92,16 +90,13 @@ WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
 CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 
 # RULES
-- old_string: 5+ lines context, MUST be unique
 - If uncertain: say "I don't know"
 - Absolute paths ONLY
 - NO hallucinations
 - If request unclear: ask clarification
 
 # STARTUP
-get_dir_tree on workspace root first
-- Absolute paths ONLY
-- NO hallucinations`
+get_dir_tree on workspace root first`
 
 
 
@@ -272,32 +267,25 @@ WORKFLOW:
 
 	edit_file: {
 		name: 'edit_file',
-		description: `Edit file content using hash-addressed lines (Hashline mode) or text matching (legacy mode).
+		description: `Edit file using hash-addressed lines (Hashline system).
 
-HASHLINE MODE (preferred — high accuracy):
-read_file returns lines with hash annotations: "15:a3f|const x = 5;"
-Use from_hash + to_hash to address the block to replace.
-No need to reproduce exact text — just reference the hashes.
+read_file returns lines with annotations: "15:a3f|const x = 5;"
+Use from_hash + to_hash to address the block — no text reproduction needed.
 
-WORKFLOW (Hashline):
-1. read_file({ uri: "/path/file.ts" })  // get lines with hashes
-2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement code" })
-3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // REQUIRED: hashes change after every edit — re-read edited region before next edit
+WORKFLOW:
+1. read_file({ uri: "/path/file.ts" })  // get hashes
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement" })
+3. read_file({ uri, start_line: 13, end_line: 22 })  // REQUIRED: re-read after every edit
 
 REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
-Do NOT repeat the from_hash or to_hash lines in new_content — they are already removed.
-WRONG: from_hash="5:abc" (id: 'ultra'), new_content="    id: 'ultra',\n    name: 'Ultra',"  ← DUPLICATE!
-RIGHT: from_hash="5:abc" (id: 'ultra'), new_content="    id: 'ultra',\n    name: 'Ultra',"  only if you WANT to keep that line
-RIGHT: to replace just line 5, new_content should be the new version of that line only.
+Do NOT repeat from_hash/to_hash lines in new_content — they are removed.
+WRONG: from_hash line is "id: 'ultra'", new_content starts with "id: 'ultra'," → DUPLICATE!
+RIGHT: new_content = only the new code replacing the block.
 
-SINGLE LINE REPLACE: from_hash = to_hash — new_content is the new version of that one line.
-INSERT AFTER line N: from_hash = to_hash = "N:xxx", new_content = original_line + "\n" + new_lines.
-DELETE block: set new_content to empty string "".
-HASH MISMATCH ERROR: file changed since last read — call read_file again to get fresh hashes.
-
-LEGACY MODE (fallback if hashes unavailable):
-edit_file({ uri, old_string: "exact text", new_string: "replacement" })
-old_string MUST be unique — include 5+ lines of context.`,
+SINGLE LINE: from_hash = to_hash, new_content = new version of that line.
+INSERT AFTER N: new_content = original_line + "\\n" + new_lines.
+DELETE: new_content = "".
+HASH MISMATCH: call read_file to get fresh hashes.`,
 		params: {
 			uri: { description: `Absolute path to file to modify.` },
 			from_hash: { description: `(Hashline) Start line reference from read_file output, e.g. "15:a3f". Lines from_hash..to_hash are REMOVED and replaced by new_content. Do NOT repeat these lines in new_content.` },
@@ -486,7 +474,6 @@ SINGLE LINE: from_hash = to_hash, new_content = new version of that line
 INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: call read_file first to get fresh hashes.
-LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -515,6 +502,13 @@ FILE: has extension → "/app/page.ts"
 
 WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
 CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
+
+# CODE QUALITY — NEVER WRITE DUPLICATES
+Before writing any code, scan what already exists in the file.
+WRONG: declaring a variable/interface/const twice — const x = 1; ... const x = 2;
+WRONG: duplicate object keys — { 'pro': 34.99, 'pro': 34.99 }
+WRONG: duplicate interface declarations — interface Foo { ... } ... interface Foo { ... }
+RIGHT: if name already exists → edit the existing one, do NOT add a second declaration.
 
 # RULES
 - Absolute paths ONLY
@@ -557,9 +551,6 @@ SINGLE LINE: from_hash = to_hash, new_content = new version of that line
 INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: file changed — call read_file to get fresh hashes before retrying.
-
-LEGACY FALLBACK (only if hashes unavailable):
-edit_file({ uri, old_string: "exact unique text 5+ lines", new_string: "new" })
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -607,8 +598,14 @@ User: "Fix the error in @src/api/routes/route.ts"
 YOU: The @path gives you the exact location - just read the file directly
 → read_file({ uri: "/workspace/src/api/routes/route.ts" }) → fix error
 
+# CODE QUALITY — NEVER WRITE DUPLICATES
+Before adding anything, read the target file region to check if it already exists.
+WRONG: duplicate object key — { 'pro': 34.99, 'pro': 34.99 }
+WRONG: duplicate variable — const x = 1; ... const x = 2;
+WRONG: duplicate interface — interface Foo {} ... interface Foo {}
+RIGHT: if the name exists → edit the existing declaration, never add a second one.
+
 # RULES
-- old_string: 5+ lines context, MUST be unique
 - If uncertain: say "I don't know"
 - Absolute paths ONLY
 - NO hallucinations
@@ -772,7 +769,6 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 		details.push('   - read_file AFTER editing (MANDATORY): start_line=fromLine-2, end_line=toLine+5');
 		details.push('     Hashes change after every edit — always re-read before next edit_file call.');
 		details.push('   - HASH MISMATCH error → call read_file immediately to get fresh hashes.');
-		details.push('   - FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "..." })');
 		details.push('');
 		details.push('4. CREATE FOLDERS (ONE LEVEL)');
 		details.push('   - create_file_or_folder({ uri: "/auth/" }) // TRAILING SLASH!');
@@ -1014,7 +1010,7 @@ Please finish writing the new file by applying the change to the original file. 
 
 // ======================================================== apply (fast apply - search/replace) ========================================================
 
-export const searchReplaceGivenDescription_systemMessage = createOpenCodeToolCalls_systemMessage
+export const searchReplaceGivenDescription_systemMessage = searchReplaceApply_systemMessage
 
 
 export const searchReplaceGivenDescription_userMessage = ({ originalCode, applyStr }: { originalCode: string, applyStr: string }) => `\
