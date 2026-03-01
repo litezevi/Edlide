@@ -284,8 +284,14 @@ WORKFLOW (Hashline):
 2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement code" })
 3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // REQUIRED: hashes change after every edit — re-read edited region before next edit
 
-SINGLE LINE: set from_hash = to_hash (same hash reference).
-INSERT AFTER line N: from_hash = to_hash = "N:xxx", include original line in new_content.
+REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
+Do NOT repeat the from_hash or to_hash lines in new_content — they are already removed.
+WRONG: from_hash="5:abc" (id: 'ultra'), new_content="    id: 'ultra',\n    name: 'Ultra',"  ← DUPLICATE!
+RIGHT: from_hash="5:abc" (id: 'ultra'), new_content="    id: 'ultra',\n    name: 'Ultra',"  only if you WANT to keep that line
+RIGHT: to replace just line 5, new_content should be the new version of that line only.
+
+SINGLE LINE REPLACE: from_hash = to_hash — new_content is the new version of that one line.
+INSERT AFTER line N: from_hash = to_hash = "N:xxx", new_content = original_line + "\n" + new_lines.
 DELETE block: set new_content to empty string "".
 HASH MISMATCH ERROR: file changed since last read — call read_file again to get fresh hashes.
 
@@ -294,9 +300,9 @@ edit_file({ uri, old_string: "exact text", new_string: "replacement" })
 old_string MUST be unique — include 5+ lines of context.`,
 		params: {
 			uri: { description: `Absolute path to file to modify.` },
-			from_hash: { description: `(Hashline) Start line reference from read_file output, e.g. "15:a3f". Use with to_hash.` },
-			to_hash: { description: `(Hashline) End line reference from read_file output, e.g. "17:cd1". Same as from_hash for single line.` },
-			new_content: { description: `(Hashline) Replacement code for the addressed block. Empty string to delete.` },
+			from_hash: { description: `(Hashline) Start line reference from read_file output, e.g. "15:a3f". Lines from_hash..to_hash are REMOVED and replaced by new_content. Do NOT repeat these lines in new_content.` },
+			to_hash: { description: `(Hashline) End line reference from read_file output, e.g. "17:cd1". Same as from_hash for single line replacement.` },
+			new_content: { description: `(Hashline) Replacement that substitutes lines from_hash..to_hash. Do NOT include the from_hash line at the start unless you intend to keep it.` },
 			old_string: { description: `(Legacy) Exact text to replace. MUST be UNIQUE — include 5+ lines of surrounding context.` },
 			new_string: { description: `(Legacy) Replacement text. Must be valid code.` },
 			replace_all: { description: `(Legacy) Replace all occurrences. Default false.` },
@@ -471,8 +477,13 @@ Use from_hash + to_hash — no text reproduction needed.
 3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // MANDATORY: re-read edited region — hashes change after every edit
    Use start_line = fromLine-2, end_line = toLine+5 to see the updated hashes.
 
-SINGLE LINE: from_hash = to_hash
-INSERT AFTER line N: include original line in new_content
+REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
+Do NOT repeat from_hash/to_hash lines inside new_content — they are already removed.
+WRONG: from_hash="id: 'ultra'", new_content="id: 'ultra',\nname: 'Ultra'," → DUPLICATE!
+RIGHT: new_content = only the new code that replaces the addressed block.
+
+SINGLE LINE: from_hash = to_hash, new_content = new version of that line
+INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: call read_file first to get fresh hashes.
 LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
@@ -537,8 +548,13 @@ Use from_hash + to_hash to address blocks — no text reproduction needed.
 3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // MANDATORY: hashes change after edit — re-read before next edit
    Use start_line = fromLine-2, end_line = toLine+5 to cover the edited region.
 
-SINGLE LINE: from_hash = to_hash
-INSERT AFTER line: include original line in new_content
+REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
+Do NOT repeat from_hash/to_hash lines inside new_content — they are removed automatically.
+WRONG: from_hash line is "id: 'ultra'", new_content starts with "id: 'ultra'," → DUPLICATE!
+RIGHT: new_content contains only the new code that should appear instead.
+
+SINGLE LINE: from_hash = to_hash, new_content = new version of that line
+INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: file changed — call read_file to get fresh hashes before retrying.
 

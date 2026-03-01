@@ -153,6 +153,55 @@ const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${originalBlock}\n=======\n${clea
 
 ---
 
+### Баг 4: AI дублировал граничные строки блока в new_content (2026-03-01)
+
+**Проблема**: AI неправильно понимал семантику `from_hash` — думал что это "точка вставки", а не "начало заменяемого блока". В результате включал граничную строку в `new_content`, хотя она уже была в файле:
+
+```
+Файл:                          AI отправил new_content:
+    id: 'ultra',           →       id: 'ultra',     ← дубликат!
+    name: 'Ultra',                 id: 'ultra',
+    price: 34.99,                  name: 'Ultra',
+                                   price: 34.99,
+
+Результат в файле:
+    id: 'ultra',    ← оригинальная (not replaced)
+    id: 'ultra',    ← из new_content
+    name: 'Ultra',
+```
+
+**Важно**: алгоритм `applyHashlineEdit` в `hashlineService.ts` был правильным с самого начала — баг только поведенческий (AI неправильно формировал `new_content`).
+
+**Исправление — `prompts.ts`**, 3 места:
+
+`edit_file` description:
+```
+REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
+Do NOT repeat from_hash/to_hash lines inside new_content — they are removed automatically.
+WRONG: from_hash line is "id: 'ultra'", new_content starts with "id: 'ultra'," → DUPLICATE!
+RIGHT: new_content contains only the new code that should appear instead.
+```
+
+`agentSystemMessageText`:
+```
+REPLACEMENT RULE: new_content FULLY REPLACES lines from_hash..to_hash (inclusive).
+Do NOT repeat from_hash/to_hash lines inside new_content — they are removed automatically.
+WRONG: from_hash="id: 'ultra'", new_content="id: 'ultra',\nname: 'Ultra'," → DUPLICATE!
+RIGHT: new_content = only the new code that replaces the addressed block.
+```
+
+`toolCallXMLGuidelines` — аналогично.
+
+Также обновлены описания параметров `from_hash`, `to_hash`, `new_content`:
+```
+from_hash: Lines from_hash..to_hash are REMOVED and replaced by new_content.
+           Do NOT repeat these lines in new_content.
+new_content: Replacement that substitutes lines from_hash..to_hash.
+             Do NOT include the from_hash line at the start unless you intend to keep it.
+```
+
+---
+
 ### Изменения промптов для принудительного re-read (2026-03-01)
 
 **Проблема**: AI после успешного `edit_file` не перечитывал файл и использовал старые хеши для следующего редактирования → hash mismatch.
