@@ -17,6 +17,7 @@ interface PricingTier {
   productId: string
   tier: string
   popular?: boolean
+  tokenValue: number
 }
 
 const tiers: PricingTier[] = [
@@ -29,6 +30,7 @@ const tiers: PricingTier[] = [
     productId: 'prod_pro_monthly',
     tier: 'plus',
     popular: true,
+    tokenValue: 50,
   },
   {
     id: 'ultra',
@@ -38,6 +40,7 @@ const tiers: PricingTier[] = [
     description: 'The ultimate plan for ambitious individual developers.',
     productId: 'prod_ultra_monthly',
     tier: 'pro',
+    tokenValue: 100,
   },
 ]
 
@@ -190,13 +193,19 @@ export default function PricingPage() {
                 <CardTitle className="text-2xl">{tier.name}</CardTitle>
                 <CardDescription className="whitespace-pre-line">{tier.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6 flex flex-col flex-grow">
+<CardContent className="space-y-6 flex flex-col flex-grow">
                 <div className="text-center">
                   <span className="text-4xl font-bold">${tier.price}</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
 
                 <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">
+                      ${tier.tokenValue} worth of tokens
+                    </span>
+                  </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <span className="text-sm">{tier.requestsPerDay.toLocaleString()} requests/day</span>
