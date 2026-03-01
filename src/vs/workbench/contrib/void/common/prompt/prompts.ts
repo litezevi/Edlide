@@ -282,11 +282,12 @@ No need to reproduce exact text — just reference the hashes.
 WORKFLOW (Hashline):
 1. read_file({ uri: "/path/file.ts" })  // get lines with hashes
 2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement code" })
-3. read_file({ uri: "/path/file.ts" })  // verify
+3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // REQUIRED: hashes change after every edit — re-read edited region before next edit
 
 SINGLE LINE: set from_hash = to_hash (same hash reference).
 INSERT AFTER line N: from_hash = to_hash = "N:xxx", include original line in new_content.
 DELETE block: set new_content to empty string "".
+HASH MISMATCH ERROR: file changed since last read — call read_file again to get fresh hashes.
 
 LEGACY MODE (fallback if hashes unavailable):
 edit_file({ uri, old_string: "exact text", new_string: "replacement" })
@@ -467,11 +468,13 @@ Use from_hash + to_hash — no text reproduction needed.
 # WORKFLOW: EDIT FILE
 1. read_file({ uri: "/path/file.ts" })          // get hashes: "15:a3f|code"
 2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "new code" })
-3. read_file({ uri: "/path/file.ts" })          // verify
+3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // MANDATORY: re-read edited region — hashes change after every edit
+   Use start_line = fromLine-2, end_line = toLine+5 to see the updated hashes.
 
 SINGLE LINE: from_hash = to_hash
 INSERT AFTER line N: include original line in new_content
 DELETE block: new_content = ""
+HASH MISMATCH: call read_file first to get fresh hashes.
 LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
@@ -531,11 +534,13 @@ Use from_hash + to_hash to address blocks — no text reproduction needed.
 # WORKFLOW: EDIT FILE
 1. read_file({ uri: "/path/file.ts" })         // lines have hashes: "15:a3f|code"
 2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "new code" })
-3. read_file({ uri: "/path/file.ts" })         // verify
+3. read_file({ uri: "/path/file.ts", start_line: 13, end_line: 22 })  // MANDATORY: hashes change after edit — re-read before next edit
+   Use start_line = fromLine-2, end_line = toLine+5 to cover the edited region.
 
 SINGLE LINE: from_hash = to_hash
 INSERT AFTER line: include original line in new_content
 DELETE block: new_content = ""
+HASH MISMATCH: file changed — call read_file to get fresh hashes before retrying.
 
 LEGACY FALLBACK (only if hashes unavailable):
 edit_file({ uri, old_string: "exact unique text 5+ lines", new_string: "new" })
@@ -748,7 +753,9 @@ Open files: ${openedURIs.join(', ') || 'None'}`;
 		details.push('3. EDIT FILE (Hashline system)');
 		details.push('   - read_file BEFORE editing (lines have hashes: "15:a3f|code")');
 		details.push('   - edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "..." })');
-		details.push('   - read_file AFTER editing');
+		details.push('   - read_file AFTER editing (MANDATORY): start_line=fromLine-2, end_line=toLine+5');
+		details.push('     Hashes change after every edit — always re-read before next edit_file call.');
+		details.push('   - HASH MISMATCH error → call read_file immediately to get fresh hashes.');
 		details.push('   - FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "..." })');
 		details.push('');
 		details.push('4. CREATE FOLDERS (ONE LEVEL)');

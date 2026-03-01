@@ -434,6 +434,7 @@ export class ToolsService implements IToolsService {
 				if (model === null) { throw new Error(`No contents; File does not exist.`) }
 
 				let contents: string
+				let annotationStartLine = 1
 				if (startLine === null && endLine === null) {
 					contents = model.getValue(EndOfLinePreference.LF)
 				}
@@ -441,17 +442,23 @@ export class ToolsService implements IToolsService {
 					const startLineNumber = startLine === null ? 1 : startLine
 					const endLineNumber = endLine === null ? model.getLineCount() : endLine
 					contents = model.getValueInRange({ startLineNumber, startColumn: 1, endLineNumber, endColumn: Number.MAX_SAFE_INTEGER }, EndOfLinePreference.LF)
+					// Pass real file line offset so hashes match edit_file expectations
+					annotationStartLine = startLineNumber
 				}
 
 				const totalNumLines = model.getLineCount()
 
-				// Annotate with hashline format: "1:a3f|content" for precise editing
-				const annotated = annotateWithHashes(contents)
+				// Annotate with hashline format: "15:a3f|content" — line numbers match real file positions
+				const annotated = annotateWithHashes(contents, annotationStartLine)
 
-				const fromIdx = MAX_FILE_CHARS_PAGE * (pageNumber - 1)
-				const toIdx = MAX_FILE_CHARS_PAGE * pageNumber - 1
-				const fileContents = annotated.slice(fromIdx, toIdx + 1) // paginate
-				const hasNextPage = (annotated.length - 1) - toIdx >= 1
+				// Paginate by whole lines — never cut a "15:a3f|..." hash ref mid-string
+				const annotatedLines = annotated.split('\n')
+				const totalPages = Math.max(1, Math.ceil(annotated.length / MAX_FILE_CHARS_PAGE))
+				const linesPerPage = Math.ceil(annotatedLines.length / totalPages)
+				const pageStart = (pageNumber - 1) * linesPerPage
+				const pageEnd = pageNumber * linesPerPage
+				const fileContents = annotatedLines.slice(pageStart, pageEnd).join('\n')
+				const hasNextPage = pageEnd < annotatedLines.length
 				const totalFileLen = annotated.length
 				return { result: { fileContents, totalFileLen, hasNextPage, totalNumLines } }
 			},
@@ -951,7 +958,19 @@ export class ToolsService implements IToolsService {
 							: ` No lint errors found.`)
 						: '')
 
-				return `Change successfully made to ${params.uri.fsPath}.${lintErrsString}`
+				// After a successful hashline edit, hashes change — instruct AI to re-read the edited region
+				let readBackInstruction = ''
+				if (params.fromHash !== null && params.toHash !== null) {
+					const fromLine = parseInt(params.fromHash.split(':')[0], 10)
+					const toLine = parseInt(params.toHash.split(':')[0], 10)
+					const startLine = Math.max(1, fromLine - 2)
+					const endLine = toLine + 5
+					readBackInstruction = `\nREQUIRED NEXT STEP: Call read_file({ uri: "${params.uri.fsPath}", start_line: ${startLine}, end_line: ${endLine} }) — hashes have changed after this edit, you must re-read the edited region before making further edits to this file.`
+				} else {
+					readBackInstruction = `\nNEXT STEP: Call read_file({ uri: "${params.uri.fsPath}" }) to verify changes and get updated line hashes before making further edits.`
+				}
+
+				return `Change successfully made to ${params.uri.fsPath}.${lintErrsString}${readBackInstruction}`
 			},
 			rewrite_file: (params, result) => {
 				const lintErrsString = (

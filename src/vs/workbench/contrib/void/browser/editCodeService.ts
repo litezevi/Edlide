@@ -47,7 +47,7 @@ import { acceptBg, acceptBorder, buttonFontSize, buttonTextColor, rejectBg, reje
 import { DiffArea, Diff, CtrlKZone, VoidFileSnapshot, DiffAreaSnapshotEntry, diffAreaSnapshotKeys, DiffZone, TrackingZone, ComputedDiff } from '../common/editCodeServiceTypes.js';
 import { IConvertToLLMMessageService } from './convertToLLMMessageService.js';
 import { getApplyLevel, EDLIDE_APPLY_LEVELS, ApplyLevel, edlideReplace } from '../common/edlideCodeApplySystem.js';
-import { applyHashlineEdit, extractOriginalBlock, isHashlineError } from '../common/hashlineService.js';
+import { applyHashlineEdit, extractOriginalBlock, isHashlineError, stripHashAnnotations } from '../common/hashlineService.js';
 import { SupabaseAuthHelper } from '../common/supabaseAuthHelper.js';
 // import { isMacintosh } from '../../../../base/common/platform.js';
 // import { VOID_OPEN_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
@@ -1382,6 +1382,10 @@ ${newString}
 
 		const modelStr = model.getValue(EndOfLinePreference.LF)
 
+		// Strip hash annotations from newContent in case AI accidentally included them
+		// e.g. "132:7b9|| Ultra..." → "| Ultra..."
+		const cleanNewContent = stripHashAnnotations(newContent)
+
 		// Extract original block for diff display
 		const originalBlock = extractOriginalBlock(modelStr, fromHash, toHash)
 		if (isHashlineError(originalBlock)) {
@@ -1389,15 +1393,15 @@ ${newString}
 		}
 
 		// Apply hashline replacement
-		const newCode = applyHashlineEdit(modelStr, fromHash, toHash, newContent)
+		const newCode = applyHashlineEdit(modelStr, fromHash, toHash, cleanNewContent)
 		if (isHashlineError(newCode)) {
 			throw new Error(newCode.error)
 		}
 
 		console.log('🔧 [HASHLINE] Replacement applied. Original length:', modelStr.length, '→ New length:', newCode.length)
 
-		// Build search/replace block for UI diff display
-		const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${originalBlock}\n=======\n${newContent}\n>>>>>>> UPDATED`
+		// Build search/replace block for UI diff display (use cleanNewContent — no hash prefixes)
+		const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${originalBlock}\n=======\n${cleanNewContent}\n>>>>>>> UPDATED`
 
 		// Start diff zone + write new content
 		const res = this._startStreamingDiffZone({

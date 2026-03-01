@@ -25,10 +25,14 @@ export function hashLine(line: string): string {
 /**
  * Annotates file content with line hashes.
  * Returns: "1:a3f|import React from 'react';\n2:b1c|\n3:0e2|function App() {"
+ *
+ * @param startLineOffset - 1-indexed line number of the first line in content.
+ *   Use when content is a partial file slice (e.g. read_file with start_line).
+ *   Ensures hash refs match the real file line numbers used by edit_file.
  */
-export function annotateWithHashes(content: string): string {
+export function annotateWithHashes(content: string, startLineOffset = 1): string {
 	const lines = content.split('\n')
-	return lines.map((line, i) => `${i + 1}:${hashLine(line)}|${line}`).join('\n')
+	return lines.map((line, i) => `${i + startLineOffset}:${hashLine(line)}|${line}`).join('\n')
 }
 
 /**

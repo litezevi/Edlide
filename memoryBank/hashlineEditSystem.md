@@ -52,6 +52,129 @@ AI (GLM-5-TEE) самостоятельно использовал hashline ре
 
 ---
 
+## Исправленные баги (2026-03-01)
+
+### Баг 1: Неправильная нумерация строк при частичном чтении (КРИТИЧЕСКИЙ)
+
+**Проблема**: При `read_file({ start_line: 22 })` функция `annotateWithHashes` нумеровала строки с 1.
+AI получал `"1:a3f|..."` для строки 22, а `edit_file` искал `"22:a3f"` в полном файле → hash mismatch всегда.
+
+**Симптом из логов**:
+```
+[lines 22:6de → 26:475]   ← первый read_file
+[lines 22:ae1 → 42:5f8]   ← второй read_file (полный файл)
+```
+При частичном чтении хеш строки 22 показывался как `"1:6de"` — номер строки неверный.
+
+**Исправление в `hashlineService.ts`**:
+```typescript
+// БЫЛО:
+export function annotateWithHashes(content: string): string {
+    const lines = content.split('\n')
+    return lines.map((line, i) => `${i + 1}:${hashLine(line)}|${line}`).join('\n')
+}
+
+// СТАЛО — добавлен startLineOffset:
+export function annotateWithHashes(content: string, startLineOffset = 1): string {
+    const lines = content.split('\n')
+    return lines.map((line, i) => `${i + startLineOffset}:${hashLine(line)}|${line}`).join('\n')
+}
+```
+
+**Исправление в `toolsService.ts`** — `read_file` callTool:
+```typescript
+// БЫЛО:
+const annotated = annotateWithHashes(contents)
+
+// СТАЛО — передаём реальный номер первой строки:
+let annotationStartLine = 1
+if (startLine !== null || endLine !== null) {
+    const startLineNumber = startLine === null ? 1 : startLine
+    annotationStartLine = startLineNumber  // строки нумеруются с реального offset
+}
+const annotated = annotateWithHashes(contents, annotationStartLine)
+```
+
+---
+
+### Баг 2: Пагинация обрезала хеши посимвольно
+
+**Проблема**: Старый код пагинации резал аннотированный текст посимвольно:
+```typescript
+const fileContents = annotated.slice(fromIdx, toIdx + 1)
+```
+Строка `"22:a3f|const x = 5;"` могла быть обрезана до `"22:a"` — AI получал неполный хеш.
+
+**Симптом из логов**: `[lines ae1 → 5f8]` — вообще без номера строки (строка обрезана так что осталось только `"ae1|..."` без `"22:"`).
+
+**Исправление в `toolsService.ts`** — пагинация по целым строкам:
+```typescript
+// БЫЛО (символьная пагинация — обрезает строки):
+const fromIdx = MAX_FILE_CHARS_PAGE * (pageNumber - 1)
+const toIdx = MAX_FILE_CHARS_PAGE * pageNumber - 1
+const fileContents = annotated.slice(fromIdx, toIdx + 1)
+
+// СТАЛО (страничная пагинация по строкам):
+const annotatedLines = annotated.split('\n')
+const totalPages = Math.max(1, Math.ceil(annotated.length / MAX_FILE_CHARS_PAGE))
+const linesPerPage = Math.ceil(annotatedLines.length / totalPages)
+const pageStart = (pageNumber - 1) * linesPerPage
+const pageEnd = pageNumber * linesPerPage
+const fileContents = annotatedLines.slice(pageStart, pageEnd).join('\n')
+const hasNextPage = pageEnd < annotatedLines.length
+```
+
+---
+
+### Баг 3: AI вставлял хеш-аннотации в new_content (2026-03-01)
+
+**Проблема**: AI иногда копировал аннотированные строки целиком в `new_content`, включая `"lineNum:hash|"` префикс:
+```
+132:7b9|| Ultra       | `pro`         | `pdt_0NX7uQKJc1elOk1df38G7` | $34.99  | 5,000       |
+```
+В результате в файл записывалось `"132:7b9|| Ultra..."` вместо `"| Ultra..."`.
+
+**Исправление в `editCodeService.ts`**:
+```typescript
+// Добавлен импорт:
+import { applyHashlineEdit, extractOriginalBlock, isHashlineError, stripHashAnnotations } from '../common/hashlineService.js';
+
+// В instantlyApplyHashlineEdit() перед применением:
+// Strip hash annotations from newContent in case AI accidentally included them
+// e.g. "132:7b9|| Ultra..." → "| Ultra..."
+const cleanNewContent = stripHashAnnotations(newContent)
+
+// Далее используется cleanNewContent вместо newContent:
+const newCode = applyHashlineEdit(modelStr, fromHash, toHash, cleanNewContent)
+const searchReplaceBlocks = `<<<<<<< ORIGINAL\n${originalBlock}\n=======\n${cleanNewContent}\n>>>>>>> UPDATED`
+```
+
+`stripHashAnnotations` уже существовала в `hashlineService.ts` — просто не использовалась в этом месте. Убирает только строки где префикс совпадает с паттерном `^\d+:[0-9a-f]{3}$`, остальное не трогает.
+
+---
+
+### Изменения промптов для принудительного re-read (2026-03-01)
+
+**Проблема**: AI после успешного `edit_file` не перечитывал файл и использовал старые хеши для следующего редактирования → hash mismatch.
+
+**Решение 1 — `toolsService.ts` `stringOfResult.edit_file`**:
+Результат инструмента теперь содержит явную инструкцию для AI:
+```typescript
+// Hashline mode:
+`REQUIRED NEXT STEP: Call read_file({ uri: "...", start_line: N-2, end_line: M+5 }) — hashes have changed after this edit`
+
+// Legacy mode:
+`NEXT STEP: Call read_file({ uri: "..." }) to verify changes and get updated line hashes`
+```
+
+**Решение 2 — `prompts.ts`** — 4 места обновлены:
+- `edit_file` description: шаг 3 теперь `REQUIRED` с `start_line`/`end_line`
+- `agentSystemMessageText`: шаг 3 `MANDATORY` с формулой `fromLine-2` / `toLine+5`
+- `toolCallXMLGuidelines`: аналогично
+- `chat_systemMessage` agent section: добавлены строки про hash mismatch и re-read
+
+---
+
 ## Изменённые файлы
 
 ### 1. НОВЫЙ: `src/vs/workbench/contrib/void/common/hashlineService.ts`
@@ -60,7 +183,7 @@ AI (GLM-5-TEE) самостоятельно использовал hashline ре
 
 **Экспорты:**
 - `hashLine(line: string): string` — djb2 хеш, 3 hex символа (4096 вариантов)
-- `annotateWithHashes(content: string): string` — возвращает `"1:a3f|code"`
+- `annotateWithHashes(content: string, startLineOffset = 1): string` — возвращает `"N:a3f|code"` с правильными номерами строк
 - `stripHashAnnotations(annotated: string): string` — убирает аннотации
 - `parseHashRef(ref: string)` — парсит `"15:a3f"` → `{ lineNum, hash }`
 - `verifyHashRef(content, ref)` — верифицирует хеш, возвращает строку или `{ error }`
@@ -91,7 +214,7 @@ function hashLine(line: string): string {
 
 **Добавлен импорт:**
 ```typescript
-import { applyHashlineEdit, extractOriginalBlock, isHashlineError } from '../common/hashlineService.js';
+import { applyHashlineEdit, extractOriginalBlock, isHashlineError, stripHashAnnotations } from '../common/hashlineService.js';
 ```
 
 **Добавлен метод `instantlyApplyHashlineEdit()`:**
@@ -126,10 +249,32 @@ instantlyApplyHashlineEdit(opts: { uri: URI; fromHash: string; toHash: string; n
 import { annotateWithHashes } from '../common/hashlineService.js'
 ```
 
-**`read_file` callTool** — файл теперь аннотируется хешами перед отправкой AI:
+**`read_file` callTool** — исправлены два бага:
+
+1. Правильный offset нумерации при частичном чтении:
 ```typescript
-const annotated = annotateWithHashes(contents)
-// fileContents теперь: "1:a3f|import React...\n2:b1c|\n3:0e2|function App() {"
+let annotationStartLine = 1
+if (startLine !== null || endLine !== null) {
+    annotationStartLine = startLine === null ? 1 : startLine
+}
+const annotated = annotateWithHashes(contents, annotationStartLine)
+// При start_line=22: "22:a3f|code" а не "1:a3f|code"
+```
+
+2. Пагинация по целым строкам:
+```typescript
+const annotatedLines = annotated.split('\n')
+const totalPages = Math.max(1, Math.ceil(annotated.length / MAX_FILE_CHARS_PAGE))
+const linesPerPage = Math.ceil(annotatedLines.length / totalPages)
+const pageStart = (pageNumber - 1) * linesPerPage
+const pageEnd = pageNumber * linesPerPage
+const fileContents = annotatedLines.slice(pageStart, pageEnd).join('\n')
+```
+
+**`stringOfResult.edit_file`** — добавлена инструкция re-read:
+```typescript
+// Hashline mode: вычисляет диапазон из fromHash/toHash и требует read_file
+readBackInstruction = `REQUIRED NEXT STEP: Call read_file({ uri, start_line: ${startLine}, end_line: ${endLine} }) — hashes have changed`
 ```
 
 **`edit_file` validateParams** — поддержка обоих режимов:
@@ -180,23 +325,25 @@ Each line is prefixed: "lineNumber:hash|content" (e.g. "15:a3f|const x = 5;").
 Use the hash references with edit_file (from_hash/to_hash) — no text reproduction needed.
 ```
 
-**`edit_file` tool description** — полная документация hashline режима:
+**`edit_file` tool description** — полная документация hashline режима + REQUIRED re-read:
 ```
 HASHLINE MODE (preferred):
-edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "code" })
+1. read_file({ uri })
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "code" })
+3. read_file({ uri, start_line: 13, end_line: 22 })  // REQUIRED — hashes change after edit
+HASH MISMATCH ERROR: file changed — call read_file to get fresh hashes.
 LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
 ```
 
-**`agentSystemMessageText`** — добавлено объяснение hashline workflow:
+**`agentSystemMessageText`** — шаг 3 MANDATORY с формулой диапазона:
 ```
-# HASHLINE EDIT SYSTEM (use this for all edits)
-read_file returns lines with hash annotations: "15:a3f|const x = 5;"
-Use from_hash + to_hash — no text reproduction needed.
+3. read_file({ uri, start_line: fromLine-2, end_line: toLine+5 })  // MANDATORY
+   Hashes change after every edit — never reuse old hashes for next edit_file.
 ```
 
-**`toolCallXMLGuidelines`** — то же для XML tool mode.
+**`toolCallXMLGuidelines`** — аналогично.
 
-**`chat_systemMessage` agent mode** — обновлён EDIT FILE protocol.
+**`chat_systemMessage` agent mode** — обновлён EDIT FILE protocol с hash mismatch инструкциями.
 
 ---
 
@@ -212,7 +359,7 @@ Use from_hash + to_hash — no text reproduction needed.
 ## Архитектура pipeline
 
 ```
-AI получает read_file → видит "15:a3f|const x = 5;"
+AI получает read_file → видит "15:a3f|const x = 5;"  (номера строк = реальные позиции в файле)
     ↓
 AI генерирует:
   <edit_file>
@@ -236,6 +383,11 @@ editCodeService._writeURIText() → пишет в VSCode model
 editCodeService.onFinishEdit() → сохраняет на диск
     ↓
 ✅ Файл сохранён, diff zone обновлён
+    ↓
+stringOfResult.edit_file() → возвращает AI:
+  "REQUIRED NEXT STEP: read_file({ uri, start_line: 13, end_line: 22 })"
+    ↓
+AI перечитывает изменённый регион → получает новые хеши → готов к следующему edit
 ```
 
 ---
@@ -256,6 +408,4 @@ editCodeService.onFinishEdit() → сохраняет на диск
    Решение: пересобрать React build + доработать SidebarChat.tsx resultWrapper.
    **Не критично** — файлы редактируются корректно, это только визуальный баг в чате.
 
-2. **start_line / end_line в read_file** — при частичном чтении файла (с `start_line`) хеши остаются правильными (номера строк соответствуют реальным), но AI должен учитывать что видит только часть файла.
-
-3. **Большие файлы** — аннотация хешами увеличивает размер файла ~20% (6 символов на строку). При 1000 строк = ~1750 токенов дополнительно. Приемлемо.
+2. **Большие файлы** — аннотация хешами увеличивает размер файла ~20% (6 символов на строку). При 1000 строк = ~1750 токенов дополнительно. Приемлемо.
