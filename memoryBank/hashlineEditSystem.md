@@ -367,6 +367,34 @@ if (fromHash !== null && toHash !== null && newContent !== null) {
 
 ### 6. ИЗМЕНЁН: `src/vs/workbench/contrib/void/common/prompt/prompts.ts`
 
+**Изменения (2026-03-01, сессия 2):**
+
+1. **Удалён `createOpenCodeToolCalls_systemMessage`** — старая система с `old_string/new_string` убрана полностью. Заменена минимальным `searchReplaceApply_systemMessage` только для fast apply pipeline.
+
+2. **`searchReplaceGivenDescription_systemMessage`** теперь ссылается на `searchReplaceApply_systemMessage`.
+
+3. **Убраны все `LEGACY FALLBACK`** с `old_string/new_string` из:
+   - `agentSystemMessageText`
+   - `toolCallXMLGuidelines`
+   - `chat_systemMessage` agent details (строка FALLBACK с old_string)
+
+4. **Упрощён `edit_file` description** — только hashline, без LEGACY MODE секции в основном тексте. Params `old_string/new_string` сохранены (нужны для парсинга).
+
+5. **Добавлена секция `# HASHLINE EXAMPLES`** в `agentSystemMessageText` и `toolCallXMLGuidelines` — 4 примера с реальными хешами:
+   - Example 1: замена одной строки
+   - Example 2: замена блока строк
+   - Example 3: вставка строк после N
+   - Example 4: удаление блока
+   - WRONG vs RIGHT — явный запрет на `old_string/new_string` когда есть хеши
+
+6. **Добавлена секция `# CODE QUALITY — NEVER WRITE DUPLICATES`** в `agentSystemMessageText` и `toolCallXMLGuidelines`:
+   ```
+   WRONG: duplicate object key — { 'pro': 34.99, 'pro': 34.99 }
+   WRONG: duplicate variable — const x = 1; ... const x = 2;
+   WRONG: duplicate interface — interface Foo {} ... interface Foo {}
+   RIGHT: if the name exists → edit the existing declaration, never add a second one.
+   ```
+
 **`read_file` tool description** — объяснён формат хешей:
 ```
 Returns file contents with hash annotations for precise editing.
@@ -374,25 +402,16 @@ Each line is prefixed: "lineNumber:hash|content" (e.g. "15:a3f|const x = 5;").
 Use the hash references with edit_file (from_hash/to_hash) — no text reproduction needed.
 ```
 
-**`edit_file` tool description** — полная документация hashline режима + REQUIRED re-read:
+**`edit_file` tool description** — только hashline, без legacy секции:
 ```
-HASHLINE MODE (preferred):
-1. read_file({ uri })
-2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "code" })
-3. read_file({ uri, start_line: 13, end_line: 22 })  // REQUIRED — hashes change after edit
-HASH MISMATCH ERROR: file changed — call read_file to get fresh hashes.
-LEGACY FALLBACK: edit_file({ uri, old_string: "5+ unique lines", new_string: "new" })
-```
-
-**`agentSystemMessageText`** — шаг 3 MANDATORY с формулой диапазона:
-```
-3. read_file({ uri, start_line: fromLine-2, end_line: toLine+5 })  // MANDATORY
-   Hashes change after every edit — never reuse old hashes for next edit_file.
+WORKFLOW:
+1. read_file({ uri })  // get hashes
+2. edit_file({ uri, from_hash: "15:a3f", to_hash: "17:cd1", new_content: "replacement" })
+3. read_file({ uri, start_line: 13, end_line: 22 })  // REQUIRED after every edit
+HASH MISMATCH: call read_file to get fresh hashes.
 ```
 
-**`toolCallXMLGuidelines`** — аналогично.
-
-**`chat_systemMessage` agent mode** — обновлён EDIT FILE protocol с hash mismatch инструкциями.
+**`agentSystemMessageText`** и **`toolCallXMLGuidelines`** — добавлены примеры hashline + CODE QUALITY правила.
 
 ---
 

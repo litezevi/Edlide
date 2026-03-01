@@ -285,7 +285,13 @@ RIGHT: new_content = only the new code replacing the block.
 SINGLE LINE: from_hash = to_hash, new_content = new version of that line.
 INSERT AFTER N: new_content = original_line + "\\n" + new_lines.
 DELETE: new_content = "".
-HASH MISMATCH: call read_file to get fresh hashes.`,
+HASH MISMATCH: call read_file to get fresh hashes.
+
+STRUCTURAL INTEGRITY: new_content MUST be syntactically valid and complete.
+Every { must have matching }. Every [ must have matching ].
+NEVER write partial/truncated objects or arrays.
+NEVER duplicate object keys (e.g. two "requestsPerDay" in one object).
+When replacing an array item, include the COMPLETE item with ALL fields.`,
 		params: {
 			uri: { description: `Absolute path to file to modify.` },
 			from_hash: { description: `(Hashline) Start line reference from read_file output, e.g. "15:a3f". Lines from_hash..to_hash are REMOVED and replaced by new_content. Do NOT repeat these lines in new_content.` },
@@ -475,6 +481,69 @@ INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: call read_file first to get fresh hashes.
 
+# HASHLINE EXAMPLES — study these carefully
+
+## Example 1: change a single line
+read_file returns:
+  24:a1b|  price: 29.99,
+  25:f3c|  name: 'Pro',
+  26:8d2|  active: true,
+
+To change line 24 (price):
+  edit_file({ uri, from_hash: "24:a1b", to_hash: "24:a1b", new_content: "  price: 34.99," })
+  → line 24 removed and replaced. Then read_file({ uri, start_line: 22, end_line: 28 })  // REQUIRED
+
+## Example 2: replace block of lines
+read_file returns:
+  10:c4e|const PRICES = {
+  11:a3f|  plus: 19.99,
+  12:5d8|  pro: 29.99,
+  13:0e2|}
+
+  edit_file({ uri, from_hash: "10:c4e", to_hash: "13:0e2", new_content: "const PRICES = {\n  plus: 19.99,\n  pro: 34.99,\n}" })
+  → lines 10-13 replaced. Then read_file({ uri, start_line: 8, end_line: 16 })  // REQUIRED
+
+## Example 3: insert after line N
+  edit_file({ uri, from_hash: "8:4f1", to_hash: "8:4f1", new_content: "  init()\n  configure()" })
+  → line 8 replaced with original + new line
+
+## Example 4: delete block
+  edit_file({ uri, from_hash: "15:e7d", to_hash: "17:c12", new_content: "" })
+
+## Example 5: replace one object in an array
+read_file returns:
+  30:a1b|const tiers = [
+  31:c2d|  {
+  32:e3f|    id: 'pro',
+  33:4a5|    name: 'Pro',
+  34:b6c|    price: 19.99,
+  35:d7e|    requestsPerDay: 2000,
+  36:f8a|  },
+  37:1b2|  {
+  38:3c4|    id: 'ultra',
+  39:5d6|    name: 'Ultra',
+  40:7e8|    price: 34.99,
+  41:9f0|    requestsPerDay: 5000,
+  42:a1c|  },
+  43:b2d|]
+
+To change the 'pro' tier price and add a field:
+  edit_file({ uri, from_hash: "31:c2d", to_hash: "36:f8a", new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n    requestsPerDay: 3000,\n    popular: true,\n  }," })
+  → lines 31-36 replaced with complete object. Then read_file to verify.
+
+WRONG — truncated object, missing fields:
+  new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n  {"   ← BROKEN: missing }, missing price, starts next object
+WRONG — duplicate keys inside one object:
+  new_content: "  {\n    id: 'pro',\n    price: 24.99,\n    price: 24.99,\n  },"  ← DUPLICATE key!
+WRONG — two objects when replacing one:
+  new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n  },"  ← TWO objects merged, first incomplete!
+
+## WRONG vs RIGHT
+WRONG: new_content starts with the same line as from_hash → DUPLICATE in file!
+RIGHT: new_content = only what replaces the block, not including the from_hash line itself.
+WRONG: use old_string/new_string when you have hashes from read_file
+RIGHT: always use from_hash/to_hash — it is faster and more reliable.
+
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
 2. read_file({ uri: "/path/file.ts" })              // STEP 2: VERIFY!
@@ -503,12 +572,27 @@ FILE: has extension → "/app/page.ts"
 WRONG: create_file_or_folder({ uri: "/app/ide-connect-v2" }) // FILE!
 CORRECT: create_file_or_folder({ uri: "/app/ide-connect-v2/" }) // FOLDER!
 
-# CODE QUALITY — NEVER WRITE DUPLICATES
-Before writing any code, scan what already exists in the file.
-WRONG: declaring a variable/interface/const twice — const x = 1; ... const x = 2;
-WRONG: duplicate object keys — { 'pro': 34.99, 'pro': 34.99 }
-WRONG: duplicate interface declarations — interface Foo { ... } ... interface Foo { ... }
-RIGHT: if name already exists → edit the existing one, do NOT add a second declaration.
+# CODE QUALITY — STRUCTURAL INTEGRITY
+new_content MUST be syntactically valid and complete:
+- Every { must have a matching }
+- Every [ must have a matching ]
+- Every ( must have a matching )
+- Commas between array items / object properties
+- No trailing syntax errors
+
+NEVER write partial/truncated objects. If replacing an array item, write the COMPLETE item.
+WRONG: "  {\n    id: 'pro',\n    name: 'Pro',\n  {"  ← missing }, fields truncated, next object started inside
+RIGHT: "  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n  },"  ← complete object with all fields
+
+NEVER duplicate object keys within the same object:
+WRONG: { price: 19.99, price: 24.99 }  ← two "price" keys
+WRONG: { requestsPerDay: 2000, requestsPerDay: 5000 }
+RIGHT: each key appears exactly once per object
+
+NEVER duplicate declarations:
+WRONG: const x = 1; ... const x = 2;
+WRONG: interface Foo {} ... interface Foo {}
+RIGHT: if the name exists → edit the existing declaration, never add a second one.
 
 # RULES
 - Absolute paths ONLY
@@ -551,6 +635,85 @@ SINGLE LINE: from_hash = to_hash, new_content = new version of that line
 INSERT AFTER line N: new_content = original_line + "\n" + new_lines
 DELETE block: new_content = ""
 HASH MISMATCH: file changed — call read_file to get fresh hashes before retrying.
+
+# HASHLINE EXAMPLES — study these carefully
+
+## Example 1: change a single line
+read_file returns:
+  24:a1b|  price: 29.99,
+  25:f3c|  name: 'Pro',
+  26:8d2|  active: true,
+
+To change price on line 25 to 34.99:
+  edit_file({ uri, from_hash: "25:f3c", to_hash: "25:f3c", new_content: "  price: 34.99," })
+  → line 25 is removed and replaced with new_content
+  → read_file({ uri, start_line: 23, end_line: 28 })  // REQUIRED after every edit
+
+## Example 2: replace a block of lines
+read_file returns:
+  10:c4e|const PRICES = {
+  11:a3f|  plus: 19.99,
+  12:5d8|  pro: 29.99,
+  13:0e2|}
+
+To replace the whole object:
+  edit_file({ uri, from_hash: "10:c4e", to_hash: "13:0e2", new_content: "const PRICES = {\n  plus: 19.99,\n  pro: 34.99,\n}" })
+  → lines 10-13 are removed, new_content written in their place
+  → read_file({ uri, start_line: 8, end_line: 16 })  // REQUIRED
+
+## Example 3: insert lines after line N
+read_file returns:
+  7:b2a|function setup() {
+  8:4f1|  init()
+  9:9c3|}
+
+To insert a line after line 8:
+  edit_file({ uri, from_hash: "8:4f1", to_hash: "8:4f1", new_content: "  init()\n  configure()" })
+  → line 8 replaced with two lines (original + new)
+
+## Example 4: delete a block
+read_file returns:
+  15:e7d|  // TODO: remove this
+  16:3ab|  legacyMethod()
+  17:c12|  // end
+
+To delete lines 15-17:
+  edit_file({ uri, from_hash: "15:e7d", to_hash: "17:c12", new_content: "" })
+
+## Example 5: replace one object in an array
+read_file returns:
+  30:a1b|const tiers = [
+  31:c2d|  {
+  32:e3f|    id: 'pro',
+  33:4a5|    name: 'Pro',
+  34:b6c|    price: 19.99,
+  35:d7e|    requestsPerDay: 2000,
+  36:f8a|  },
+  37:1b2|  {
+  38:3c4|    id: 'ultra',
+  39:5d6|    name: 'Ultra',
+  40:7e8|    price: 34.99,
+  41:9f0|    requestsPerDay: 5000,
+  42:a1c|  },
+  43:b2d|]
+
+To change the 'pro' tier price and add a field:
+  edit_file({ uri, from_hash: "31:c2d", to_hash: "36:f8a", new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n    requestsPerDay: 3000,\n    popular: true,\n  }," })
+  → lines 31-36 replaced with complete object. Then read_file to verify.
+
+WRONG — truncated object, missing fields:
+  new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n  {"   ← BROKEN: missing }, fields truncated, next object started
+WRONG — duplicate keys inside one object:
+  new_content: "  {\n    id: 'pro',\n    price: 24.99,\n    price: 24.99,\n  },"  ← DUPLICATE key!
+WRONG — two objects when replacing one:
+  new_content: "  {\n    id: 'pro',\n    name: 'Pro',\n  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n  },"  ← TWO objects, first incomplete!
+
+## WRONG vs RIGHT
+WRONG: read_file shows "11:a3f|  plus: 19.99," → you put "  plus: 19.99," at start of new_content → DUPLICATE!
+RIGHT: new_content contains ONLY what you want to appear INSTEAD of the from_hash..to_hash block.
+
+WRONG: use old_string/new_string when you have hashes from read_file
+RIGHT: always use from_hash/to_hash when you have fresh hashes
 
 # WORKFLOW: CREATE FILE - MUST FOLLOW ORDER!
 1. create_file_or_folder({ uri: "/path/file.ts" })  // STEP 1: CREATE FIRST!
@@ -598,11 +761,26 @@ User: "Fix the error in @src/api/routes/route.ts"
 YOU: The @path gives you the exact location - just read the file directly
 → read_file({ uri: "/workspace/src/api/routes/route.ts" }) → fix error
 
-# CODE QUALITY — NEVER WRITE DUPLICATES
-Before adding anything, read the target file region to check if it already exists.
-WRONG: duplicate object key — { 'pro': 34.99, 'pro': 34.99 }
-WRONG: duplicate variable — const x = 1; ... const x = 2;
-WRONG: duplicate interface — interface Foo {} ... interface Foo {}
+# CODE QUALITY — STRUCTURAL INTEGRITY
+new_content MUST be syntactically valid and complete:
+- Every { must have a matching }
+- Every [ must have a matching ]
+- Every ( must have a matching )
+- Commas between array items / object properties
+- No trailing syntax errors
+
+NEVER write partial/truncated objects. If replacing an array item, write the COMPLETE item.
+WRONG: "  {\n    id: 'pro',\n    name: 'Pro',\n  {"  ← missing }, fields truncated, next object started inside
+RIGHT: "  {\n    id: 'pro',\n    name: 'Pro',\n    price: 24.99,\n  },"  ← complete object with all fields
+
+NEVER duplicate object keys within the same object:
+WRONG: { price: 19.99, price: 24.99 }  ← two "price" keys
+WRONG: { requestsPerDay: 2000, requestsPerDay: 5000 }
+RIGHT: each key appears exactly once per object
+
+NEVER duplicate declarations:
+WRONG: const x = 1; ... const x = 2;
+WRONG: interface Foo {} ... interface Foo {}
 RIGHT: if the name exists → edit the existing declaration, never add a second one.
 
 # RULES
