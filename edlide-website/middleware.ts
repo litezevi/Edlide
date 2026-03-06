@@ -36,9 +36,10 @@ export async function middleware(request: NextRequest) {
     rewritePathname = pathname
     locale = pathnameLocale
   } else {
-    // No locale prefix — serve default locale (ru), rewrite to /ru/<rest>
-    rewritePathname = `/${defaultLocale}${pathname === '/' ? '' : pathname}`
-    locale = defaultLocale
+    // No locale prefix — read from cookie, fallback to default
+    const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
+    locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale
+    rewritePathname = `/${locale}${pathname === '/' ? '' : pathname}`
   }
 
   const rewriteUrl = request.nextUrl.clone()

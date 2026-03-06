@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { SupabaseSignInForm } from '@/components/auth/supabase-signin-button'
 import { User, LogOut } from 'lucide-react'
+import { useLocale } from 'next-intl'
 
 export function SupabaseAuthButton() {
   const { user, isLoading, signOut } = useSupabaseAuth()
+  const locale = useLocale()
+  const localePath = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -89,7 +92,7 @@ export function SupabaseAuthButton() {
           </div>
           <div className="h-px bg-border" />
           <a
-            href="/account"
+            href={localePath('/account')}
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
             onClick={() => setIsOpen(false)}
           >

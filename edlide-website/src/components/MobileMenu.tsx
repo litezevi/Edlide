@@ -6,11 +6,15 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './ui/theme-toggle'
 import { LanguageSwitcher } from './ui/language-switcher'
 import { Menu, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 export function MobileMenu() {
   const t = useTranslations('mobileMenu')
+  const locale = useLocale()
   const [isOpen, setIsOpen] = useState(false)
+
+  const localePath = (path: string) =>
+    locale === 'ru' ? path : `/${locale}${path}`
 
   return (
     <div className="md:hidden">
@@ -32,7 +36,7 @@ export function MobileMenu() {
             </div>
 
             <Link
-              href="/download"
+              href={localePath('/download')}
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
               onClick={() => setIsOpen(false)}
             >
@@ -40,7 +44,7 @@ export function MobileMenu() {
             </Link>
 
             <Link
-              href="/docs"
+              href={localePath('/docs')}
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
               onClick={() => setIsOpen(false)}
             >
@@ -48,7 +52,7 @@ export function MobileMenu() {
             </Link>
 
             <Link
-              href="/pricing"
+              href={localePath('/pricing')}
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
               onClick={() => setIsOpen(false)}
             >
@@ -57,7 +61,7 @@ export function MobileMenu() {
 
             <div className="pt-4 border-t border-border/50">
               <Link
-                href="/account"
+                href={localePath('/account')}
                 className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
                 onClick={() => setIsOpen(false)}
               >

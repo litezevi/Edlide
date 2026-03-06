@@ -6,11 +6,15 @@ import { MobileMenu } from './MobileMenu'
 import { SupabaseAuthButton } from './layout/supabase-auth-button'
 import { ThemeToggle } from './ui/theme-toggle'
 import { LanguageSwitcher } from './ui/language-switcher'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 export function Navbar() {
   const t = useTranslations('nav')
+  const locale = useLocale()
   const [isLight, setIsLight] = useState(false)
+
+  const localePath = (path: string) =>
+    locale === 'ru' ? path : `/${locale}${path}`
 
   useEffect(() => {
     const checkTheme = () => {
@@ -27,13 +31,13 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/50 backdrop-blur-md bg-background/80">
       <div className="container flex h-16 items-center">
-        <Link href="/">
+        <Link href={localePath('/')}>
           <img src={edlideLogo} alt="Edlide" width={32} height={32} className="cursor-pointer" />
         </Link>
 
         <div className="hidden md:flex items-center ml-16 space-x-8">
           <Link
-            href="/docs"
+            href={localePath('/docs')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('docs')}
@@ -41,7 +45,7 @@ export function Navbar() {
           </Link>
 
           <Link
-            href="/download"
+            href={localePath('/download')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('download')}
@@ -49,7 +53,7 @@ export function Navbar() {
           </Link>
 
           <Link
-            href="/pricing"
+            href={localePath('/pricing')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('pricing')}
