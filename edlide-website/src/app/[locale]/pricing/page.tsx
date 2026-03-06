@@ -207,7 +207,7 @@ export default function PricingPage() {
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <span className="text-sm">
-                      {tier.id === 'starter' ? t('modelsStarter') : t('modelsPro')}
+                      {tier.id === 'starter' ? t('modelsStarter') : tier.id === 'ultra' ? t('modelsUltra') : t('modelsPro')}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
