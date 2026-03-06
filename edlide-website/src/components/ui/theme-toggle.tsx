@@ -2,9 +2,11 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
+import { useTranslations } from 'next-intl'
 
 export function ThemeToggle() {
   const { theme, toggleTheme, mounted } = useTheme()
+  const t = useTranslations('themeToggle')
 
   if (!mounted) {
     return (
@@ -26,12 +28,12 @@ export function ThemeToggle() {
       {theme === 'dark' ? (
         <>
           <Sun className="w-4 h-4" />
-          <span>Light</span>
+          <span>{t('light')}</span>
         </>
       ) : (
         <>
           <Moon className="w-4 h-4" />
-          <span>Dark</span>
+          <span>{t('dark')}</span>
         </>
       )}
     </button>

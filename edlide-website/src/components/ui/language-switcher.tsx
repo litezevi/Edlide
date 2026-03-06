@@ -55,7 +55,7 @@ export function LanguageSwitcher() {
         disabled={isPending}
         className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
           locale === 'ru'
-            ? 'bg-accent text-foreground'
+            ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
@@ -66,7 +66,7 @@ export function LanguageSwitcher() {
         disabled={isPending}
         className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
           locale === 'en'
-            ? 'bg-accent text-foreground'
+            ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

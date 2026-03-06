@@ -387,5 +387,9 @@
   "languageSwitcher": {
     "en": "EN",
     "ru": "RU"
+  },
+  "themeToggle": {
+    "light": "Light",
+    "dark": "Dark"
   }
 }
