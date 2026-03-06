@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
@@ -18,6 +18,9 @@ export default async function LocaleLayout({
   if (!locales.includes(locale)) {
     notFound()
   }
+
+  // Make locale available to all server components in this subtree
+  setRequestLocale(locale)
 
   const messages = await getMessages({ locale })
 
