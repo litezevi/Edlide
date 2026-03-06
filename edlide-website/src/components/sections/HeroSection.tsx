@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Download } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function HeroSection() {
+  const t = useTranslations('hero')
+
   return (
     <section className="relative flex flex-col items-center justify-center px-4 pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
       {/* Animated Background */}
@@ -18,7 +23,7 @@ export function HeroSection() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-border/60 bg-card/40 backdrop-blur-sm text-sm text-muted-foreground animate-fade-in">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          One subscription — IDE &amp; CLI included
+          {t('badge')}
         </div>
 
         {/* Main Heading */}
@@ -27,13 +32,13 @@ export function HeroSection() {
             Edlide
           </span>
           <span className="block text-xl md:text-2xl lg:text-3xl font-normal text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            AI&#8209;powered IDE&nbsp;&amp;&nbsp;CLI built on the best open&nbsp;source models
+            {t('subtitle')}
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="mt-6 text-base md:text-lg text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          Open source AI models have caught up to closed alternatives and cost&nbsp;10x&nbsp;less. Full privacy, native quantization.
+          {t('description')}
         </p>
 
         {/* CTA Buttons */}
@@ -45,7 +50,7 @@ export function HeroSection() {
           >
             <Link href="/download">
               <Download className="mr-3 h-5 w-5" />
-              Download IDE
+              {t('downloadIde')}
               <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
             </Link>
           </Button>
@@ -57,7 +62,7 @@ export function HeroSection() {
             className="min-w-[200px] h-12 px-8 text-base font-semibold border-border/60 hover:bg-card/60 hover:border-purple-500/40 transition-all duration-300"
           >
             <Link href="/pricing">
-              View Pricing
+              {t('viewPricing')}
             </Link>
           </Button>
         </div>
@@ -79,7 +84,7 @@ export function HeroSection() {
             </div>
             <span className="ml-3 text-xs text-muted-foreground/60 font-mono">Edlide IDE</span>
           </div>
-          {/* Video – autoplay, looped, muted (required for autoplay) */}
+          {/* Video */}
           <video
             autoPlay
             loop
