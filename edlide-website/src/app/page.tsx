@@ -6,12 +6,6 @@ import {
   ArrowRight,
   Monitor,
   Terminal,
-  Eye,
-  Cpu,
-  ShieldCheck,
-  DollarSign,
-  Infinity,
-  Layers,
   Check,
 } from 'lucide-react'
 
@@ -24,58 +18,6 @@ const models = [
   { name: 'Minimax-M2.5', color: 'from-amber-400 to-orange-500' },
   { name: 'MIMO-V2-FLASH', color: 'from-purple-400 to-pink-500' },
   { name: 'Deepseek-V3.2', color: 'from-rose-400 to-red-500' },
-]
-
-/* ─────────── Advantages data ─────────── */
-const advantages = [
-  {
-    icon: Eye,
-    title: 'Full Context Window',
-    description:
-      'See exactly how much context you are using in real time. No guesswork, full transparency on every token.',
-    gradient: 'from-blue-400/20 to-cyan-500/20',
-    iconColor: 'text-blue-500',
-  },
-  {
-    icon: Cpu,
-    title: 'Native Quantization',
-    description:
-      'Models are natively quantized from factory. No post-processing artifacts, peak performance out of the box.',
-    gradient: 'from-emerald-400/20 to-teal-500/20',
-    iconColor: 'text-emerald-500',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Complete Privacy',
-    description:
-      'Your data is processed on decentralized infrastructure. It is impossible for anyone, including us, to see it.',
-    gradient: 'from-purple-400/20 to-pink-500/20',
-    iconColor: 'text-purple-500',
-  },
-  {
-    icon: DollarSign,
-    title: 'Best Price / Quality',
-    description:
-      'The best price-to-quality ratio on the market. Open source models at a fraction of the cost of closed alternatives.',
-    gradient: 'from-amber-400/20 to-orange-500/20',
-    iconColor: 'text-amber-500',
-  },
-  {
-    icon: Infinity,
-    title: 'Finish Your Project',
-    description:
-      'No waiting for a new session limit. Unlike Claude Code and competitors, your workflow never stops mid-task.',
-    gradient: 'from-rose-400/20 to-red-500/20',
-    iconColor: 'text-rose-500',
-  },
-  {
-    icon: Layers,
-    title: 'One Subscription',
-    description:
-      'A single plan unlocks both the IDE and the CLI. No separate billing, one price, full access.',
-    gradient: 'from-indigo-400/20 to-violet-500/20',
-    iconColor: 'text-indigo-500',
-  },
 ]
 
 /* ─────────────────────────────────────── */
@@ -207,42 +149,6 @@ export default function Home() {
                 />
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ───── 3. Key Advantages ───── */}
-      <section className="relative py-24 md:py-32 px-4 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold gradient-text">
-              Why Developers Choose&nbsp;Edlide
-            </h2>
-            <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto">
-               Every feature exists for a reason. No fluff, just what matters.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {advantages.map((adv) => {
-              const Icon = adv.icon
-              return (
-                <div
-                  key={adv.title}
-                  className="group relative p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-purple-500/30 hover-lift transition-all duration-300"
-                >
-                  <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${adv.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <Icon className={`w-7 h-7 ${adv.iconColor}`} />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">{adv.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{adv.description}</p>
-                </div>
-              )
-            })}
           </div>
         </div>
       </section>
