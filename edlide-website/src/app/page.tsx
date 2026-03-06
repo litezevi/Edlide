@@ -4,8 +4,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   ArrowRight,
-  Monitor,
-  Terminal,
   Check,
 } from 'lucide-react'
 
@@ -70,12 +68,7 @@ export default function Home() {
 
             {/* Description */}
             <div className="order-1 lg:order-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400/20 to-purple-600/20 flex items-center justify-center">
-                  <Monitor className="w-5 h-5 text-purple-500" />
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-foreground">Edlide IDE</h3>
-              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Edlide IDE</h3>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 A full-featured code editor with integrated AI chat, agent mode, and MCP tool support. Built on VS Code for instant familiarity.
               </p>
@@ -101,12 +94,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Description */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 flex items-center justify-center">
-                  <Terminal className="w-5 h-5 text-emerald-500" />
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-foreground">Edlide CLI</h3>
-              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Edlide CLI</h3>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 A powerful command-line AI assistant. Ask questions, generate code, all from your terminal. Open source models.
               </p>
