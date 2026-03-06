@@ -208,6 +208,10 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">$15 worth of tokens</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <span className="text-sm">{tier.requestsPerDay.toLocaleString()} requests/day</span>
                   </li>
                   <li className="flex items-start gap-2">
