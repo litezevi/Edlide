@@ -166,7 +166,7 @@ export default function Home() {
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">Edlide CLI</h3>
               </div>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                A powerful command-line AI assistant. Ask questions, generate code, all from your terminal. Open source models, no session limits.
+                A powerful command-line AI assistant. Ask questions, generate code, all from your terminal. Open source models.
               </p>
               <ul className="space-y-3 text-muted-foreground">
                 {['Interactive chat mode in the terminal', 'Same models as the IDE: Minimax, GLM, KIMI', 'Included in every Edlide subscription'].map(
