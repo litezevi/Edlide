@@ -1,1 +1,1 @@
-export { default } from '@/app/ide-connect/page'
+export { default } from '@/app/ide-connect/_IDEConnectContent'

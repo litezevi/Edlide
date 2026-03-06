@@ -1,1 +1,1 @@
-export { default } from '@/app/cli-connect/page'
+export { default } from '@/app/cli-connect/_CLIConnectContent'

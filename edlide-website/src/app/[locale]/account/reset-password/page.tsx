@@ -1,1 +1,1 @@
-export { default } from '@/app/account/reset-password/page'
+export { default } from '@/app/account/reset-password/_ResetPasswordContent'
