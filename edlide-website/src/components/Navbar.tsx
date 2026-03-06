@@ -13,8 +13,7 @@ export function Navbar() {
   const locale = useLocale()
   const [isLight, setIsLight] = useState(false)
 
-  const localePath = (path: string) =>
-    locale === 'ru' ? path : `/${locale}${path}`
+  const localePath = (path: string) => `/${locale}${path}`
 
   useEffect(() => {
     const checkTheme = () => {
@@ -57,6 +56,14 @@ export function Navbar() {
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('pricing')}
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+          </Link>
+
+          <Link
+            href={localePath('/team')}
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+          >
+            {t('team')}
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
           </Link>
         </div>

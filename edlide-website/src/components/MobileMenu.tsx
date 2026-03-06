@@ -13,8 +13,7 @@ export function MobileMenu() {
   const locale = useLocale()
   const [isOpen, setIsOpen] = useState(false)
 
-  const localePath = (path: string) =>
-    locale === 'ru' ? path : `/${locale}${path}`
+  const localePath = (path: string) => `/${locale}${path}`
 
   return (
     <div className="md:hidden">
@@ -57,6 +56,14 @@ export function MobileMenu() {
               onClick={() => setIsOpen(false)}
             >
               {t('pricing')}
+            </Link>
+
+            <Link
+              href={localePath('/team')}
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
+              onClick={() => setIsOpen(false)}
+            >
+              {t('team')}
             </Link>
 
             <div className="pt-4 border-t border-border/50">

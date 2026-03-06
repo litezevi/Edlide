@@ -2,7 +2,8 @@
   "nav": {
     "docs": "Docs",
     "download": "Download",
-    "pricing": "Pricing"
+    "pricing": "Pricing",
+    "team": "Team"
   },
   "footer": {
     "rights": "© 2026 Edlide. All rights reserved.",
@@ -16,6 +17,7 @@
     "download": "Download",
     "docs": "Docs",
     "pricing": "Pricing",
+    "team": "Team",
     "account": "Account"
   },
   "hero": {
@@ -392,5 +394,19 @@
   "themeToggle": {
     "light": "Light",
     "dark": "Dark"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "The people building Edlide.",
+    "joinTitle": "Join the Team",
+    "joinDesc": "We're always looking for passionate engineers and designers. Reach out if you want to help build the future of AI-powered development.",
+    "joinCta": "Get in Touch",
+    "members": {
+      "founder": {
+        "name": "Founder",
+        "role": "Co-Founder & CEO",
+        "bio": "Building Edlide to give developers the best open-source AI tooling available."
+      }
+    }
   }
 }

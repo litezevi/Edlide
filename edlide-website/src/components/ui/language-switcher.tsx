@@ -4,8 +4,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
 import { useTransition } from 'react'
 
-const defaultLocale = 'ru'
-
 export function LanguageSwitcher() {
   const t = useTranslations('languageSwitcher')
   const locale = useLocale()
@@ -17,31 +15,18 @@ export function LanguageSwitcher() {
     if (newLocale === locale) return
 
     startTransition(() => {
-      // pathname from next/navigation always includes the locale prefix
-      // e.g. on /ru/docs -> pathname = "/ru/docs"
-      //      on /en/docs -> pathname = "/en/docs"
-      //      on /ru      -> pathname = "/ru"
-
       // Strip current locale prefix to get the "bare" path
       let bare: string
       if (pathname === `/${locale}`) {
         bare = '/'
       } else if (pathname.startsWith(`/${locale}/`)) {
-        bare = pathname.slice(locale.length + 1) // e.g. "/docs"
+        bare = pathname.slice(locale.length + 1) // e.g. "/team"
       } else {
         bare = pathname
       }
 
-      // Build target path
-      let target: string
-      if (newLocale === defaultLocale) {
-        // ru has no prefix in URL — but our middleware rewrites / to /ru internally
-        // So navigate to bare path (middleware will rewrite to /ru/...)
-        target = bare === '/' ? '/' : bare
-      } else {
-        // non-default locale gets explicit prefix
-        target = `/${newLocale}${bare === '/' ? '' : bare}`
-      }
+      // Always use explicit locale prefix so client-side navigation resolves correctly
+      const target = `/${newLocale}${bare === '/' ? '' : bare}`
 
       router.push(target)
       router.refresh()
