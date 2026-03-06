@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Check } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 const models = [
   { name: 'GLM-4.7', color: 'from-emerald-400 to-teal-500' },
@@ -19,6 +19,8 @@ const models = [
 
 export default function HomeClient() {
   const t = useTranslations('home')
+  const locale = useLocale()
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -75,7 +77,7 @@ export default function HomeClient() {
                 ))}
               </ul>
               <Button asChild variant="outline" className="mt-8 border-border/60 hover:border-purple-500/40">
-                <Link href="/download">
+                <Link href={lp('/download')}>
                   {t('downloadIde')} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -96,7 +98,7 @@ export default function HomeClient() {
                 ))}
               </ul>
               <Button asChild variant="outline" className="mt-8 border-border/60 hover:border-emerald-500/40">
-                <Link href="/download">
+                <Link href={lp('/download')}>
                   {t('getCli')} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -166,13 +168,13 @@ export default function HomeClient() {
               asChild
               className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift dark:bg-gradient-to-r dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
             >
-              <Link href="/download">
+              <Link href={lp('/download')}>
                 {t('getStarted')}
                 <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="min-w-[200px] h-12 px-8 text-base font-semibold border-border/60 hover:bg-card/60 hover:border-purple-500/40 transition-all duration-300">
-              <Link href="/pricing">{t('seePlans')}</Link>
+              <Link href={lp('/pricing')}>{t('seePlans')}</Link>
             </Button>
           </div>
         </div>

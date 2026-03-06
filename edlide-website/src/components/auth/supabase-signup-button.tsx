@@ -6,12 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Mail, Lock, CheckCircle, AlertCircle, User } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { GoogleButton } from './google-button'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface SupabaseSignUpFormProps {
   className?: string
 }
 
 export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
+  const locale = useLocale()
+  const t = useTranslations('signUpForm')
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -39,7 +43,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
       await signUp(email, password, fullName)
       setSuccess(true)
       setTimeout(() => {
-        window.location.href = '/account'
+        window.location.href = lp('/account')
       }, 1000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign up'
@@ -54,7 +58,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Full Name
+            {t('fullName')}
           </label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -62,7 +66,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="John Doe"
+              placeholder={t('fullNamePlaceholder')}
               className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               disabled={isLoading || success}
             />
@@ -71,7 +75,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Email
+            {t('email')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -89,7 +93,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -107,33 +111,33 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
 
         {password.length > 0 && (
           <div className="space-y-1 text-xs">
-            <p className="text-muted-foreground mb-2">Password requirements:</p>
+            <p className="text-muted-foreground mb-2">{t('passwordRequirements')}</p>
             <div className={`flex items-center gap-2 ${hasMinLength ? 'text-green-500' : 'text-muted-foreground'}`}>
               {hasMinLength ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
-              <span>At least 8 characters</span>
+              <span>{t('reqMinLength')}</span>
             </div>
             <div className={`flex items-center gap-2 ${hasUppercase ? 'text-green-500' : 'text-muted-foreground'}`}>
               {hasUppercase ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
-              <span>One uppercase letter</span>
+              <span>{t('reqUppercase')}</span>
             </div>
             <div className={`flex items-center gap-2 ${hasLowercase ? 'text-green-500' : 'text-muted-foreground'}`}>
               {hasLowercase ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
-              <span>One lowercase letter</span>
+              <span>{t('reqLowercase')}</span>
             </div>
             <div className={`flex items-center gap-2 ${hasNumber ? 'text-green-500' : 'text-muted-foreground'}`}>
               {hasNumber ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
-              <span>One number</span>
+              <span>{t('reqNumber')}</span>
             </div>
             <div className={`flex items-center gap-2 ${hasSpecialChar ? 'text-green-500' : 'text-muted-foreground'}`}>
               {hasSpecialChar ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-border"></span>}
-              <span>One special character (!@#$...)</span>
+              <span>{t('reqSpecial')}</span>
             </div>
           </div>
         )}
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Confirm Password
+            {t('confirmPassword')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,10 +152,10 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
             />
           </div>
           {confirmPassword.length > 0 && password !== confirmPassword && (
-            <p className="text-xs text-destructive">Passwords do not match</p>
+            <p className="text-xs text-destructive">{t('passwordsNoMatch')}</p>
           )}
           {confirmPassword.length > 0 && password === confirmPassword && password.length > 0 && (
-            <p className="text-xs text-green-500">Passwords match</p>
+            <p className="text-xs text-green-500">{t('passwordsMatch')}</p>
           )}
         </div>
 
@@ -165,13 +169,13 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
             required
           />
           <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
-            I agree to the{' '}
-            <a href="/terms-of-use" target="_blank" className="text-primary hover:underline">
-              Terms of Use
+            {t('agreeText')}{' '}
+            <a href={lp('/terms-of-use')} target="_blank" className="text-primary hover:underline">
+              {t('termsOfUse')}
             </a>{' '}
-            and{' '}
-            <a href="/privacy-policy" target="_blank" className="text-primary hover:underline">
-              Privacy Policy
+            {t('and')}{' '}
+            <a href={lp('/privacy-policy')} target="_blank" className="text-primary hover:underline">
+              {t('privacyPolicy')}
             </a>
           </label>
         </div>
@@ -184,15 +188,15 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              {t('creatingAccount')}
             </>
           ) : success ? (
             <>
               <CheckCircle className="mr-2 h-4 w-4" />
-              Success!
+              {t('success')}
             </>
           ) : (
-            <span className="text-black">Create Account</span>
+            <span className="text-black">{t('createAccount')}</span>
           )}
         </Button>
 
@@ -205,9 +209,9 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Already have an account?{' '}
-            <a href="/account" className="text-primary hover:underline">
-              Sign in
+            {t('hasAccount')}{' '}
+            <a href={lp('/account')} className="text-primary hover:underline">
+              {t('signIn')}
             </a>
           </p>
         </div>
@@ -217,7 +221,7 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-background px-2 text-muted-foreground">{t('orContinueWith')}</span>
           </div>
         </div>
 
@@ -228,13 +232,12 @@ export function SupabaseSignUpForm({ className }: SupabaseSignUpFormProps) {
 }
 
 export function SupabaseSignUpCard() {
+  const t = useTranslations('signUpForm')
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create Account</CardTitle>
-        <CardDescription>
-          Join Edlide to manage AI models with ease
-        </CardDescription>
+        <CardTitle className="text-2xl">{t('cardTitle')}</CardTitle>
+        <CardDescription>{t('cardDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <SupabaseSignUpForm />

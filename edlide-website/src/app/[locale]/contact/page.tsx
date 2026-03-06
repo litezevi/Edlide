@@ -3,10 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Send, Mail } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 export default function ContactPage() {
   const t = useTranslations('contact')
+  const locale = useLocale()
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
   const [name, setName] = useState("")
   const [subject, setSubject] = useState("")
   const [message, setMessage] = useState("")
@@ -24,7 +26,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-background">
       <div className="container max-w-2xl mx-auto px-4 py-16">
         <Link
-          href="/"
+          href={lp('/')}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />

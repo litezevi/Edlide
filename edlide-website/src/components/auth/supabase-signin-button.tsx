@@ -7,12 +7,16 @@ import { Loader2, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { GoogleButton } from './google-button'
 import { ForgotPasswordForm } from './forgot-password-form'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface SupabaseSignInFormProps {
   className?: string
 }
 
 export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
+  const locale = useLocale()
+  const t = useTranslations('signInForm')
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -31,7 +35,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
       await signIn(email, password)
       setSuccess(true)
       setTimeout(() => {
-        window.location.href = '/account'
+        window.location.href = lp('/account')
       }, 1000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in'
@@ -55,7 +59,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Email
+            {t('email')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -73,7 +77,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -97,7 +101,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
             className="text-xs text-primary hover:underline"
             disabled={isLoading || success}
           >
-            Forgot password?
+            {t('forgotPassword')}
           </button>
         </div>
 
@@ -109,26 +113,26 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
+              {t('signingIn')}
             </>
           ) : success ? (
             <>
               <CheckCircle className="mr-2 h-4 w-4" />
-              Success!
+              {t('success')}
             </>
           ) : (
-            <span className="text-black">Sign In</span>
+            <span className="text-black">{t('signIn')}</span>
           )}
         </Button>
 
         <p className="text-[10px] text-muted-foreground text-center">
-          By signing in, you agree to our{' '}
-          <a href="/terms-of-use" target="_blank" className="text-primary hover:underline">
-            Terms of Use
+          {t('agreeText')}{' '}
+          <a href={lp('/terms-of-use')} target="_blank" className="text-primary hover:underline">
+            {t('termsOfUse')}
           </a>{' '}
-          and{' '}
-          <a href="/privacy-policy" target="_blank" className="text-primary hover:underline">
-            Privacy Policy
+          {t('and')}{' '}
+          <a href={lp('/privacy-policy')} target="_blank" className="text-primary hover:underline">
+            {t('privacyPolicy')}
           </a>
         </p>
 
@@ -141,9 +145,9 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Don't have an account?{' '}
-            <a href="/account?mode=signup" className="text-primary hover:underline">
-              Sign up
+            {t('noAccount')}{' '}
+            <a href={lp('/account') + '?mode=signup'} className="text-primary hover:underline">
+              {t('signUp')}
             </a>
           </p>
         </div>
@@ -153,7 +157,7 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-background px-2 text-muted-foreground">{t('orContinueWith')}</span>
           </div>
         </div>
 
@@ -164,13 +168,12 @@ export function SupabaseSignInForm({ className }: SupabaseSignInFormProps) {
 }
 
 export function SupabaseSignInCard() {
+  const t = useTranslations('signInForm')
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center pb-2">
-        <CardTitle className="text-2xl">Sign In Required</CardTitle>
-        <CardDescription>
-          Please sign in to connect your Edlide account with the IDE
-        </CardDescription>
+        <CardTitle className="text-2xl">{t('cardTitle')}</CardTitle>
+        <CardDescription>{t('cardDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <SupabaseSignInForm />

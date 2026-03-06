@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { SupabaseSignInForm } from '@/components/auth/supabase-signin-button'
 import { User, LogOut } from 'lucide-react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 export function SupabaseAuthButton() {
   const { user, isLoading, signOut } = useSupabaseAuth()
   const locale = useLocale()
+  const t = useTranslations('authButton')
   const localePath = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -52,15 +53,15 @@ export function SupabaseAuthButton() {
           size="sm"
           onClick={() => setIsOpen((prev) => !prev)}
         >
-          Sign In
+          {t('signIn')}
         </Button>
 
         {isOpen && (
           <div className="absolute right-0 top-full mt-2 w-80 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-md z-[200]">
             <div className="space-y-1 mb-3">
-              <h4 className="font-medium">Sign In</h4>
+              <h4 className="font-medium">{t('signInTitle')}</h4>
               <p className="text-xs text-muted-foreground">
-                Enter your email and password to access your account
+                {t('signInDesc')}
               </p>
             </div>
             <SupabaseSignInForm />
@@ -86,9 +87,11 @@ export function SupabaseAuthButton() {
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-border bg-popover text-popover-foreground shadow-md z-[200] overflow-hidden">
-          <div className="p-3">
+          <div className="p-3 w-full overflow-hidden">
             <p className="font-medium text-sm break-all">{user.email}</p>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">ID: {user.id}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 font-mono break-all">
+              ID: {user.id}
+            </p>
           </div>
           <div className="h-px bg-border" />
           <a
@@ -97,7 +100,7 @@ export function SupabaseAuthButton() {
             onClick={() => setIsOpen(false)}
           >
             <User className="h-4 w-4" />
-            Account
+            {t('account')}
           </a>
           <div className="h-px bg-border" />
           <button
@@ -105,7 +108,7 @@ export function SupabaseAuthButton() {
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-accent transition-colors"
           >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            {t('signOut')}
           </button>
         </div>
       )}

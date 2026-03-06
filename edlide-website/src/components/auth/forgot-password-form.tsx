@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Mail, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { useTranslations } from 'next-intl'
 
 interface ForgotPasswordFormProps {
   className?: string
@@ -12,6 +13,7 @@ interface ForgotPasswordFormProps {
 }
 
 export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProps) {
+  const t = useTranslations('forgotPassword')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -25,7 +27,7 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
     setSuccess(false)
 
     if (!email) {
-      setError('Please enter your email address')
+      setError(t('emailRequired'))
       setIsLoading(false)
       return
     }
@@ -48,14 +50,14 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle className="h-6 w-6 text-green-600" />
           </div>
-          <CardTitle className="text-2xl">Check Your Email</CardTitle>
+          <CardTitle className="text-2xl">{t('checkEmailTitle')}</CardTitle>
           <CardDescription>
-            We've sent password reset instructions to <span className="font-medium text-foreground">{email}</span>
+            {t('checkEmailDesc')} <span className="font-medium text-foreground">{email}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-sm text-muted-foreground">
-            Click the link in the email to reset your password. If you don't see the email, check your spam folder.
+            {t('checkEmailNote')}
           </p>
           <Button
             variant="outline"
@@ -66,7 +68,7 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
             className="w-full"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Send to another email
+            {t('sendAnother')}
           </Button>
         </CardContent>
       </Card>
@@ -76,16 +78,14 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
   return (
     <Card className={className}>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Reset Password</CardTitle>
-        <CardDescription>
-          Enter your email address and we'll send you a link to reset your password
-        </CardDescription>
+        <CardTitle className="text-2xl">{t('title')}</CardTitle>
+        <CardDescription>{t('desc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
-              Email
+              {t('email')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -116,10 +116,10 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                {t('sending')}
               </>
             ) : (
-              <span className="text-black">Send Reset Link</span>
+              <span className="text-black">{t('sendLink')}</span>
             )}
           </Button>
 
@@ -132,7 +132,7 @@ export function ForgotPasswordForm({ className, onBack }: ForgotPasswordFormProp
               className="w-full"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Sign In
+              {t('backToSignIn')}
             </Button>
           )}
         </form>

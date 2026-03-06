@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Menu, X, ChevronRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 export default function DocsPage() {
   const t = useTranslations('docs')
+  const locale = useLocale()
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
 
   const docsSections = [
     {
@@ -213,7 +215,7 @@ export default function DocsPage() {
           <h2 className="text-2xl font-bold text-primary mb-4">{t('installationTitle')}</h2>
           <p className="text-muted-foreground mb-6">{t('installationDesc')}</p>
           <div className="border rounded-lg bg-card p-4 mb-6">
-            <Link href="/download" className="text-primary hover:underline font-medium">
+            <Link href={lp('/download')} className="text-primary hover:underline font-medium">
               {t('goToDownload')}
             </Link>
             <p className="text-sm text-muted-foreground mt-2">{t('installationDownloadDesc')}</p>
@@ -280,7 +282,7 @@ export default function DocsPage() {
               <h3 className="text-lg font-semibold text-primary mb-3">{t('cliInstallTitle')}</h3>
               <p className="text-sm text-muted-foreground mb-3">{t('cliInstallDesc')}</p>
               <div className="border rounded-lg bg-card p-4">
-                <Link href="/download#cli" className="text-primary hover:underline font-medium">
+                <Link href={lp('/download') + '#cli'} className="text-primary hover:underline font-medium">
                   {t('cliInstallLink')}
                 </Link>
                 <p className="text-sm text-muted-foreground mt-2">{t('cliInstallLinkDesc')}</p>

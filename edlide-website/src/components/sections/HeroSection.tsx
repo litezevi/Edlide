@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Download } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 export function HeroSection() {
   const t = useTranslations('hero')
+  const locale = useLocale()
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
 
   return (
     <section className="relative flex flex-col items-center justify-center px-4 pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
@@ -48,7 +50,7 @@ export function HeroSection() {
             asChild
             className="group min-w-[200px] h-12 px-8 text-base font-semibold hover-lift dark:bg-gradient-to-r dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
           >
-            <Link href="/download">
+            <Link href={lp('/download')}>
               <Download className="mr-3 h-5 w-5" />
               {t('downloadIde')}
               <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
@@ -61,7 +63,7 @@ export function HeroSection() {
             asChild
             className="min-w-[200px] h-12 px-8 text-base font-semibold border-border/60 hover:bg-card/60 hover:border-purple-500/40 transition-all duration-300"
           >
-            <Link href="/pricing">
+            <Link href={lp('/pricing')}>
               {t('viewPricing')}
             </Link>
           </Button>

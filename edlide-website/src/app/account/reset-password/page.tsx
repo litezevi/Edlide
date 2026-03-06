@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useLocale, useTranslations } from 'next-intl'
 
 /**
  * Password Reset Page
@@ -18,6 +19,9 @@ import { supabase } from '@/lib/supabase'
  */
 function ResetPasswordContent() {
   const router = useRouter()
+  const t = useTranslations('resetPassword')
+  const locale = useLocale()
+  const lp = (path: string) => locale === 'ru' ? path : `/${locale}${path}`
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,11 +78,11 @@ function ResetPasswordContent() {
   }, [])
 
   const passwordRequirements = [
-    { label: 'At least 8 characters', valid: password.length >= 8 },
-    { label: 'One uppercase letter', valid: /[A-Z]/.test(password) },
-    { label: 'One lowercase letter', valid: /[a-z]/.test(password) },
-    { label: 'One number', valid: /\d/.test(password) },
-    { label: 'One special character', valid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    { label: t('reqMinLength'), valid: password.length >= 8 },
+    { label: t('reqUppercase'), valid: /[A-Z]/.test(password) },
+    { label: t('reqLowercase'), valid: /[a-z]/.test(password) },
+    { label: t('reqNumber'), valid: /\d/.test(password) },
+    { label: t('reqSpecial'), valid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ]
 
   const allRequirementsMet = passwordRequirements.every(r => r.valid)
@@ -89,12 +93,12 @@ function ResetPasswordContent() {
     setError(null)
 
     if (!allRequirementsMet) {
-      setError('Password does not meet all requirements')
+      setError(t('errRequirements'))
       return
     }
 
     if (!passwordsMatch) {
-      setError('Passwords do not match')
+      setError(t('errNoMatch'))
       return
     }
 
@@ -110,7 +114,7 @@ function ResetPasswordContent() {
 
       setSuccess(true)
       setTimeout(() => {
-        router.push('/account')
+        router.push(lp('/account'))
       }, 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset password')
@@ -125,7 +129,7 @@ function ResetPasswordContent() {
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground">Verifying reset link...</p>
+            <p className="text-sm text-muted-foreground">{t('verifying')}</p>
           </div>
         </CardContent>
       </Card>
@@ -139,14 +143,12 @@ function ResetPasswordContent() {
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle className="h-6 w-6 text-green-600" />
           </div>
-          <CardTitle className="text-2xl">Password Reset Complete</CardTitle>
-          <CardDescription>
-            Your password has been successfully updated
-          </CardDescription>
+          <CardTitle className="text-2xl">{t('successTitle')}</CardTitle>
+          <CardDescription>{t('successDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Redirecting you to the account page...
+            {t('successRedirect')}
           </p>
         </CardContent>
       </Card>
@@ -160,14 +162,12 @@ function ResetPasswordContent() {
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
             <AlertCircle className="h-6 w-6 text-red-600" />
           </div>
-          <CardTitle className="text-2xl">Invalid Reset Link</CardTitle>
-          <CardDescription>
-            This password reset link is invalid or has expired
-          </CardDescription>
+          <CardTitle className="text-2xl">{t('invalidTitle')}</CardTitle>
+          <CardDescription>{t('invalidDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Button onClick={() => router.push('/account')} className="w-full">
-            Go to Sign In
+          <Button onClick={() => router.push(lp('/account'))} className="w-full">
+            {t('goToSignIn')}
           </Button>
         </CardContent>
       </Card>
@@ -177,14 +177,14 @@ function ResetPasswordContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Set New Password</CardTitle>
-        <CardDescription>Enter a new password for your account</CardDescription>
+        <CardTitle className="text-2xl">{t('setNewTitle')}</CardTitle>
+        <CardDescription>{t('setNewDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
-              New Password
+              {t('newPassword')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -192,7 +192,7 @@ function ResetPasswordContent() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password"
+                placeholder={t('newPasswordPlaceholder')}
                 className="w-full pl-10 pr-10 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 required
                 disabled={isLoading}
@@ -209,7 +209,7 @@ function ResetPasswordContent() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
-              Confirm Password
+              {t('confirmPassword')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -217,7 +217,7 @@ function ResetPasswordContent() {
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder={t('confirmPasswordPlaceholder')}
                 className={`w-full pl-10 pr-4 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
                   confirmPassword.length > 0
                     ? passwordsMatch
@@ -231,13 +231,13 @@ function ResetPasswordContent() {
             </div>
             {confirmPassword.length > 0 && (
               <p className={`text-xs ${passwordsMatch ? 'text-green-500' : 'text-red-500'}`}>
-                {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
+                {passwordsMatch ? t('passwordsMatch') : t('passwordsNoMatch')}
               </p>
             )}
           </div>
 
           <div className="space-y-2 p-3 rounded-md bg-muted">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Password Requirements:</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">{t('requirements')}</p>
             {passwordRequirements.map((req, index) => (
               <div key={index} className="flex items-center gap-2">
                 <CheckCircle className={`h-3 w-3 ${req.valid ? 'text-green-500' : 'text-muted-foreground'}`} />
@@ -263,10 +263,10 @@ function ResetPasswordContent() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
+                {t('updating')}
               </>
             ) : (
-              <span className="text-black">Update Password</span>
+              <span className="text-black">{t('updatePassword')}</span>
             )}
           </Button>
         </form>

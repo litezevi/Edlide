@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { useTranslations } from 'next-intl'
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5">
@@ -34,6 +35,7 @@ interface GoogleButtonProps {
 export function GoogleButton({ mode = 'signin', className }: GoogleButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithOAuth, signUpWithOAuth } = useSupabaseAuth()
+  const t = useTranslations('googleButton')
 
   const handleClick = async () => {
     setIsLoading(true)
@@ -62,7 +64,7 @@ export function GoogleButton({ mode = 'signin', className }: GoogleButtonProps) 
       ) : (
         <GoogleIcon />
       )}
-      <span className="ml-2">Continue with Google</span>
+      <span className="ml-2">{t('continueWith')}</span>
     </Button>
   )
 }
