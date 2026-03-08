@@ -486,7 +486,7 @@ export const defaultGlobalSettings: GlobalSettings = {
 	isOnboardingComplete: false,
 	autoAcceptLLMChanges: false,
 	disableSystemMessage: false,
-	language: 'en',
+	language: 'ru',
 }
 
 export type GlobalSettingName = keyof GlobalSettings

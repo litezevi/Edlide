@@ -1475,6 +1475,30 @@ export const Settings = () => {
 	const storageService = accessor.get('IStorageService')
 	const metricsService = accessor.get('IMetricsService')
 	const isOptedOut = useIsOptedOut()
+	const localeService = accessor.get('ILocaleService')
+	const languagePackService = accessor.get('ILanguagePackService')
+
+	// Auto-initialize RU locale on first launch: if default language is 'ru' but VSCode UI locale is not 'ru' yet
+	useEffect(() => {
+		const currentLang: AppLanguage = settingsStateForLang?.globalSettings?.language ?? 'ru'
+		if (currentLang !== 'ru') return
+		// Check if VSCode locale is already 'ru' via localStorage marker
+		const localeLang = (() => { try { return localStorage.getItem('void.app.language') } catch { return null } })()
+		if (localeLang === 'ru') return // already set, window already restarted in RU
+		// First launch with default 'ru': write localStorage and trigger locale switch (silent, skipDialog=true)
+		localStorage.setItem(VOID_LANGUAGE_KEY, 'ru')
+		languagePackService.getInstalledLanguages().then((installedLanguages: Array<{ id?: string }>) => {
+			const ruPack = installedLanguages.find((l: { id?: string }) => l.id === 'ru')
+			if (ruPack) {
+				localeService.setLocale(ruPack as any, true).catch((e: unknown) => {
+					console.error('[Settings] Auto RU locale failed:', e)
+				})
+			}
+		}).catch((e: unknown) => {
+			console.error('[Settings] getInstalledLanguages failed:', e)
+		})
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const onDownload = (t: 'Chats' | 'Settings') => {
 		let dataStr: string

@@ -132,7 +132,9 @@ class NativeLocaleService implements ILocaleService {
 		try {
 			await this.writeLocaleValue(undefined);
 			if (!Language.isDefaultVariant()) {
-				await this.showRestartDialog('English');
+				if (await this.showRestartDialog('English')) {
+					await this.hostService.restart();
+				}
 			}
 		} catch (err) {
 			this.notificationService.error(err);
