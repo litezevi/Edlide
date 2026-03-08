@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------*/
 
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'; // Added useRef import just in case it was missed, though likely already present
-import { ProviderName, SettingName, displayInfoOfSettingName, providerNames, VoidStatefulModelInfo, customSettingNamesOfProvider, RefreshableProviderName, refreshableProviderNames, displayInfoOfProviderName, GlobalSettingName, displayInfoOfFeatureName, isProviderNameDisabled, subTextMdOfProviderName } from '../../../../common/voidSettingsTypes.js'
+import { ProviderName, SettingName, displayInfoOfSettingName, providerNames, VoidStatefulModelInfo, customSettingNamesOfProvider, RefreshableProviderName, refreshableProviderNames, displayInfoOfProviderName, GlobalSettingName, displayInfoOfFeatureName, isProviderNameDisabled, subTextMdOfProviderName, AppLanguage } from '../../../../common/voidSettingsTypes.js'
+import { t } from '../../../../common/translations.js'
 import ErrorBoundary from '../sidebar-tsx/ErrorBoundary.js'
 import { VoidButtonBgDarken, VoidCustomDropdownBox, VoidInputBox2, VoidSimpleInputBox, VoidSwitch } from '../util/inputs.js'
 import { useAccessor, useIsDark, useIsOptedOut, useRefreshModelListener, useRefreshModelState, useSettingsState } from '../util/services.js'
@@ -21,7 +22,7 @@ import { getModelCapabilities, modelOverrideKeys, ModelOverrides, defaultModelsO
 import { TransferEditorType } from '../../../extensionTransferTypes.js';
 import { MCPServer } from '../../../../common/mcpServiceTypes.js';
 import { useMCPServiceState } from '../util/services.js';
-import { OPT_OUT_KEY } from '../../../../common/storageKeys.js';
+import { OPT_OUT_KEY, VOID_LANGUAGE_KEY } from '../../../../common/storageKeys.js';
 import { StorageScope, StorageTarget } from '../../../../../../../platform/storage/common/storage.js';
 import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { IWorkspaceContextService } from '../../../../../../../platform/workspace/common/workspace.js';
@@ -278,6 +279,8 @@ const ProjectRulesSection = () => {
 	const fileService = accessor.get('IFileService');
 	const voidModelService = accessor.get('IVoidModelService');
 	const workspaceContextService = accessor.get('IWorkspaceContextService');
+	const _settingsForLang = useSettingsState()
+	const lang: AppLanguage = _settingsForLang?.globalSettings?.language ?? 'en'
 	const [voidRulesFiles, setVoidRulesFiles] = useState<string[]>([]);
 	const [isCreatingNew, setIsCreatingNew] = useState(false);
 	const [newFileName, setNewFileName] = useState('');
@@ -458,7 +461,7 @@ const ProjectRulesSection = () => {
 
 			{voidRulesFiles.length === 0 && !isCreatingNew && (
 				<div className='text-void-fg-3 text-sm py-2 px-3 mb-4'>
-					No .edliderules files were found. To create a project rule manually, make a .edliderules folder and add a example.edliderules file inside.
+					{t('rules.noFilesFound', lang)}
 				</div>
 			)}
 		</div>
@@ -642,6 +645,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 	const accessor = useAccessor()
 	const settingsStateService = accessor.get('IVoidSettingsService')
 	const settingsState = useSettingsState()
+	const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
 
 	// State to track which model's settings dialog is open
 	const [openSettingsModel, setOpenSettingsModel] = useState<{
@@ -938,7 +942,7 @@ export const ModelDump = ({ filteredProviders }: { filteredProviders?: ProviderN
 			>
 				<div className="flex items-center gap-1">
 					<Plus size={16} />
-					<span>Add a model</span>
+					<span>{t('models.addModel', lang)}</span>
 				</div>
 			</div>
 		)}
@@ -1039,6 +1043,7 @@ const ProviderSetting = ({ providerName, settingName, subTextMd }: { providerNam
 
 export const SettingsForProvider = ({ providerName, showProviderTitle, showProviderSuggestions }: { providerName: ProviderName, showProviderTitle: boolean, showProviderSuggestions: boolean }) => {
 const voidSettingsState = useSettingsState()
+const lang: AppLanguage = voidSettingsState?.globalSettings?.language ?? 'en'
 
 	const needsModel = isProviderNameDisabled(providerName, voidSettingsState) === 'addModel'
 
@@ -1080,7 +1085,7 @@ const voidSettingsState = useSettingsState()
 					providerName={providerName}
 					settingName={settingName}
 					subTextMd={i !== settingNames.length - 1 ? null
-						: <ChatMarkdownRender string={subTextMdOfProviderName(providerName)} chatMessageLocation={undefined} />}
+						: <ChatMarkdownRender string={subTextMdOfProviderName(providerName, lang)} chatMessageLocation={undefined} />}
 				/>
 			})}
 
@@ -1237,6 +1242,8 @@ export const ToolApprovalTypeSwitch = ({ approvalType, size, desc }: { approvalT
 export const OneClickSwitchButton = ({ fromEditor = 'VS Code', className = '' }: { fromEditor?: TransferEditorType, className?: string }) => {
 	const accessor = useAccessor()
 	const extensionTransferService = accessor.get('IExtensionTransferService')
+	const _settingsForLang = useSettingsState()
+	const lang: AppLanguage = _settingsForLang?.globalSettings?.language ?? 'en'
 
 	const [transferState, setTransferState] = useState<{ type: 'done', error?: string } | { type: | 'loading' | 'justfinished' }>({ type: 'done' })
 
@@ -1262,9 +1269,9 @@ export const OneClickSwitchButton = ({ fromEditor = 'VS Code', className = '' }:
 
 	return <>
 		<VoidButtonBgDarken className={`max-w-48 p-4 ${className}`} disabled={transferState.type !== 'done'} onClick={onClick}>
-			{transferState.type === 'done' ? `Transfer from ${fromEditor}`
-				: transferState.type === 'loading' ? <span className='text-nowrap flex flex-nowrap'>Transferring<IconLoading /></span>
-					: transferState.type === 'justfinished' ? <AnimatedCheckmarkButton text='Settings Transferred' className='bg-none' />
+			{transferState.type === 'done' ? t('general.transferFrom', lang).replace('{0}', fromEditor)
+				: transferState.type === 'loading' ? <span className='text-nowrap flex flex-nowrap'>{t('general.transferring', lang)}<IconLoading /></span>
+					: transferState.type === 'justfinished' ? <AnimatedCheckmarkButton text={t('general.settingsTransferred', lang)} className='bg-none' />
 						: null
 			}
 		</VoidButtonBgDarken>
@@ -1359,6 +1366,8 @@ const MCPServerComponent = ({ name, server }: { name: string, server: MCPServer 
 // Main component that renders the list of servers
 const MCPServersList = () => {
 	const mcpServiceState = useMCPServiceState()
+	const _settingsForLang = useSettingsState()
+	const lang: AppLanguage = _settingsForLang?.globalSettings?.language ?? 'en'
 
 	let content: React.ReactNode
 	if (mcpServiceState.error) {
@@ -1370,7 +1379,7 @@ const MCPServersList = () => {
 		const entries = Object.entries(mcpServiceState.mcpServerOfName)
 		if (entries.length === 0) {
 			content = <div className="text-void-fg-3 text-sm mt-2">
-				No servers found
+				{t('mcp.noServers', lang)}
 			</div>
 		}
 		else {
@@ -1383,19 +1392,75 @@ const MCPServersList = () => {
 	return <div className="my-2">{content}</div>
 };
 
+const LanguageDropdown = () => {
+	const accessor = useAccessor()
+	const voidSettingsService = accessor.get('IVoidSettingsService')
+	const localeService = accessor.get('ILocaleService')
+	const languagePackService = accessor.get('ILanguagePackService')
+	const settingsState = useSettingsState()
+	const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
+
+	const options: AppLanguage[] = useMemo(() => ['en', 'ru'], [])
+
+	const onChangeOption = useCallback(async (newLang: AppLanguage) => {
+		if (newLang === lang) return
+
+		// Save language preference first (survives window restart)
+		voidSettingsService.setGlobalSetting('language', newLang)
+		// Also write to plain localStorage so sidebarActions.ts can read it before services init
+		localStorage.setItem(VOID_LANGUAGE_KEY, newLang)
+
+		try {
+			if (newLang === 'ru') {
+				// Find Russian language pack from installed/available packs
+				const installedLanguages = await languagePackService.getInstalledLanguages()
+				const ruPack = installedLanguages.find((l: { id?: string }) => l.id === 'ru')
+				if (ruPack) {
+					await localeService.setLocale(ruPack, true)
+				} else {
+					// Try to get from available languages (will install if needed)
+					const availableLanguages = await languagePackService.getAvailableLanguages()
+					const ruAvail = availableLanguages.find((l: { id?: string }) => l.id === 'ru')
+					if (ruAvail) {
+						await localeService.setLocale(ruAvail as any, false)
+					}
+				}
+			} else {
+				// Switch back to English — clear locale preference and restart
+				await localeService.clearLocalePreference()
+			}
+		} catch (e) {
+			console.error('[LanguageDropdown] Failed to switch locale:', e)
+		}
+	}, [lang, voidSettingsService, localeService, languagePackService])
+
+	return <VoidCustomDropdownBox
+		className='text-xs text-void-fg-3 bg-void-bg-1 border border-void-border-1 rounded p-0.5 px-1'
+		options={options}
+		selectedOption={lang}
+		onChangeOption={onChangeOption}
+		getOptionDisplayName={(val) => val === 'en' ? t('general.english', lang) : t('general.russian', lang)}
+		getOptionDropdownName={(val) => val === 'en' ? t('general.english', lang) : t('general.russian', lang)}
+		getOptionsEqual={(a, b) => a === b}
+	/>
+}
+
 export const Settings = () => {
 	const isDark = useIsDark()
 	// ─── sidebar nav ──────────────────────────
 	const [selectedSection, setSelectedSection] =
 		useState<Tab>('general');
 
+	const settingsStateForLang = useSettingsState()
+	const lang: AppLanguage = settingsStateForLang?.globalSettings?.language ?? 'en'
+
 	const navItems: { tab: Tab; label: string }[] = [
-		{ tab: 'account', label: 'Account' },
-		{ tab: 'general', label: 'General' },
-		{ tab: 'actions', label: 'Actions' },
-		{ tab: 'models', label: 'Models' },
-		{ tab: 'mcp', label: 'MCP' },
-		{ tab: 'rules', label: 'Rules' },
+		{ tab: 'account', label: t('nav.account', lang) },
+		{ tab: 'general', label: t('nav.general', lang) },
+		{ tab: 'actions', label: t('nav.actions', lang) },
+		{ tab: 'models', label: t('nav.models', lang) },
+		{ tab: 'mcp', label: t('nav.mcp', lang) },
+		{ tab: 'rules', label: t('nav.rules', lang) },
 	];
 	const shouldShowTab = (tab: Tab) => selectedSection === tab;
 	const accessor = useAccessor()
@@ -1520,20 +1585,20 @@ export const Settings = () => {
 
 						{/* All sections in flex container with gap-12 */}
 						<div key='sections-container' className='flex flex-col gap-12'>
-{/* Account section */}
+					{/* Account section */}
 					<div className={`${shouldShowTab('account') ? `` : 'hidden'} flex flex-col gap-y-8 my-4`}>
 						<ErrorBoundary>
 							<AccountSettingsSection />
 
 							{/* Privacy Settings */}
 							<div className='w-full'>
-								<h4 className={`text-base`}>Privacy Settings</h4>
+								<h4 className={`text-base`}>{t('account.privacySettings', lang)}</h4>
 
 								<div className='my-2'>
 									<div className='flex items-center justify-between p-3 bg-void-bg-2 rounded-lg border border-void-border-1'>
 										<div>
-											<span className='text-void-fg-1 font-medium block'>Privacy Mode</span>
-											<span className='text-void-fg-2 text-sm'>Always on. No code or IDE activity collected. </span>
+											<span className='text-void-fg-1 font-medium block'>{t('account.privacyMode', lang)}</span>
+											<span className='text-void-fg-2 text-sm'>{t('account.privacyModeDesc', lang)}</span>
 										</div>
 										<div className='flex items-center gap-x-2'>
 											<VoidSwitch
@@ -1542,7 +1607,7 @@ export const Settings = () => {
 												disabled={true}
 												onChange={() => {}}
 											/>
-											<span className='text-void-fg-3 text-xs pointer-events-none'>Always enabled</span>
+											<span className='text-void-fg-3 text-xs pointer-events-none'>{t('account.alwaysEnabled', lang)}</span>
 										</div>
 									</div>
 								</div>
@@ -1552,11 +1617,21 @@ export const Settings = () => {
 
 							{/* General section */}
 							<div className={`${shouldShowTab('general') ? `` : 'hidden'} flex flex-col gap-12`}>
+
+								{/* Language section */}
+								<div>
+									<ErrorBoundary>
+										<h2 className='text-3xl mb-2'>{t('general.language', lang)}</h2>
+										<h4 className='text-void-fg-3 mb-4'>{t('general.languageDesc', lang)}</h4>
+										<LanguageDropdown />
+									</ErrorBoundary>
+								</div>
+
 								{/* One-Click Switch section */}
 								<div>
 									<ErrorBoundary>
-										<h2 className='text-3xl mb-2'>One-Click Switch</h2>
-										<h4 className='text-void-fg-3 mb-4'>{`Transfer your editor settings into Edlide.`}</h4>
+										<h2 className='text-3xl mb-2'>{t('general.oneClickSwitch', lang)}</h2>
+										<h4 className='text-void-fg-3 mb-4'>{t('general.transferDesc', lang)}</h4>
 
 										<div className='flex flex-col gap-2'>
 											<OneClickSwitchButton className='w-48' fromEditor="VS Code" />
@@ -1605,22 +1680,22 @@ export const Settings = () => {
 
 								{/* Built-in Settings section */}
 								<div>
-									<h2 className={`text-3xl mb-2`}>Built-in Settings</h2>
-									<h4 className={`text-void-fg-3 mb-4`}>{`IDE settings, keyboard settings, and theme customization.`}</h4>
+									<h2 className={`text-3xl mb-2`}>{t('general.builtinSettings', lang)}</h2>
+									<h4 className={`text-void-fg-3 mb-4`}>{t('general.builtinSettingsDesc', lang)}</h4>
 
 									<ErrorBoundary>
 										<div className='flex flex-col gap-2 justify-center max-w-48 w-full'>
 											<VoidButtonBgDarken className='px-4 py-1' onClick={() => { commandService.executeCommand('workbench.action.openSettings') }}>
-												General Settings
+												{t('general.generalSettings', lang)}
 											</VoidButtonBgDarken>
 											<VoidButtonBgDarken className='px-4 py-1' onClick={() => { commandService.executeCommand('workbench.action.openGlobalKeybindings') }}>
-												Keyboard Settings
+												{t('general.keyboardSettings', lang)}
 											</VoidButtonBgDarken>
 											<VoidButtonBgDarken className='px-4 py-1' onClick={() => { commandService.executeCommand('workbench.action.selectTheme') }}>
-												Theme Settings
+												{t('general.themeSettings', lang)}
 											</VoidButtonBgDarken>
 											<VoidButtonBgDarken className='px-4 py-1' onClick={() => { nativeHostService.showItemInFolder(environmentService.logsHome.fsPath) }}>
-												Open Logs
+												{t('general.openLogs', lang)}
 											</VoidButtonBgDarken>
 										</div>
 									</ErrorBoundary>
@@ -1656,7 +1731,7 @@ export const Settings = () => {
 							{/* Actions section */}
 							<div className={shouldShowTab('actions') ? `` : 'hidden'}>
 								<ErrorBoundary>
-									<h2 className={`text-3xl mb-2`}>Actions</h2>
+									<h2 className={`text-3xl mb-2`}>{t('actions.title', lang)}</h2>
 
 									<div className='flex flex-col gap-y-8 my-4'>
                                         <ErrorBoundary>
@@ -1707,7 +1782,7 @@ export const Settings = () => {
 
 											<div className='w-full'>
 												<h4 className={`text-base`}>{displayInfoOfFeatureName('Apply')}</h4>
-												<div className='text-sm text-void-fg-3 mt-1'>Settings that control the behavior of the Apply button.</div>
+												<div className='text-sm text-void-fg-3 mt-1'>{t('actions.applyDesc', lang)}</div>
 
 												<div className='my-2'>
 													{/* Sync to Chat Switch */}
@@ -1717,7 +1792,7 @@ export const Settings = () => {
 															value={settingsState.globalSettings.syncApplyToChat}
 															onChange={(newVal) => voidSettingsService.setGlobalSetting('syncApplyToChat', newVal)}
 														/>
-														<span className='text-void-fg-3 text-xs pointer-events-none'>{settingsState.globalSettings.syncApplyToChat ? 'Same as Chat model' : 'Different model'}</span>
+														<span className='text-void-fg-3 text-xs pointer-events-none'>{settingsState.globalSettings.syncApplyToChat ? t('actions.sameAsChatModel', lang) : t('actions.differentModel', lang)}</span>
 													</div>
 
 													{/* Model Dropdown */}
@@ -1742,15 +1817,18 @@ export const Settings = () => {
 
 										{/* Tools Section */}
 										<div>
-											<h4 className={`text-base`}>Tools</h4>
-											<div className='text-sm text-void-fg-3 mt-1'>{`Tools are functions that LLMs can call. Some tools require user approval.`}</div>
+											<h4 className={`text-base`}>{t('actions.tools', lang)}</h4>
+											<div className='text-sm text-void-fg-3 mt-1'>{t('actions.toolsDesc', lang)}</div>
 
 											<div className='my-2'>
 												{/* Auto Accept Switch */}
 												<ErrorBoundary>
 													{[...toolApprovalTypes].map((approvalType) => {
+														const approvalDesc = approvalType === 'edits' ? t('actions.autoApproveEdits', lang)
+															: approvalType === 'terminal' ? t('actions.autoApproveTerminal', lang)
+																: t('actions.autoApproveMCP', lang)
 														return <div key={approvalType} className="flex items-center gap-x-2 my-2">
-															<ToolApprovalTypeSwitch size='xs' approvalType={approvalType} desc={`Auto-approve ${approvalType}`} />
+															<ToolApprovalTypeSwitch size='xs' approvalType={approvalType} desc={approvalDesc} />
 														</div>
 													})}
 
@@ -1765,7 +1843,7 @@ export const Settings = () => {
 															value={settingsState.globalSettings.includeToolLintErrors}
 															onChange={(newVal) => voidSettingsService.setGlobalSetting('includeToolLintErrors', newVal)}
 														/>
-														<span className='text-void-fg-3 text-xs pointer-events-none'>{settingsState.globalSettings.includeToolLintErrors ? 'Fix lint errors' : `Fix lint errors`}</span>
+														<span className='text-void-fg-3 text-xs pointer-events-none'>{t('actions.fixLintErrors', lang)}</span>
 													</div>
 												</ErrorBoundary>
 
@@ -1777,7 +1855,7 @@ export const Settings = () => {
 															value={settingsState.globalSettings.autoAcceptLLMChanges}
 															onChange={(newVal) => voidSettingsService.setGlobalSetting('autoAcceptLLMChanges', newVal)}
 														/>
-														<span className='text-void-fg-3 text-xs pointer-events-none'>Auto-accept LLM changes</span>
+														<span className='text-void-fg-3 text-xs pointer-events-none'>{t('actions.autoAcceptLLMChanges', lang)}</span>
 													</div>
 												</ErrorBoundary>
 											</div>
@@ -1786,8 +1864,8 @@ export const Settings = () => {
 
 
 										<div className='w-full'>
-											<h4 className={`text-base`}>Editor</h4>
-											<div className='text-sm text-void-fg-3 mt-1'>{`Settings that control the visibility of Edlide suggestions in the code editor.`}</div>
+											<h4 className={`text-base`}>{t('actions.editor', lang)}</h4>
+											<div className='text-sm text-void-fg-3 mt-1'>{t('actions.editorDesc', lang)}</div>
 
 											<div className='my-2'>
 												{/* Auto Accept Switch */}
@@ -1798,7 +1876,7 @@ export const Settings = () => {
 															value={settingsState.globalSettings.showInlineSuggestions}
 															onChange={(newVal) => voidSettingsService.setGlobalSetting('showInlineSuggestions', newVal)}
 														/>
-														<span className='text-void-fg-3 text-xs pointer-events-none'>{settingsState.globalSettings.showInlineSuggestions ? 'Show suggestions on select' : 'Show suggestions on select'}</span>
+														<span className='text-void-fg-3 text-xs pointer-events-none'>{t('actions.showSuggestionsOnSelect', lang)}</span>
 													</div>
 												</ErrorBoundary>
 											</div>
@@ -1817,31 +1895,29 @@ export const Settings = () => {
 								<ErrorBoundary>
 									{/* Models part */}
 									<div className="mb-8">
-										<h2 className={`text-3xl mb-6`}>Models</h2>
+										<h2 className={`text-3xl mb-6`}>{t('models.title', lang)}</h2>
 										<ModelDump />
 									</div>
 
   {/* Providers part */}
 									<div className="mb-16">
-										<h2 className={`text-3xl mb-4`}>Main Providers</h2>
-										<h3 className={`text-void-fg-3 mb-6`}>{`Edlide can access models from Anthropic, OpenAI, Gemini, Groq`}</h3>
+										<h2 className={`text-3xl mb-4`}>{t('models.mainProviders', lang)}</h2>
+										<h3 className={`text-void-fg-3 mb-6`}>{t('models.mainProvidersDesc', lang)}</h3>
 										<VoidProviderSettings providerNames={providerNames} />
 									</div>
 								</ErrorBoundary>
 							</div>
 
-							{/* MCP section */}
+						{/* MCP section */}
 							<div className={shouldShowTab('mcp') ? `` : 'hidden'}>
 								<ErrorBoundary>
-									<h2 className='text-3xl mb-2'>MCP</h2>
+									<h2 className='text-3xl mb-2'>{t('mcp.title', lang)}</h2>
 									<h4 className={`text-void-fg-3 mb-4`}>
-										<ChatMarkdownRender inPTag={true} string={`
-Use Model Context Protocol to provide Agent mode with more tools.
-							`} chatMessageLocation={undefined} />
+										<ChatMarkdownRender inPTag={true} string={t('mcp.desc', lang)} chatMessageLocation={undefined} />
 									</h4>
 									<div className='my-2'>
 										<VoidButtonBgDarken className='px-4 py-1 w-full max-w-48' onClick={async () => { await mcpService.revealMCPConfigFile() }}>
-											Add MCP Server
+											{t('mcp.addServer', lang)}
 										</VoidButtonBgDarken>
 									</div>
 
@@ -1856,23 +1932,23 @@ Use Model Context Protocol to provide Agent mode with more tools.
 								<ErrorBoundary>
 									{/* AI Instructions section */}
 									<div className='max-w-[600px]'>
-										<h2 className={`text-3xl mb-2`}>Rules</h2>
+										<h2 className={`text-3xl mb-2`}>{t('rules.title', lang)}</h2>
 										<h4 className={`text-void-fg-3 mb-4`}>
-											<ChatMarkdownRender inPTag={true} string={`System instructions to include with all AI requests.`} chatMessageLocation={undefined} />
+											<ChatMarkdownRender inPTag={true} string={t('rules.desc', lang)} chatMessageLocation={undefined} />
 										</h4>
 
 										{/* System Prompt section */}
 										<div className='mt-6'>
 											{/* Header with System Prompt title */}
 											<div className='flex items-center justify-between mb-3'>
-												<h3 className='text-lg font-medium text-void-fg-1'>System Prompt</h3>
+												<h3 className='text-lg font-medium text-void-fg-1'>{t('rules.systemPrompt', lang)}</h3>
 											</div>
 
 											<ErrorBoundary>
 												<AIInstructionsBox />
 											</ErrorBoundary>
 											<div className='text-void-fg-3 text-sm mt-1'>
-											Does not change when opening other projects. Ideal for communication style, explanation depth, etc.
+											{t('rules.systemPromptDesc', lang)}
 											</div>
 
 

@@ -20,10 +20,24 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { VOID_TOGGLE_SETTINGS_ACTION_ID } from './voidSettingsPane.js';
 import { VOID_CTRL_L_ACTION_ID } from './actionIDs.js';
 import { localize2 } from '../../../../nls.js';
+import { VOID_LANGUAGE_KEY } from '../common/storageKeys.js';
 import { IChatThreadService } from './chatThreadService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { ICompactingService } from './compactingService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+
+// ---------- Language helpers ----------
+
+const _sidebarLang = (): 'ru' | 'en' => {
+	try {
+		const v = typeof localStorage !== 'undefined' ? localStorage.getItem(VOID_LANGUAGE_KEY) : null
+		return v === 'ru' ? 'ru' : 'en'
+	} catch {
+		return 'en'
+	}
+}
+
+const _sidebarT = (en: string, ru: string): string => _sidebarLang() === 'ru' ? ru : en
 
 // ---------- Register commands and keybindings ----------
 
@@ -151,7 +165,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: VOID_CMD_SHIFT_L_ACTION_ID,
-			title: 'New Chat',
+			title: _sidebarT('New Chat', 'Новый чат'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyL,
 				weight: KeybindingWeight.VoidExtension,
@@ -240,7 +254,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: 'void.historyAction',
-			title: 'View Past Chats',
+			title: _sidebarT('View Past Chats', 'История чатов'),
 			icon: { id: 'history' },
 			menu: [{ id: MenuId.ViewTitle, group: 'navigation', when: ContextKeyExpr.equals('view', VOID_VIEW_ID), }]
 		});
@@ -299,7 +313,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: 'void.settingsAction',
-			title: `Edlide's Settings`,
+			title: _sidebarT(`Edlide's Settings`, 'Настройки Edlide'),
 			icon: { id: 'settings-gear' },
 			menu: [{ id: MenuId.ViewTitle, group: 'navigation', when: ContextKeyExpr.equals('view', VOID_VIEW_ID), }]
 		});

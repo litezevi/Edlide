@@ -7,6 +7,7 @@
 import { defaultModelsOfProvider, defaultProviderSettings, ModelOverrides } from './modelCapabilities.js';
 import { ToolApprovalType } from './toolsServiceTypes.js';
 import { VoidSettingsState } from './voidSettingsService.js'
+import { t } from './translations.js'
 
 
 type UnionOfKeys<T> = T extends T ? keyof T : never;
@@ -114,15 +115,17 @@ export const displayInfoOfProviderName = (providerName: ProviderName): DisplayIn
 	throw new Error(`descOfProviderName: Unknown provider name: "${providerName}"`)
 }
 
-export const subTextMdOfProviderName = (providerName: ProviderName): string => {
+export const subTextMdOfProviderName = (providerName: ProviderName, lang: AppLanguage = 'en'): string => {
 
-	if (providerName === 'anthropic') return 'Get your [API Key here](https://console.anthropic.com/settings/keys).'
-	if (providerName === 'openAI') return 'Get your [API Key here](https://platform.openai.com/api-keys).'
+	const apiKey = (url: string) => t('provider.getApiKey', lang).replace('{0}', url)
+
+	if (providerName === 'anthropic') return apiKey('https://console.anthropic.com/settings/keys')
+	if (providerName === 'openAI') return apiKey('https://platform.openai.com/api-keys')
 	if (providerName === 'deepseek') return ''
 	if (providerName === 'openRouter') return ''
-	if (providerName === 'gemini') return 'Get your [API Key here](https://aistudio.google.com/apikey). Read about [rate limits here](https://ai.google.dev/gemini-api/docs/rate-limits#current-rate-limits).'
-	if (providerName === 'groq') return 'Get your [API Key here](https://console.groq.com/keys).'
-	if (providerName === 'xAI') return 'Get your [API Key here](https://console.x.ai).'
+	if (providerName === 'gemini') return `${apiKey('https://aistudio.google.com/apikey')} ${t('provider.rateLimits', lang).replace('{0}', 'https://ai.google.dev/gemini-api/docs/rate-limits#current-rate-limits')}`
+	if (providerName === 'groq') return apiKey('https://console.groq.com/keys')
+	if (providerName === 'xAI') return apiKey('https://console.x.ai')
 	if (providerName === 'mistral') return ''
 	if (providerName === 'openAICompatible') return `Use any provider that's OpenAI-compatible (use this for llama.cpp and more).`
 	if (providerName === 'googleVertex') return 'You must authenticate before using Vertex with Void. Read more about endpoints [here](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/call-vertex-using-openai-library), and regions [here](https://cloud.google.com/vertex-ai/docs/general/locations#available-regions).'
@@ -450,6 +453,8 @@ export const isFeatureNameDisabled = (featureName: FeatureName, settingsState: V
 export type ChatMode = 'agent' | 'plan' | 'ask'
 
 
+export type AppLanguage = 'en' | 'ru';
+
 export type GlobalSettings = {
 	autoRefreshModels: boolean;
 	aiInstructions: string;
@@ -464,6 +469,7 @@ export type GlobalSettings = {
 	isOnboardingComplete: boolean;
 	autoAcceptLLMChanges: boolean;
 	disableSystemMessage: boolean;
+	language: AppLanguage;
 }
 
 export const defaultGlobalSettings: GlobalSettings = {
@@ -480,6 +486,7 @@ export const defaultGlobalSettings: GlobalSettings = {
 	isOnboardingComplete: false,
 	autoAcceptLLMChanges: false,
 	disableSystemMessage: false,
+	language: 'en',
 }
 
 export type GlobalSettingName = keyof GlobalSettings

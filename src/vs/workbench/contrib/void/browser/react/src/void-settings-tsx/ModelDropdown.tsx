@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------*/
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FeatureName, featureNames, isFeatureNameDisabled, ModelSelection, modelSelectionsEqual, ProviderName, providerNames, SettingsOfProvider } from '../../../../../../../workbench/contrib/void/common/voidSettingsTypes.js'
+import { FeatureName, featureNames, isFeatureNameDisabled, ModelSelection, modelSelectionsEqual, ProviderName, providerNames, SettingsOfProvider, AppLanguage } from '../../../../../../../workbench/contrib/void/common/voidSettingsTypes.js'
 import { useSettingsState, useRefreshModelState, useAccessor } from '../util/services.js'
+import { t } from '../../../../../../../workbench/contrib/void/common/translations.js'
 import { _VoidSelectBox, VoidCustomDropdownBox } from '../util/inputs.js'
 import { SelectBox } from '../../../../../../../base/browser/ui/selectBox/selectBox.js'
 import { IconWarning } from '../sidebar-tsx/SidebarChat.js'
@@ -94,6 +95,7 @@ const MemoizedModelDropdown = ({ featureName, className }: { featureName: Featur
 
 export const ModelDropdown = ({ featureName, className }: { featureName: FeatureName, className: string }) => {
 	const settingsState = useSettingsState()
+	const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
 
 	const accessor = useAccessor()
 	const commandService = accessor.get('ICommandService')
@@ -108,7 +110,7 @@ export const ModelDropdown = ({ featureName, className }: { featureName: Feature
 		return <WarningBox onClick={openSettings} text={
 			emptyMessage && emptyMessage.priority === 'always' ? emptyMessage.message :
 				isDisabled === 'needToEnableModel' ? 'Enable a model'
-					: isDisabled === 'addModel' ? 'Add a model'
+					: isDisabled === 'addModel' ? t('models.addModelDropdown', lang)
 						: (isDisabled === 'addProvider' || isDisabled === 'notFilledIn' || isDisabled === 'providerNotAutoDetected') ? 'Provider required'
 							: 'Provider required'
 		} />

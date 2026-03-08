@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------*/
 
 import React, { useState, useEffect } from 'react';
-import { useAccessor } from '../util/services.js';
+import { useAccessor, useSettingsState } from '../util/services.js';
 import { VoidButtonBgDarken } from '../util/inputs.js';
 import { Loader2, Check, X } from 'lucide-react';
 import { URI } from '../../../../../../../base/common/uri.js';
+import { t } from '../../../../common/translations.js';
+import { AppLanguage } from '../../../../common/voidSettingsTypes.js';
 
 export const AccountSettingsSection = () => {
 	const accessor = useAccessor();
@@ -17,6 +19,9 @@ export const AccountSettingsSection = () => {
 
 	const supabaseAuthService: any = accessor.get('ISupabaseAuthService');
 	const openerService: any = accessor.get('IOpenerService');
+
+	const settingsForLang = useSettingsState();
+	const lang: AppLanguage = settingsForLang?.globalSettings?.language ?? 'en';
 
 	useEffect(() => {
 		const checkAuthState = async () => {
@@ -112,7 +117,7 @@ export const AccountSettingsSection = () => {
 
 	return (
 		<div className='w-full'>
-			<h4 className={`text-base mb-2`}>Account Settings</h4>
+			<h4 className={`text-base mb-2`}>{t('account.accountSettings', lang)}</h4>
 
 			<div className='my-2'>
 				{isConnected ? (
@@ -120,14 +125,14 @@ export const AccountSettingsSection = () => {
 						<div>
 							<span className='text-void-fg-1 font-medium block flex items-center gap-2'>
 								<Check className='stroke-green-500 size-4' />
-								Connected as {userEmail || 'Unknown'}
+								{t('account.connectedAs', lang)} {userEmail || 'Unknown'}
 							</span>
 						</div>
 						<VoidButtonBgDarken
 							className="bg-void-bg-3 text-void-fg-1 px-2 py-1 rounded-md hover:bg-void-bg-4"
 							onClick={handleDisconnect}
 						>
-							Disconnect
+							{t('account.disconnect', lang)}
 						</VoidButtonBgDarken>
 					</div>
 				) : (

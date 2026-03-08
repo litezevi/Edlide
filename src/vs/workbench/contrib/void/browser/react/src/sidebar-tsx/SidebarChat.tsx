@@ -38,7 +38,8 @@ import { ToolApprovalTypeSwitch } from '../void-settings-tsx/Settings.js';
 
 import { persistentTerminalNameOfId } from '../../../terminalToolService.js';
 import { removeMCPToolNamePrefix } from '../../../../common/mcpServiceTypes.js';
-import { ProviderName } from '../../../../../../../workbench/contrib/void/common/voidSettingsTypes.js';
+import { ProviderName, AppLanguage } from '../../../../../../../workbench/contrib/void/common/voidSettingsTypes.js';
+import { t } from '../../../../common/translations.js';
 
 // Helper function to get display name for models (removes provider prefixes)
 const getModelDisplayName = (modelName: string, providerName: ProviderName): string => {
@@ -2099,57 +2100,54 @@ const loadingTitleWrapper = (item: React.ReactNode): React.ReactNode => {
 	</span>
 }
 
-const titleOfBuiltinToolName = {
-	'read_file': { done: 'Read file', proposed: 'Read file', running: loadingTitleWrapper('Reading file') },
-	'ls_dir': { done: 'Inspected folder', proposed: 'Inspect folder', running: loadingTitleWrapper('Inspecting folder') },
-	'get_dir_tree': { done: 'Inspected folder tree', proposed: 'Inspect folder tree', running: loadingTitleWrapper('Inspecting folder tree') },
-	'search_pathnames_only': { done: 'Searched by file name', proposed: 'Search by file name', running: loadingTitleWrapper('Searching by file name') },
-	'search_for_files': { done: 'Searched', proposed: 'Search', running: loadingTitleWrapper('Searching') },
-	'create_file_or_folder': { done: `Created`, proposed: `Create`, running: loadingTitleWrapper(`Creating`) },
-	'delete_file_or_folder': { done: `Deleted`, proposed: `Delete`, running: loadingTitleWrapper(`Deleting`) },
-	'edit_file': { done: `Edited file`, proposed: 'Edit file', running: loadingTitleWrapper('Editing file') },
-	'rewrite_file': { done: `Wrote file`, proposed: 'Write file', running: loadingTitleWrapper('Writing file') },
-	'run_command': { done: `Ran terminal`, proposed: 'Run terminal', running: loadingTitleWrapper('Running terminal') },
-	'run_persistent_command': { done: `Ran terminal`, proposed: 'Run terminal', running: loadingTitleWrapper('Running terminal') },
+// Module-level language variable, updated when React renders with a new language
+let _currentLang: AppLanguage = 'en'
 
-	'open_persistent_terminal': { done: `Opened terminal`, proposed: 'Open terminal', running: loadingTitleWrapper('Opening terminal') },
-	'kill_persistent_terminal': { done: `Killed terminal`, proposed: 'Kill terminal', running: loadingTitleWrapper('Killing terminal') },
-
-	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
-	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
-	'analyze_image': { done: 'Analyzed image', proposed: 'Analyze image', running: loadingTitleWrapper('Analyzing image') },
-	'search_web': { done: 'Web Search Completed', proposed: 'Search the web', running: loadingTitleWrapper('Searching the web...') },
-} as const satisfies Record<string, { done: any, proposed: any, running: any }>
+const getTitleOfBuiltinToolName = (lang: AppLanguage) => ({
+	'read_file': { done: t('tool.readFile.done', lang), proposed: t('tool.readFile.proposed', lang), running: loadingTitleWrapper(t('tool.readFile.running', lang)) },
+	'ls_dir': { done: t('tool.lsDir.done', lang), proposed: t('tool.lsDir.proposed', lang), running: loadingTitleWrapper(t('tool.lsDir.running', lang)) },
+	'get_dir_tree': { done: t('tool.getDirTree.done', lang), proposed: t('tool.getDirTree.proposed', lang), running: loadingTitleWrapper(t('tool.getDirTree.running', lang)) },
+	'search_pathnames_only': { done: t('tool.searchPathnames.done', lang), proposed: t('tool.searchPathnames.proposed', lang), running: loadingTitleWrapper(t('tool.searchPathnames.running', lang)) },
+	'search_for_files': { done: t('tool.searchFiles.done', lang), proposed: t('tool.searchFiles.proposed', lang), running: loadingTitleWrapper(t('tool.searchFiles.running', lang)) },
+	'create_file_or_folder': { done: t('tool.createFile.done', lang), proposed: t('tool.createFile.proposed', lang), running: loadingTitleWrapper(t('tool.createFile.running', lang)) },
+	'delete_file_or_folder': { done: t('tool.deleteFile.done', lang), proposed: t('tool.deleteFile.proposed', lang), running: loadingTitleWrapper(t('tool.deleteFile.running', lang)) },
+	'edit_file': { done: t('tool.editFile.done', lang), proposed: t('tool.editFile.proposed', lang), running: loadingTitleWrapper(t('tool.editFile.running', lang)) },
+	'rewrite_file': { done: t('tool.rewriteFile.done', lang), proposed: t('tool.rewriteFile.proposed', lang), running: loadingTitleWrapper(t('tool.rewriteFile.running', lang)) },
+	'run_command': { done: t('tool.runCommand.done', lang), proposed: t('tool.runCommand.proposed', lang), running: loadingTitleWrapper(t('tool.runCommand.running', lang)) },
+	'run_persistent_command': { done: t('tool.runCommand.done', lang), proposed: t('tool.runCommand.proposed', lang), running: loadingTitleWrapper(t('tool.runCommand.running', lang)) },
+	'open_persistent_terminal': { done: t('tool.openTerminal.done', lang), proposed: t('tool.openTerminal.proposed', lang), running: loadingTitleWrapper(t('tool.openTerminal.running', lang)) },
+	'kill_persistent_terminal': { done: t('tool.killTerminal.done', lang), proposed: t('tool.killTerminal.proposed', lang), running: loadingTitleWrapper(t('tool.killTerminal.running', lang)) },
+	'read_lint_errors': { done: t('tool.readLintErrors.done', lang), proposed: t('tool.readLintErrors.proposed', lang), running: loadingTitleWrapper(t('tool.readLintErrors.running', lang)) },
+	'search_in_file': { done: t('tool.searchInFile.done', lang), proposed: t('tool.searchInFile.proposed', lang), running: loadingTitleWrapper(t('tool.searchInFile.running', lang)) },
+	'analyze_image': { done: t('tool.analyzeImage.done', lang), proposed: t('tool.analyzeImage.proposed', lang), running: loadingTitleWrapper(t('tool.analyzeImage.running', lang)) },
+	'search_web': { done: t('tool.searchWeb.done', lang), proposed: t('tool.searchWeb.proposed', lang), running: loadingTitleWrapper(t('tool.searchWeb.running', lang)) },
+} satisfies Record<string, { done: any, proposed: any, running: any }>)
 
 
 const getTitle = (toolMessage: Pick<ChatMessage & { role: 'tool' }, 'name' | 'type' | 'mcpServerName'>): React.ReactNode => {
-	const t = toolMessage
+	const msg = toolMessage
+	const lang = _currentLang
 
 	// non-built-in title
-	if (!builtinToolNames.includes(t.name as BuiltinToolName)) {
+	if (!builtinToolNames.includes(msg.name as BuiltinToolName)) {
 		// descriptor of Running or Ran etc
 		const descriptor =
-			t.type === 'success' ? 'Called'
-				: t.type === 'running_now' ? 'Calling'
-					: t.type === 'tool_request' ? 'Call'
-						: t.type === 'rejected' ? 'Call'
-							: t.type === 'invalid_params' ? 'Call'
-								: t.type === 'tool_error' ? 'Call'
-									: 'Call'
-
+			msg.type === 'success' ? t('tool.mcp.called', lang)
+				: msg.type === 'running_now' ? t('tool.mcp.calling', lang)
+					: t('tool.mcp.call', lang)
 
 		const title = `${descriptor} ${toolMessage.mcpServerName || 'MCP'}`
-		if (t.type === 'running_now' || t.type === 'tool_request')
+		if (msg.type === 'running_now' || msg.type === 'tool_request')
 			return loadingTitleWrapper(title)
 		return title
 	}
 
 	// built-in title
 	else {
-		const toolName = t.name as BuiltinToolName
-		const titleMap = titleOfBuiltinToolName as any
-		if (t.type === 'success') return titleMap[toolName]?.done ?? ''
-		if (t.type === 'running_now') return titleMap[toolName]?.running ?? ''
+		const toolName = msg.name as BuiltinToolName
+		const titleMap = getTitleOfBuiltinToolName(lang) as any
+		if (msg.type === 'success') return titleMap[toolName]?.done ?? ''
+		if (msg.type === 'running_now') return titleMap[toolName]?.running ?? ''
 		return titleMap[toolName]?.proposed ?? ''
 	}
 }
@@ -3704,7 +3702,7 @@ const EditToolSoFar = ({ toolCallSoFar, }: { toolCallSoFar: RawToolCallObj }) =>
 
 	const uri = toolCallSoFar.rawParams.uri ? URI.file(toolCallSoFar.rawParams.uri) : undefined
 
-	const title = titleOfBuiltinToolName[toolCallSoFar.name].proposed
+	const title = getTitleOfBuiltinToolName(_currentLang)[toolCallSoFar.name].proposed
 
 	const uriDone = toolCallSoFar.doneParams.includes('uri')
 	const desc1 = <span className='flex items-center'>
@@ -3786,6 +3784,10 @@ export const SidebarChat = () => {
 	const notificationService = accessor.get('INotificationService')
 
 	const settingsState = useSettingsState()
+
+	// Update module-level language variable for tool title translations
+	const currentLang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
+	_currentLang = currentLang
 	// ----- HIGHER STATE -----
 
 	// threads state
@@ -4172,7 +4174,10 @@ const inputChatArea = (
 			<VoidInputBox2
 				enableAtToMention
 				className={`min-h-[81px] px-0.5 py-0.5`}
-				placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
+				placeholder={keybindingString
+				? t('chat.placeholder', currentLang).replace('{0}', `${keybindingString} to add a selection. `)
+				: t('chat.placeholderNoKeybind', currentLang)
+			}
 				onChangeText={onChangeText}
 				onKeyDown={onKeyDown}
 				onFocus={() => { chatThreadsService.setCurrentlyFocusedMessageIdx(undefined) }}
@@ -4227,7 +4232,7 @@ const inputChatArea = (
 
 		{Object.keys(chatThreadsState.allThreads).length > 1 ? // show if there are threads
 			<ErrorBoundary>
-				<div className='pt-8 mb-2 text-void-fg-3 text-root select-none pointer-events-none'>Previous Threads</div>
+				<div className='pt-8 mb-2 text-void-fg-3 text-root select-none pointer-events-none'>{t('chat.previousThreads', currentLang)}</div>
 				<PastThreadsList />
 			</ErrorBoundary>
 			:

@@ -25,3 +25,6 @@ export function getThreadStorageKey(workspaceId: string): string {
 
 
 export const OPT_OUT_KEY = 'void.app.optOutAll'
+
+// Plain (non-encrypted) storage key for UI language — readable before services init
+export const VOID_LANGUAGE_KEY = 'void.app.language'

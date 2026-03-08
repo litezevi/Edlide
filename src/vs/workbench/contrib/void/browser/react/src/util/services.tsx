@@ -57,6 +57,8 @@ import { OPT_OUT_KEY } from '../../../../common/storageKeys.js'
 import { ICompactingService } from '../../../compactingService.js';
 import { IOpenerService } from '../../../../../../../platform/opener/common/opener.js';
 import { ISupabaseAuthService } from '../../../interfaces/supabaseAuthService.js';
+import { ILocaleService } from '../../../../../../services/localization/common/locale.js';
+import { ILanguagePackService } from '../../../../../../../platform/languagePacks/common/languagePacks.js';
 
 
 // normally to do this you'd use a useEffect that calls .onDidChangeState(), but useEffect mounts too late and misses initial state changes
@@ -236,6 +238,8 @@ const getReactAccessor = (accessor: ServicesAccessor) => {
 		IStorageService: accessor.get(IStorageService),
 		IOpenerService: accessor.get(IOpenerService),
 		ISupabaseAuthService: accessor.get(ISupabaseAuthService),
+		ILocaleService: accessor.get(ILocaleService),
+		ILanguagePackService: accessor.get(ILanguagePackService),
 
 	} as const
 	return reactAccessor

@@ -1,0 +1,202 @@
+# Localization System — Edlide IDE (EN / RU)
+
+## Goal
+
+Add EN/RU language switch to Edlide IDE. On Russian:
+1. VSCode native UI restarts via `ILocaleService.setLocale()` (requires Russian Language Pack extension)
+2. All Edlide-specific React UI strings are translated via `t(key, lang)`
+3. Tool call labels in SidebarChat translated too
+4. Sidebar action button tooltips ("New Chat", "View Past Chats", "Edlide's Settings") translated
+
+## Architecture — Two Layers
+
+| Layer | Mechanism | Notes |
+|-------|-----------|-------|
+| VSCode native UI | `ILocaleService.setLocale()` → restart | Works via Language Pack extension |
+| Edlide React UI | `t(key, lang)` from `translations.ts` | Custom dictionary, ~100 keys |
+
+## Key Files
+
+```
+src/vs/workbench/contrib/void/
+├── common/
+│   ├── voidSettingsTypes.ts        — AppLanguage type, language field in GlobalSettings,
+│   │                                 subTextMdOfProviderName(providerName, lang)
+│   ├── translations.ts             — Full dictionary + t(key, lang) function
+│   └── storageKeys.ts              — VOID_LANGUAGE_KEY = 'void.app.language'
+│
+├── browser/
+│   ├── react/src/
+│   │   ├── util/
+│   │   │   └── services.tsx        — ILocaleService, ILanguagePackService added to reactAccessor
+│   │   ├── void-settings-tsx/
+│   │   │   ├── Settings.tsx        — LanguageDropdown component, all strings via t()
+│   │   │   │                         ProjectRulesSection, ModelDump, OneClickSwitchButton,
+│   │   │   │                         MCPServersList, SettingsForProvider — all use lang
+│   │   │   ├── AccountSettingsSection.tsx — Connected as, Disconnect, Account Settings
+│   │   │   └── ModelDropdown.tsx   — "Add a model" translated
+│   │   └── sidebar-tsx/
+│   │       └── SidebarChat.tsx     — getTitleOfBuiltinToolName(lang), _currentLang module var,
+│   │                                 chat placeholder, "Previous Threads"
+│   └── sidebarActions.ts           — _sidebarT(en, ru) reads localStorage at startup,
+│                                     Action2 titles translated: New Chat, View Past Chats,
+│                                     Edlide's Settings
+```
+
+## How Language is Stored
+
+- **Encrypted settings** (`void.settingsServiceStorageII`): `globalSettings.language` — used by React components via `useSettingsState()`
+- **Plain localStorage** (`void.app.language` = `VOID_LANGUAGE_KEY`): written in `LanguageDropdown.onChangeOption()` — readable by `sidebarActions.ts` before service init
+
+## Language Change Flow
+
+```
+User selects language in Settings → LanguageDropdown.onChangeOption(newLang)
+  1. voidSettingsService.setGlobalSetting('language', newLang)  ← encrypted storage
+  2. localStorage.setItem(VOID_LANGUAGE_KEY, newLang)           ← plain storage for sidebarActions
+  3. localeService.setLocale(ruPack) or clearLocalePreference() ← VSCode restart
+  → Window restarts → sidebarActions reads localStorage → correct titles shown
+```
+
+## Getting `lang` in Components
+
+Pattern used in every component that needs translation:
+```tsx
+const settingsState = useSettingsState()
+const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
+```
+
+## translations.ts Keys — Full List
+
+### Nav tabs
+- `nav.account`, `nav.general`, `nav.actions`, `nav.models`, `nav.mcp`, `nav.rules`
+
+### General section
+- `general.oneClickSwitch`, `general.transferDesc`
+- `general.transferFromVSCode`, `general.transferFromCursor`, `general.transferFromWindsurf`
+- `general.transferFrom` — "Transfer from {0}" (use `.replace('{0}', fromEditor)`)
+- `general.transferring`, `general.settingsTransferred`
+- `general.builtinSettings`, `general.builtinSettingsDesc`
+- `general.generalSettings`, `general.keyboardSettings`, `general.themeSettings`, `general.openLogs`
+- `general.language`, `general.languageDesc`, `general.english`, `general.russian`
+
+### Account section
+- `account.privacySettings`, `account.privacyMode`, `account.privacyModeDesc`, `account.alwaysEnabled`
+- `account.disconnect` — "Disconnect" / "Отключиться"
+- `account.connectedAs` — "Connected as" / "Подключён как" (email appended manually)
+- `account.accountSettings` — "Account Settings" / "Настройки аккаунта"
+
+### Actions section
+- `actions.title`, `actions.apply`, `actions.applyDesc`
+- `actions.sameAsChatModel`, `actions.differentModel`
+- `actions.tools`, `actions.toolsDesc`
+- `actions.autoApproveEdits`, `actions.autoApproveTerminal`, `actions.autoApproveMCP`
+- `actions.fixLintErrors`, `actions.autoAcceptLLMChanges`
+- `actions.editor`, `actions.editorDesc`, `actions.showSuggestionsOnSelect`
+
+### Models section
+- `models.title`, `models.mainProviders`, `models.mainProvidersDesc`
+- `models.addModel` — in Settings.tsx (+ icon)
+- `models.addModelDropdown` — in ModelDropdown.tsx warning box
+
+### MCP section
+- `mcp.title`, `mcp.desc`, `mcp.addServer`
+- `mcp.noServers` — "No servers found" / "Серверы не найдены"
+
+### Rules section
+- `rules.title`, `rules.desc`, `rules.systemPrompt`, `rules.systemPromptDesc`, `rules.projectRules`
+- `rules.noFilesFound` — full .edliderules not found message
+
+### Tool call titles (SidebarChat.tsx)
+All tools: `.done`, `.proposed`, `.running` variants:
+- `tool.readFile`, `tool.lsDir`, `tool.getDirTree`, `tool.searchPathnames`, `tool.searchFiles`
+- `tool.createFile`, `tool.deleteFile`, `tool.editFile`, `tool.rewriteFile`
+- `tool.runCommand`, `tool.openTerminal`, `tool.killTerminal`
+- `tool.readLintErrors`, `tool.searchInFile`, `tool.analyzeImage`, `tool.searchWeb`
+- `tool.mcp.called`, `tool.mcp.calling`, `tool.mcp.call`
+
+### Chat UI
+- `chat.placeholder` — "@ to mention, {0} Enter instructions..." (use `.replace('{0}', keybindStr)`)
+- `chat.placeholderNoKeybind`
+- `chat.previousThreads` — "Previous Threads" / "Предыдущие чаты"
+
+### Sidebar actions
+- `sidebar.newChat`, `sidebar.viewPastChats`, `sidebar.settings`, `sidebar.hideSideBar`
+
+### Provider API key hints
+- `provider.getApiKey` — "Get your [API Key here]({0})." (use `.replace('{0}', url)`)
+- `provider.rateLimits` — "Read about [rate limits here]({0})"
+
+## SidebarChat.tsx — getTitleOfBuiltinToolName
+
+`titleOfBuiltinToolName` was a static object. Replaced with:
+```ts
+let _currentLang: AppLanguage = 'en'
+
+const getTitleOfBuiltinToolName = (lang: AppLanguage) => ({
+  read_file: { done: t('tool.readFile.done', lang), proposed: t('tool.readFile.proposed', lang), running: t('tool.readFile.running', lang) },
+  // ... all tools
+})
+```
+
+`_currentLang` is updated at render time in the main `SidebarChat` component. All callers use `getTitleOfBuiltinToolName(_currentLang)`.
+
+**Important**: one call at line ~3705 used the old name `titleOfBuiltinToolName` — fixed to `getTitleOfBuiltinToolName(_currentLang)`.
+
+## sidebarActions.ts — Startup Language
+
+```ts
+import { VOID_LANGUAGE_KEY } from '../common/storageKeys.js'
+
+const _sidebarLang = (): 'ru' | 'en' => {
+  try {
+    const v = typeof localStorage !== 'undefined' ? localStorage.getItem(VOID_LANGUAGE_KEY) : null
+    return v === 'ru' ? 'ru' : 'en'
+  } catch { return 'en' }
+}
+
+const _sidebarT = (en: string, ru: string): string => _sidebarLang() === 'ru' ? ru : en
+```
+
+Used in Action2 constructors:
+- `title: _sidebarT('New Chat', 'Новый чат')`
+- `title: _sidebarT('View Past Chats', 'История чатов')`
+- `title: _sidebarT("Edlide's Settings", 'Настройки Edlide')`
+
+Works because window restarts on language change → `localStorage` already has new value.
+
+## voidSettingsTypes.ts — subTextMdOfProviderName
+
+Signature changed from `(providerName)` to `(providerName, lang: AppLanguage = 'en')`.
+
+Uses `t('provider.getApiKey', lang).replace('{0}', url)` for anthropic, openAI, groq, xAI, gemini.
+
+Caller in Settings.tsx passes `lang`: `subTextMdOfProviderName(providerName, lang)`.
+
+## Settings.tsx — LanguageDropdown
+
+Located in General tab at top. Reads current language from `globalSettings.language`.
+
+On change:
+1. Calls `voidSettingsService.setGlobalSetting('language', newLang)` — encrypted
+2. Calls `localStorage.setItem(VOID_LANGUAGE_KEY, newLang)` — plain, for sidebarActions
+3. For `ru`: finds Russian pack in `languagePackService.getInstalledLanguages()` → `localeService.setLocale(pack, true)`
+4. For `en`: `localeService.clearLocalePreference()`
+
+TypeScript fix: `installedLanguages.find((l: { id?: string }) => l.id === 'ru')` — `id` is `string | undefined` in `ILanguagePackItem`.
+
+## AccountSettingsSection.tsx
+
+Added imports: `useSettingsState`, `t`, `AppLanguage`.
+
+Translated:
+- `<h4>` title: `t('account.accountSettings', lang)`
+- "Connected as {email}": `{t('account.connectedAs', lang)} {userEmail || 'Unknown'}`
+- "Disconnect" button: `{t('account.disconnect', lang)}`
+
+## Known Limitations
+
+- `sidebar.hideSideBar` key exists in translations but VSCode's right-click menu on sidebar panel is a VSCode native string — would need NLS override to translate
+- `openAICompatible`, `googleVertex`, `microsoftAzure`, `awsBedrock` provider descriptions remain in English (complex markdown, low priority)
+- "Connecting..." in AccountSettingsSection not translated (edge case state)
+- `CHAT` label in sidebar panel header is from `sidebarPane.ts:133` → `nls.localize2('voidChat', '')` — empty string intentionally, VSCode generates the "CHAT" label from view name
