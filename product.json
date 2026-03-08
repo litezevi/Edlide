@@ -1,7 +1,7 @@
 {
 	"nameShort": "Edlide",
 	"nameLong": "Edlide",
-	"edlideVersion": "1.0.7",
+	"edlideVersion": "1.0.8",
 	"edlideRelease": "0001",
 	"applicationName": "edlide",
 	"dataFolderName": ".edlide-editor",
