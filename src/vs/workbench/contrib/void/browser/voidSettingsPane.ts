@@ -6,6 +6,11 @@
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import * as nls from '../../../../nls.js';
+
+const _isRu = (): boolean => {
+	try { return typeof localStorage !== 'undefined' && localStorage.getItem('void.app.language') === 'ru'; } catch { return false; }
+};
+const _tr = (en: string, ru: string): string => _isRu() ? ru : en;
 import { EditorExtensions } from '../../../common/editor.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
@@ -123,7 +128,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: VOID_TOGGLE_SETTINGS_ACTION_ID,
-			title: nls.localize2('voidSettings', "Edlide: Toggle Settings"),
+			title: { value: _tr("Edlide: Toggle Settings", "Edlide: Настройки"), original: "Edlide: Toggle Settings" },
 			icon: Codicon.settingsGear,
 			menu: [
 				{

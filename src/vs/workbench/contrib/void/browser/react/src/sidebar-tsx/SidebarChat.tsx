@@ -827,17 +827,17 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 
 
 
-const nameOfChatMode = {
-	'ask': 'Ask',
-	'plan': 'Plan',
-	'agent': 'Agent',
-}
+const getNameOfChatMode = (lang: AppLanguage) => ({
+	'ask': t('chatMode.ask', lang),
+	'plan': t('chatMode.plan', lang),
+	'agent': t('chatMode.agent', lang),
+} as const)
 
-const detailOfChatMode = {
-	'ask': 'Answers only',
-	'plan': 'Plans with tools, no editing',
-	'agent': 'Edits files and uses tools',
-}
+const getDetailOfChatMode = (lang: AppLanguage) => ({
+	'ask': t('chatMode.askDetail', lang),
+	'plan': t('chatMode.planDetail', lang),
+	'agent': t('chatMode.agentDetail', lang),
+} as const)
 
 
 const ChatModeDropdown = ({ className }: { className: string }) => {
@@ -845,6 +845,7 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 
 	const voidSettingsService = accessor.get('IVoidSettingsService')
 	const settingsState = useSettingsState()
+	const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
 
 	const options: ChatMode[] = useMemo(() => ['ask', 'plan', 'agent'], [])
 
@@ -857,9 +858,9 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 		options={options}
 		selectedOption={settingsState.globalSettings.chatMode}
 		onChangeOption={onChangeOption}
-		getOptionDisplayName={(val) => nameOfChatMode[val]}
-		getOptionDropdownName={(val) => nameOfChatMode[val]}
-		getOptionDropdownDetail={(val) => detailOfChatMode[val]}
+		getOptionDisplayName={(val) => getNameOfChatMode(lang)[val]}
+		getOptionDropdownName={(val) => getNameOfChatMode(lang)[val]}
+		getOptionDropdownDetail={(val) => getDetailOfChatMode(lang)[val]}
 		getOptionsEqual={(a, b) => a === b}
 	/>
 
@@ -990,6 +991,9 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 	onDragOver,
 	onDrop,
 }) => {
+	const _settingsForLang = useSettingsState()
+	const lang: AppLanguage = _settingsForLang?.globalSettings?.language ?? 'en'
+
 	return (
 		<div
 			ref={divRef}
@@ -1065,7 +1069,7 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 						<button
 							onClick={onAddImage}
 							className="p-1 text-void-fg-3 hover:text-void-fg-1 cursor-pointer"
-							title="Attach image"
+							title={t('chat.attachImage', lang)}
 						>
 							<Image size={18} />
 						</button>
@@ -4165,7 +4169,7 @@ const inputChatArea = (
 			onClickAnywhere={() => { textAreaRef.current?.focus() }}
 			contextPercentage={contextPercentage}
 			showContextBar={showContextBar}
-			contextTooltipText={`${currentTokens} / ${maxTokens} tokens used${isApiVerified ? ' (API verified)' : ''}`}
+			contextTooltipText={t('chat.tokensUsed', currentLang).replace('{0}', String(currentTokens)).replace('{1}', String(maxTokens)) + (isApiVerified ? t('chat.apiVerified', currentLang) : '')}
 			chatImages={chatImages}
 			onRemoveImage={handleRemoveImage}
 			onPreviewImage={handlePreviewImage}
@@ -4175,7 +4179,7 @@ const inputChatArea = (
 				enableAtToMention
 				className={`min-h-[81px] px-0.5 py-0.5`}
 				placeholder={keybindingString
-				? t('chat.placeholder', currentLang).replace('{0}', `${keybindingString} to add a selection. `)
+				? t('chat.placeholder', currentLang).replace('{0}', `${keybindingString} ${t('chat.toAddSelection', currentLang)}`)
 				: t('chat.placeholderNoKeybind', currentLang)
 			}
 				onChangeText={onChangeText}

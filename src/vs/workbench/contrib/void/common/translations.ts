@@ -148,6 +148,18 @@ const translations = {
 	'chat.placeholder': { en: '@ to mention, {0} Enter instructions...', ru: '@ для упоминания, {0} Введите инструкции...' },
 	'chat.placeholderNoKeybind': { en: '@ to mention. Enter instructions...', ru: '@ для упоминания. Введите инструкции...' },
 	'chat.previousThreads': { en: 'Previous Threads', ru: 'Предыдущие чаты' },
+	'chat.toAddSelection': { en: 'to add a selection. ', ru: 'добавить выделение. ' },
+	'chat.attachImage': { en: 'Attach image', ru: 'Прикрепить изображение' },
+	'chat.tokensUsed': { en: '{0} / {1} tokens used', ru: '{0} / {1} токенов использовано' },
+	'chat.apiVerified': { en: ' (API verified)', ru: ' (API подтверждён)' },
+
+	// ── Chat mode names ──────────────────────────────────────────────
+	'chatMode.ask': { en: 'Ask', ru: 'Ask' },
+	'chatMode.plan': { en: 'Plan', ru: 'Plan' },
+	'chatMode.agent': { en: 'Agent', ru: 'Agent' },
+	'chatMode.askDetail': { en: 'Answers only', ru: 'Только ответы' },
+	'chatMode.planDetail': { en: 'Plans with tools, no editing', ru: 'Планирование с инструментами, без правок' },
+	'chatMode.agentDetail': { en: 'Edits files and uses tools', ru: 'Редактирует файлы и использует инструменты' },
 
 	// ── Sidebar actions ──────────────────────────────────────────────
 	'sidebar.newChat': { en: 'New Chat', ru: 'Новый чат' },

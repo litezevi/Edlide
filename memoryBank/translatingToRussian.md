@@ -194,9 +194,72 @@ Translated:
 - "Connected as {email}": `{t('account.connectedAs', lang)} {userEmail || 'Unknown'}`
 - "Disconnect" button: `{t('account.disconnect', lang)}`
 
+## VSCode Native Strings — _tr() pattern
+
+For strings in VSCode native files (outside React, using `localize()`/`localize2()`), a lightweight helper is added at the top of each file:
+
+```ts
+const _isRu = (): boolean => {
+    try { return typeof localStorage !== 'undefined' && localStorage.getItem('void.app.language') === 'ru'; } catch { return false; }
+};
+const _tr = (en: string, ru: string): string => _isRu() ? ru : en;
+```
+
+Works because window restarts on language change → localStorage already set → helper reads correct value at module init time.
+
+### Files using _tr() pattern:
+
+**`sidebarActions.ts`** (void/browser):
+- Uses `VOID_LANGUAGE_KEY` import + `_sidebarT()` wrapper
+- Translates: "New Chat", "View Past Chats", "Edlide's Settings"
+
+**`voidSettingsPane.ts`** (void/browser):
+- `title: { value: _tr("Edlide: Toggle Settings", "Edlide: Настройки"), original: "..." }`
+
+**`auxiliaryBarActions.ts`** (workbench/browser/parts/auxiliarybar):
+- `ToggleAuxiliaryBarAction.LABEL` → `{ value: _tr(...), original: ... }`
+- `toggled.title` → `_tr('Hide Edlide Side Bar', 'Скрыть панель Edlide')`
+- `title` in closeAuxiliaryBar action → `{ value: _tr(...), original: ... }`
+- `title` in ViewContainerTitleContext menu item → `{ value: _tr(...), original: ... }`
+
+**`auxiliaryBarPart.ts`** (workbench/browser/parts/auxiliarybar):
+- `toAction label` → `_tr("Hide Edlide Side Bar", "Скрыть панель Edlide")`
+
+Note: These files use plain `'void.app.language'` string literal (not `VOID_LANGUAGE_KEY` import) to avoid cross-module dependency.
+
+## SidebarChat.tsx — Additional Translations
+
+**Chat mode names** — `nameOfChatMode` and `detailOfChatMode` static objects replaced with functions:
+```ts
+const getNameOfChatMode = (lang: AppLanguage) => ({ 'ask': t('chatMode.ask', lang), ... })
+const getDetailOfChatMode = (lang: AppLanguage) => ({ 'ask': t('chatMode.askDetail', lang), ... })
+```
+`ChatModeDropdown` reads `lang` from `useSettingsState()` and passes it.
+
+**"Attach image"** tooltip — `VoidChatArea` component added `useSettingsState()` → `lang`, then `title={t('chat.attachImage', lang)}`.
+
+**"to add a selection."** — placeholder text:
+```ts
+t('chat.placeholder', currentLang).replace('{0}', `${keybindingString} ${t('chat.toAddSelection', currentLang)}`)
+```
+
+**"tokens used"** — context bar tooltip:
+```ts
+t('chat.tokensUsed', currentLang).replace('{0}', currentTokens).replace('{1}', maxTokens) + (isApiVerified ? t('chat.apiVerified', currentLang) : '')
+```
+
+### New translation keys added:
+- `chat.toAddSelection` — "to add a selection. " / "добавить выделение. "
+- `chat.attachImage` — "Attach image" / "Прикрепить изображение"
+- `chat.tokensUsed` — "{0} / {1} tokens used" / "{0} / {1} токенов использовано"
+- `chat.apiVerified` — " (API verified)" / " (API подтверждён)"
+- `chatMode.ask` / `chatMode.plan` / `chatMode.agent` — mode labels (same in both languages)
+- `chatMode.askDetail` — "Answers only" / "Только ответы"
+- `chatMode.planDetail` — "Plans with tools, no editing" / "Планирование с инструментами, без правок"
+- `chatMode.agentDetail` — "Edits files and uses tools" / "Редактирует файлы и использует инструменты"
+
 ## Known Limitations
 
-- `sidebar.hideSideBar` key exists in translations but VSCode's right-click menu on sidebar panel is a VSCode native string — would need NLS override to translate
 - `openAICompatible`, `googleVertex`, `microsoftAzure`, `awsBedrock` provider descriptions remain in English (complex markdown, low priority)
 - "Connecting..." in AccountSettingsSection not translated (edge case state)
-- `CHAT` label in sidebar panel header is from `sidebarPane.ts:133` → `nls.localize2('voidChat', '')` — empty string intentionally, VSCode generates the "CHAT" label from view name
+- `CHAT` label in sidebar panel header: `sidebarPane.ts:133` → `nls.localize2('voidChat', '')` — empty string, VSCode auto-generates "CHAT" from view name — not translatable this way

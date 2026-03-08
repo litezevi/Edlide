@@ -5,6 +5,11 @@
 
 import './media/auxiliaryBarPart.css';
 import { localize } from '../../../../nls.js';
+
+const _isRu = (): boolean => {
+	try { return typeof localStorage !== 'undefined' && localStorage.getItem('void.app.language') === 'ru'; } catch { return false; }
+};
+const _tr = (en: string, ru: string): string => _isRu() ? ru : en;
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -234,7 +239,7 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 			new SubmenuAction('workbench.action.panel.position', localize('activity bar position', "Activity Bar Position"), positionActions),
 			toAction({ id: ToggleSidebarPositionAction.ID, label: currentPositionRight ? localize('move second side bar left', "Move Edlide Side Bar Left") : localize('move second side bar right', "Move Edlide Side Bar Right"), run: () => this.commandService.executeCommand(ToggleSidebarPositionAction.ID) }),
 			toggleShowLabelsAction,
-			toAction({ id: ToggleAuxiliaryBarAction.ID, label: localize('hide second side bar', "Hide Edlide Side Bar"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
+			toAction({ id: ToggleAuxiliaryBarAction.ID, label: _tr("Hide Edlide Side Bar", "Скрыть панель Edlide"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
 		]);
 	}
 

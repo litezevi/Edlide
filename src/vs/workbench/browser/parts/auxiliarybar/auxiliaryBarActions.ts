@@ -5,6 +5,11 @@
 
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
+
+const _isRu = (): boolean => {
+	try { return typeof localStorage !== 'undefined' && localStorage.getItem('void.app.language') === 'ru'; } catch { return false; }
+};
+const _tr = (en: string, ru: string): string => _isRu() ? ru : en;
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
@@ -27,7 +32,7 @@ const auxiliaryBarLeftOffIcon = registerIcon('auxiliarybar-left-off-layout-icon'
 export class ToggleAuxiliaryBarAction extends Action2 {
 
 	static readonly ID = 'workbench.action.toggleAuxiliaryBar';
-	static readonly LABEL = localize2('toggleAuxiliaryBar', "Toggle Edlide Side Bar Visibility");
+	static readonly LABEL = { value: _tr("Toggle Edlide Side Bar Visibility", "Переключить панель Edlide"), original: "Toggle Edlide Side Bar Visibility" };
 
 	constructor() {
 		super({
@@ -35,7 +40,7 @@ export class ToggleAuxiliaryBarAction extends Action2 {
 			title: ToggleAuxiliaryBarAction.LABEL,
 			toggled: {
 				condition: AuxiliaryBarVisibleContext,
-				title: localize('closeSecondarySideBar', 'Hide Edlide Side Bar'),
+				title: _tr('Hide Edlide Side Bar', 'Скрыть панель Edlide'),
 				icon: closeIcon,
 				mnemonicTitle: localize({ key: 'secondary sidebar mnemonic', comment: ['&& denotes a mnemonic'] }, "Secondary Si&&de Bar"),
 			},
@@ -81,7 +86,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: 'workbench.action.closeAuxiliaryBar',
-			title: localize2('closeSecondarySideBar', 'Hide Edlide Side Bar'),
+			title: { value: _tr('Hide Edlide Side Bar', 'Скрыть панель Edlide'), original: 'Hide Edlide Side Bar' },
 			category: Categories.View,
 			precondition: AuxiliaryBarVisibleContext,
 			f1: true,
@@ -154,7 +159,7 @@ MenuRegistry.appendMenuItems([
 			group: '3_workbench_layout_move',
 			command: {
 				id: ToggleAuxiliaryBarAction.ID,
-				title: localize2('hideAuxiliaryBar', 'Hide Edlide Side Bar'),
+				title: { value: _tr('Hide Edlide Side Bar', 'Скрыть панель Edlide'), original: 'Hide Edlide Side Bar' },
 			},
 			when: ContextKeyExpr.and(AuxiliaryBarVisibleContext, ContextKeyExpr.equals('viewContainerLocation', ViewContainerLocationToString(ViewContainerLocation.AuxiliaryBar))),
 			order: 2
