@@ -8,11 +8,27 @@ Add EN/RU language switch to Edlide IDE. On Russian:
 3. Tool call labels in SidebarChat translated too
 4. Sidebar action button tooltips ("New Chat", "View Past Chats", "Edlide's Settings") translated
 
+## Russian Language Pack — Built-in (No Install Required)
+
+**`extensions/ms-ceintl.vscode-language-pack-ru/`** — Russian Language Pack is bundled as a built-in extension.
+
+- Source: `ms-ceintl.vscode-language-pack-ru-1.99.2025041609` (copied from `tmp-ext/`)
+- Users do **not** need to install it manually from the marketplace
+- No signature verification errors — it's treated as a system extension
+
+**How it works automatically:**
+1. `builtinExtensionsPath` points to `extensions/` folder (see `environmentService.ts:120`)
+2. `LocalizationsUpdater` runs `update()` on every shared process start → scans all extensions including built-ins → finds `contributes.localizations[0].languageId = "ru"` → writes `languagepacks.json` with correct runtime paths
+3. `getInstalledLanguages()` reads that file → returns the Russian pack
+4. `LanguageDropdown` finds it → calls `localeService.setLocale()` → window restarts in Russian
+
+**Build:** `build/lib/extensions.js` line ~402 uses `glob.sync('extensions/*/package.json')` — picks up all folders in `extensions/` automatically, no extra config needed.
+
 ## Architecture — Two Layers
 
 | Layer | Mechanism | Notes |
 |-------|-----------|-------|
-| VSCode native UI | `ILocaleService.setLocale()` → restart | Works via Language Pack extension |
+| VSCode native UI | `ILocaleService.setLocale()` → restart | Language pack bundled in `extensions/` |
 | Edlide React UI | `t(key, lang)` from `translations.ts` | Custom dictionary, ~100 keys |
 
 ## Key Files
