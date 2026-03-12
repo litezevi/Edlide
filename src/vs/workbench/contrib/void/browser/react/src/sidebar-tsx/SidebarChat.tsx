@@ -2027,6 +2027,8 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 
 	const accessor = useAccessor()
 	const chatThreadsService = accessor.get('IChatThreadService')
+	const settingsState = useSettingsState()
+	const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
 
 	const reasoningStr = chatMessage.reasoning?.trim() || null
 	const hasReasoning = !!reasoningStr
@@ -2046,7 +2048,7 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 		{/* reasoning token */}
 		{hasReasoning &&
 			<div className={`${isCheckpointGhost ? 'opacity-50' : ''}`}>
-				<ReasoningWrapper isDoneReasoning={isDoneReasoning} isStreaming={!isCommitted}>
+				<ReasoningWrapper isDoneReasoning={isDoneReasoning} isStreaming={!isCommitted} lang={lang}>
 					<SmallProseWrapper>
 						<ChatMarkdownRender
 							string={reasoningStr}
@@ -2076,14 +2078,14 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 
 }
 
-const ReasoningWrapper = ({ isDoneReasoning, isStreaming, children }: { isDoneReasoning: boolean, isStreaming: boolean, children: React.ReactNode }) => {
+const ReasoningWrapper = ({ isDoneReasoning, isStreaming, children, lang }: { isDoneReasoning: boolean, isStreaming: boolean, children: React.ReactNode, lang: AppLanguage }) => {
 	const isDone = isDoneReasoning || !isStreaming
 	const isWriting = !isDone
 	const [isOpen, setIsOpen] = useState(isWriting)
 	useEffect(() => {
 		if (!isWriting) setIsOpen(false) // if just finished reasoning, close
 	}, [isWriting])
-	return <ToolHeaderWrapper title='Reasoning' desc1={isWriting ? <IconLoading /> : ''} isOpen={isOpen} onClick={() => setIsOpen(v => !v)}>
+	return <ToolHeaderWrapper title={t('chat.reasoning', lang)} desc1={isWriting ? <IconLoading /> : ''} isOpen={isOpen} onClick={() => setIsOpen(v => !v)}>
 		<ToolChildrenWrapper>
 			<div className='!select-text cursor-auto'>
 				{children}

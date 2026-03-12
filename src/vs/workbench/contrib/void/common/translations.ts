@@ -150,6 +150,7 @@ const translations = {
 	'chat.previousThreads': { en: 'Previous Threads', ru: 'Предыдущие чаты' },
 	'chat.toAddSelection': { en: 'to add a selection. ', ru: 'добавить выделение. ' },
 	'chat.attachImage': { en: 'Attach image', ru: 'Прикрепить изображение' },
+	'chat.reasoning': { en: 'Reasoning', ru: 'Размышление' },
 	'chat.tokensUsed': { en: '{0} / {1} tokens used', ru: '{0} / {1} токенов использовано' },
 	'chat.apiVerified': { en: ' (API verified)', ru: ' (API подтверждён)' },
 

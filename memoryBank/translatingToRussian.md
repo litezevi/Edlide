@@ -135,6 +135,7 @@ All tools: `.done`, `.proposed`, `.running` variants:
 - `chat.placeholder` — "@ to mention, {0} Enter instructions..." (use `.replace('{0}', keybindStr)`)
 - `chat.placeholderNoKeybind`
 - `chat.previousThreads` — "Previous Threads" / "Предыдущие чаты"
+- `chat.reasoning` — "Reasoning" / "Размышление" ( ReasoningWrapper in SidebarChat.tsx)
 
 ### Sidebar actions
 - `sidebar.newChat`, `sidebar.viewPastChats`, `sidebar.settings`, `sidebar.hideSideBar`
@@ -269,10 +270,33 @@ t('chat.tokensUsed', currentLang).replace('{0}', currentTokens).replace('{1}', m
 - `chat.attachImage` — "Attach image" / "Прикрепить изображение"
 - `chat.tokensUsed` — "{0} / {1} tokens used" / "{0} / {1} токенов использовано"
 - `chat.apiVerified` — " (API verified)" / " (API подтверждён)"
+- `chat.reasoning` — "Reasoning" / "Размышление"
 - `chatMode.ask` / `chatMode.plan` / `chatMode.agent` — mode labels (same in both languages)
 - `chatMode.askDetail` — "Answers only" / "Только ответы"
 - `chatMode.planDetail` — "Plans with tools, no editing" / "Планирование с инструментами, без правок"
 - `chatMode.agentDetail` — "Edits files and uses tools" / "Редактирует файлы и использует инструменты"
+
+### ReasoningWrapper Translation
+
+**SidebarChat.tsx** — The reasoning block header ("Reasoning") is now translated:
+
+1. `AssistantMessageComponent` gets `lang` from `useSettingsState()`:
+   ```ts
+   const settingsState = useSettingsState()
+   const lang: AppLanguage = settingsState?.globalSettings?.language ?? 'en'
+   ```
+
+2. Passes `lang` to `ReasoningWrapper`:
+   ```tsx
+   <ReasoningWrapper isDoneReasoning={isDoneReasoning} isStreaming={!isCommitted} lang={lang}>
+   ```
+
+3. `ReasoningWrapper` receives `lang` prop and uses `t()`:
+   ```tsx
+   const ReasoningWrapper = ({ isDoneReasoning, isStreaming, children, lang }: { ... lang: AppLanguage }) => {
+     // ...
+     return <ToolHeaderWrapper title={t('chat.reasoning', lang)} ...>
+   ```
 
 ## Known Limitations
 
