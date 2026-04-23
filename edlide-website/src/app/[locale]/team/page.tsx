@@ -10,12 +10,6 @@ const team = [
     role: 'Founder',
     avatar: '/aitegin.JPG',
   },
-  {
-    name: 'Ilyas Asanzhanov',
-    nameRu: 'Ильяс Асанжанов',
-    role: 'CEO',
-    avatar: '/ilyas.jpg',
-  },
 ]
 
 export default function TeamPage() {
