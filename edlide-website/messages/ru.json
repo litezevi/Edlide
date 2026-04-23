@@ -3,7 +3,8 @@
     "docs": "Документация",
     "download": "Скачать",
     "pricing": "Цены",
-    "team": "Команда"
+    "team": "Команда",
+    "education": "Обучение"
   },
   "footer": {
     "rights": "© 2026 Edlide. Все права защищены.",
@@ -18,6 +19,7 @@
     "docs": "Документация",
     "pricing": "Цены",
     "team": "Команда",
+    "education": "Обучение",
     "account": "Аккаунт"
   },
   "hero": {
@@ -408,5 +410,17 @@
         "bio": "Создаём Edlide, чтобы дать разработчикам лучший инструментарий с открытым AI."
       }
     }
+  },
+  "education": {
+    "title": "Обучение",
+    "subtitle": "Всё для эффективной работы с Edlide",
+    "docsTitle": "Документация",
+    "docsDesc": "Полное руководство по настройке и использованию Edlide IDE и CLI",
+    "downloadTitle": "Скачать",
+    "downloadDesc": "Загрузите Edlide для вашей платформы — Windows или macOS",
+    "pricingTitle": "Цены",
+    "pricingDesc": "Выберите подходящий план: Starter, Pro или Ultra",
+    "teamTitle": "Команда",
+    "teamDesc": "Познакомьтесь с командой Edlide и узнайте, как присоединиться"
   }
 }

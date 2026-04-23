@@ -34,13 +34,13 @@ export function Navbar() {
           <img src={edlideLogo} alt="Edlide" width={32} height={32} className="cursor-pointer" />
         </Link>
 
-        <div className="hidden md:flex items-center ml-16 space-x-8">
+<div className="hidden md:flex items-center ml-16 space-x-8">
           <Link
             href={localePath('/docs')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('docs')}
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground group-hover:w-full transition-all duration-300"></span>
           </Link>
 
           <Link
@@ -48,7 +48,7 @@ export function Navbar() {
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('download')}
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground group-hover:w-full transition-all duration-300"></span>
           </Link>
 
           <Link
@@ -64,6 +64,14 @@ export function Navbar() {
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
           >
             {t('team')}
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+          </Link>
+
+          <Link
+            href={localePath('/education')}
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+          >
+            {t('education')}
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
           </Link>
         </div>
