@@ -10,7 +10,7 @@ import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { LogOut, X, Loader2, AlertTriangle, CalendarClock, GraduationCap, Check } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface PlanOption {
   id: string
@@ -473,6 +473,7 @@ function ChangePlanModal({
 
 function AccountContent() {
   const t = useTranslations('account')
+  const locale = useLocale()
   const searchParams = useSearchParams()
   const mode = searchParams.get('mode')
   const isSignupMode = mode === 'signup'
@@ -905,7 +906,7 @@ function AccountContent() {
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = '/education'}
+                  onClick={() => window.location.href = `/${locale}/education`}
                 >
                   {t('educationGoToPortal')}
                 </Button>

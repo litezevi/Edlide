@@ -74,7 +74,7 @@ CREATE TABLE public.education_access (
 ### Account Page — Education Card
 Located at the bottom of `/account` page:
 - **Not activated**: input field for activation code + "Activate" button, error messages for invalid/used codes
-- **Activated**: green checkmark + "Education portal activated" + "Go to Education Portal" button
+- **Activated**: green checkmark + "Education portal activated" + "Go to Education Portal" button (navigates to `/{locale}/education` using `useLocale()`)
 
 ### Navbar — Education Link
 - Only shown when user has `education_access` record
@@ -83,8 +83,11 @@ Located at the bottom of `/account` page:
 
 ### Education Page — Access Guard
 - Checks `education_access` for current user
-- No access → redirect to `/account`
+- No access → redirect to `/{locale}/account`
 - Loading state while checking
+
+### Important: Locale-Prefixed Navigation
+All internal links from account page to education must use `/{locale}/education` (not `/education`) to avoid 404. The `useLocale()` hook provides the current locale.
 
 ## Page Location
 - URL: `/education` (redirects to `/{locale}/education`)
@@ -130,6 +133,10 @@ Added to `messages/ru.json` and `messages/en.json`:
 
 ### Supabase Migration
 - `create_education_tables` — Creates education_codes + education_access tables with RLS and indexes
+
+### Bug Fix (Apr 23, 2026)
+- "Go to Education Portal" button used `/education` without locale prefix → 404
+- Fixed: `window.location.href = \`/${locale}/education\`` using `useLocale()` in `_AccountContent.tsx`
 
 ## Test Data
 - Test activation code: `EDLIDE-EDU-2026-TEST` (inserted in database)
