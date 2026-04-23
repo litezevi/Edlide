@@ -2,7 +2,11 @@
 
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
-import { BookOpen, Download, CreditCard, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { BookOpen, Download, CreditCard, Users, Loader2 } from 'lucide-react'
+import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { supabase } from '@/lib/supabase'
 
 const sections = [
   { icon: BookOpen, key: 'docs', href: '/docs' },
@@ -14,8 +18,49 @@ const sections = [
 export default function EducationPage() {
   const t = useTranslations('education')
   const locale = useLocale()
+  const { user, isLoading: authLoading } = useSupabaseAuth()
+  const router = useRouter()
+  const [checking, setChecking] = useState(true)
+  const [hasAccess, setHasAccess] = useState(false)
 
   const localePath = (path: string) => `/${locale}${path}`
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (authLoading) return
+
+      if (!user) {
+        router.replace(localePath('/account'))
+        return
+      }
+
+      const { data } = await supabase
+        .from('education_access')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (!data) {
+        router.replace(localePath('/account'))
+        return
+      }
+
+      setHasAccess(true)
+      setChecking(false)
+    }
+
+    checkAccess()
+  }, [user, authLoading, locale, router])
+
+  if (checking || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!hasAccess) return null
 
   return (
     <div className="min-h-screen bg-background">

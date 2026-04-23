@@ -8,7 +8,7 @@ import { SupabaseSignInCard } from '@/components/auth/supabase-signin-button'
 import { SupabaseSignUpCard as SupabaseSignUpCardComponent } from '@/components/auth/supabase-signup-button'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-import { LogOut, X, Loader2, AlertTriangle, CalendarClock } from 'lucide-react'
+import { LogOut, X, Loader2, AlertTriangle, CalendarClock, GraduationCap, Check } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
@@ -489,6 +489,11 @@ function AccountContent() {
   const [cancellingDowngrade, setCancellingDowngrade] = useState(false)
   const [requestsUsed, setRequestsUsed] = useState<number>(0)
   const [requestsLoading, setRequestsLoading] = useState(true)
+  const [educationAccess, setEducationAccess] = useState(false)
+  const [educationLoading, setEducationLoading] = useState(true)
+  const [educationCode, setEducationCode] = useState('')
+  const [educationActivating, setEducationActivating] = useState(false)
+  const [educationError, setEducationError] = useState<string | null>(null)
 
   const tierDisplayNames: Record<string, string> = {
     'base': 'Starter Plan',
@@ -518,6 +523,22 @@ function AccountContent() {
 
     setRequestsUsed(data?.request_count || 0)
     setRequestsLoading(false)
+  }, [user])
+
+  const loadEducationAccess = useCallback(async () => {
+    if (!user) {
+      setEducationLoading(false)
+      return
+    }
+
+    const { data } = await supabase
+      .from('education_access')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    setEducationAccess(!!data)
+    setEducationLoading(false)
   }, [user])
 
   const loadSubscription = useCallback(async () => {
@@ -564,8 +585,9 @@ function AccountContent() {
     if (user) {
       loadSubscription()
       loadRequestUsage()
+      loadEducationAccess()
     }
-  }, [user, loadSubscription, loadRequestUsage])
+  }, [user, loadSubscription, loadRequestUsage, loadEducationAccess])
 
   const handleSignOut = async () => {
     try {
@@ -611,6 +633,39 @@ function AccountContent() {
       console.error('Cancel downgrade error:', error)
     } finally {
       setCancellingDowngrade(false)
+    }
+  }
+
+  const handleActivateEducation = async () => {
+    if (!user || !educationCode.trim()) return
+    setEducationActivating(true)
+    setEducationError(null)
+
+    try {
+      const response = await fetch('/api/education/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: educationCode.trim(), userId: user.id }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorKeyMap: Record<string, string> = {
+          'Invalid activation code': 'educationInvalidCode',
+          'This activation code has already been used': 'educationCodeUsed',
+          'Education portal is already activated for this account': 'educationAlreadyActivated',
+        }
+        setEducationError(errorKeyMap[data.error] || 'educationActivationFailed')
+        return
+      }
+
+      setEducationAccess(true)
+      setEducationCode('')
+    } catch {
+      setEducationError('educationActivationFailed')
+    } finally {
+      setEducationActivating(false)
     }
   }
 
@@ -818,6 +873,79 @@ function AccountContent() {
                 <Button onClick={handleManageSubscription}>
                   {t('viewPlans')}
                 </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Education Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              {t('educationTitle')}
+            </CardTitle>
+            <CardDescription>{t('educationDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {educationLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : educationAccess ? (
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{t('educationActivated')}</p>
+                    <p className="text-sm text-muted-foreground">{t('educationActivatedDesc')}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/education'}
+                >
+                  {t('educationGoToPortal')}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={educationCode}
+                    onChange={(e) => {
+                      setEducationCode(e.target.value)
+                      setEducationError(null)
+                    }}
+                    placeholder={t('educationCodePlaceholder')}
+                    className="flex-1 px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleActivateEducation()
+                    }}
+                  />
+                  <Button
+                    onClick={handleActivateEducation}
+                    disabled={educationActivating || !educationCode.trim()}
+                  >
+                    {educationActivating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {t('educationActivating')}
+                      </>
+                    ) : (
+                      t('educationActivate')
+                    )}
+                  </Button>
+                </div>
+                {educationError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                    <p className="text-sm text-red-500">{t(educationError)}</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

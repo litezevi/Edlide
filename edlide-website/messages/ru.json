@@ -387,7 +387,19 @@
     "upgrade": "Повысить",
     "downgrade": "Понизить",
     "current": "Текущий",
-    "scheduled": "Запланировано"
+    "scheduled": "Запланировано",
+    "educationTitle": "Обучение",
+    "educationDesc": "Активируйте доступ к порталу обучения",
+    "educationActivated": "Портал обучения активирован",
+    "educationActivatedDesc": "У вас есть полный доступ к порталу обучения",
+    "educationGoToPortal": "Перейти к порталу обучения",
+    "educationCodePlaceholder": "Введите код активации",
+    "educationActivate": "Активировать",
+    "educationActivating": "Активация...",
+    "educationInvalidCode": "Неверный код активации",
+    "educationCodeUsed": "Этот код активации уже использован",
+    "educationAlreadyActivated": "Портал обучения уже активирован",
+    "educationActivationFailed": "Ошибка активации. Попробуйте снова."
   },
   "languageSwitcher": {
     "en": "EN",

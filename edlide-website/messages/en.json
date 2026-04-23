@@ -387,7 +387,19 @@
     "upgrade": "Upgrade",
     "downgrade": "Downgrade",
     "current": "Current",
-    "scheduled": "Scheduled"
+    "scheduled": "Scheduled",
+    "educationTitle": "Education",
+    "educationDesc": "Activate your access to the education portal",
+    "educationActivated": "Education portal activated",
+    "educationActivatedDesc": "You have full access to the learning portal",
+    "educationGoToPortal": "Go to Education Portal",
+    "educationCodePlaceholder": "Enter activation code",
+    "educationActivate": "Activate",
+    "educationActivating": "Activating...",
+    "educationInvalidCode": "Invalid activation code",
+    "educationCodeUsed": "This activation code has already been used",
+    "educationAlreadyActivated": "Education portal is already activated",
+    "educationActivationFailed": "Failed to activate. Please try again."
   },
   "languageSwitcher": {
     "en": "EN",

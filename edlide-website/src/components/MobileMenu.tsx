@@ -1,19 +1,39 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './ui/theme-toggle'
 import { LanguageSwitcher } from './ui/language-switcher'
 import { Menu, X } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
+import { useSupabaseAuth } from '@/lib/supabase-auth'
+import { supabase } from '@/lib/supabase'
 
 export function MobileMenu() {
   const t = useTranslations('mobileMenu')
   const locale = useLocale()
+  const { user } = useSupabaseAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [hasEducationAccess, setHasEducationAccess] = useState(false)
 
   const localePath = (path: string) => `/${locale}${path}`
+
+  useEffect(() => {
+    const checkEducationAccess = async () => {
+      if (!user) {
+        setHasEducationAccess(false)
+        return
+      }
+      const { data } = await supabase
+        .from('education_access')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      setHasEducationAccess(!!data)
+    }
+    checkEducationAccess()
+  }, [user])
 
   return (
     <div className="md:hidden">
@@ -65,6 +85,16 @@ export function MobileMenu() {
             >
               {t('team')}
             </Link>
+
+            {hasEducationAccess && (
+              <Link
+                href={localePath('/education')}
+                className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                {t('education')}
+              </Link>
+            )}
 
             <div className="pt-4 border-t border-border/50">
               <Link
