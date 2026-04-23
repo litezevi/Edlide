@@ -1,19 +1,13 @@
 'use client'
 
 import { useTranslations, useLocale } from 'next-intl'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BookOpen, Download, CreditCard, Users, Loader2 } from 'lucide-react'
+import { Loader2, GraduationCap } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-
-const sections = [
-  { icon: BookOpen, key: 'docs', href: '/docs' },
-  { icon: Download, key: 'download', href: '/download' },
-  { icon: CreditCard, key: 'pricing', href: '/pricing' },
-  { icon: Users, key: 'team', href: '/team' },
-]
+import { courses } from '@/lib/course-data'
+import { CourseCard } from '@/components/education/CourseCard'
 
 export default function EducationPage() {
   const t = useTranslations('education')
@@ -64,25 +58,27 @@ export default function EducationPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-16">
-        <div className="mb-12">
-          <h1 className="text-3xl font-semibold tracking-tight mb-3">{t('title')}</h1>
-          <p className="text-muted-foreground text-sm max-w-xl">{t('subtitle')}</p>
+      <div className="container max-w-5xl mx-auto px-4 py-12 sm:py-16">
+        <div className="mb-12 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <GraduationCap className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 gradient-text">
+            {t('academyTitle')}
+          </h1>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            {t('academySubtitle')}
+          </p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          {sections.map((section) => (
-            <Link
-              key={section.key}
-              href={localePath(section.href)}
-              className="group rounded-xl border border-border bg-secondary/20 p-6 hover:bg-secondary/30 transition-colors"
-            >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-                <section.icon className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold mb-2">{t(`${section.key}Title`)}</h2>
-              <p className="text-sm text-muted-foreground">{t(`${section.key}Desc`)}</p>
-            </Link>
+          {courses.map((mod) => (
+            <CourseCard
+              key={mod.id}
+              moduleData={mod}
+              moduleId={mod.id}
+              locale={locale}
+            />
           ))}
         </div>
       </div>
