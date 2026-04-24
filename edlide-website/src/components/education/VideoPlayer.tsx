@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize, Loader2 } from 'lucide-react'
 
 interface VideoPlayerProps {
-  src: string
+  src?: string
   title: string
   onComplete?: () => void
 }
@@ -190,7 +190,7 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
 
       <video
         ref={videoRef}
-        src={src}
+        src={src || undefined}
         className={isFullscreen ? 'w-full h-full object-contain bg-black' : 'w-full aspect-video'}
         playsInline
         disablePictureInPicture

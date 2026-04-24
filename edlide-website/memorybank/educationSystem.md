@@ -132,6 +132,7 @@ All internal links from account page to education must use `/{locale}/education`
 - Manual progress badge text was removed from lesson UI
 - Video URL is resolved dynamically from private API per active topic
 - Shows video loading and error states during URL fetch
+- Shows assignment block only on topic `topic-1-1-5`
 
 ## Course Structure (Current)
 
@@ -190,6 +191,9 @@ Added to `messages/ru.json` and `messages/en.json`:
 - `account.educationCodeUsed`: "Этот код активации уже использован" / "This activation code has already been used"
 - `account.educationAlreadyActivated`: "Портал обучения уже активирован" / "Education portal is already activated"
 - `account.educationActivationFailed`: "Ошибка активации. Попробуйте снова." / "Failed to activate. Please try again."
+- `education.topic1_1_5AssignmentTitle`
+- `education.topic1_1_5AssignmentStep1`
+- `education.topic1_1_5AssignmentStep2`
 
 ## Files Created / Modified
 
@@ -230,6 +234,7 @@ Added to `messages/ru.json` and `messages/en.json`:
   - Resolves private video URL from `/api/education/video?topicId=...`
   - Passes Supabase access token via `Authorization` header
   - Added loading/error UI for video URL fetch
+  - Added assignment UI block for last topic (`topic-1-1-5`)
 - `src/app/api/education/video/route.ts`
   - Added private endpoint for education video delivery
   - Validates Supabase JWT and `education_access`
@@ -246,12 +251,15 @@ Added to `messages/ru.json` and `messages/en.json`:
   - Fixed fullscreen behavior across browsers
   - Added WebKit fallbacks (`webkitRequestFullscreen`, `webkitExitFullscreen`, `webkitEnterFullscreen`)
   - Added fullscreen state tracking and fullscreen-specific video sizing
+  - Fixed empty video src warning (`src` is optional and uses `undefined` fallback)
 - `messages/en.json`
   - Updated Lesson 1 title/description
   - Updated topic keys `topic1_1_1...topic1_1_5` for new first-lesson structure
+  - Added assignment i18n keys for last topic
 - `messages/ru.json`
   - Updated Lesson 1 title/description
   - Updated topic keys `topic1_1_1...topic1_1_5` for new first-lesson structure
+  - Added assignment i18n keys for last topic
 
 ### Supabase Migration
 - `create_education_tables` — Creates education_codes + education_access tables with RLS and indexes

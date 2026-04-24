@@ -165,7 +165,7 @@ export default function LessonPage() {
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
             <VideoPlayer
-              src={resolvedVideoUrl || activeTopic?.videoUrl || ''}
+              src={resolvedVideoUrl || activeTopic?.videoUrl || undefined}
               title={activeTopic ? t(activeTopic.titleKey) : ''}
               onComplete={handleVideoComplete}
             />
@@ -193,6 +193,16 @@ export default function LessonPage() {
 
               <div className="shrink-0 ml-4" />
             </div>
+
+            {activeTopic?.id === 'topic-1-1-5' ? (
+              <div className="mt-4 rounded-xl border border-border bg-card p-4">
+                <p className="text-sm font-semibold text-foreground">
+                  {t('topic1_1_5AssignmentTitle')}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('topic1_1_5AssignmentStep1')}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t('topic1_1_5AssignmentStep2')}</p>
+              </div>
+            ) : null}
 
             <div className="mt-4 flex items-center justify-between">
               {prevTopic ? (

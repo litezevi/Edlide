@@ -19,7 +19,7 @@ export function TopicSidebar({ lesson, activeTopicId, completedTopics, onTopicSe
       <div className="p-4 border-b border-border">
         <h3 className="font-semibold text-sm mb-1">{t(lesson.titleKey)}</h3>
         <p className="text-xs text-muted-foreground">
-          {lesson.topics.length} {t('topicsLabel')} · {completedTopics.size}/{lesson.topics.length} {t('completedLabel')}
+          {lesson.topics.length} {t('topicsLabel')}
         </p>
       </div>
 
