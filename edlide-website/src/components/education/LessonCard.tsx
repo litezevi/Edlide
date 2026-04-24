@@ -26,9 +26,9 @@ export function LessonCard({ lesson, moduleId, lessonId, lessonIndex, locale, co
   return (
     <Link
       href={`/${locale}/education/${moduleId}/${lessonId}`}
-      className="group flex items-start gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all duration-200 hover:bg-secondary/20"
+      className="group flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all duration-200 hover:bg-secondary/20 min-h-[44px]"
     >
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
         isComplete
           ? 'bg-green-500/10 text-green-500'
           : progress > 0
@@ -43,10 +43,10 @@ export function LessonCard({ lesson, moduleId, lessonId, lessonIndex, locale, co
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium mb-1 group-hover:text-primary transition-colors">
+        <h3 className="text-sm sm:text-base font-medium mb-0.5 sm:mb-1 group-hover:text-primary transition-colors">
           {t(lesson.titleKey)}
         </h3>
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5 sm:mb-2">
           {t(lesson.descriptionKey)}
         </p>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">

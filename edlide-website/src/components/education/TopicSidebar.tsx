@@ -32,7 +32,7 @@ export function TopicSidebar({ lesson, activeTopicId, completedTopics, onTopicSe
             <button
               key={topic.id}
               onClick={() => onTopicSelect(topic.id)}
-              className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors ${
+              className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors min-h-[44px] ${
                 isActive
                   ? 'bg-primary/10 border-l-2 border-primary'
                   : 'hover:bg-secondary/50 border-l-2 border-transparent'

@@ -22,6 +22,8 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const AUTO_HIDE_MS = typeof window !== 'undefined' && window.innerWidth < 1024 ? 2000 : 3000
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
@@ -90,6 +92,16 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
     video.currentTime = pos * video.duration
   }, [])
 
+  const handleProgressTouch = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const video = videoRef.current
+    const bar = progressRef.current
+    if (!video || !bar) return
+    const rect = bar.getBoundingClientRect()
+    const touch = e.touches[0]
+    const pos = (touch.clientX - rect.left) / rect.width
+    video.currentTime = Math.max(0, Math.min(pos, 1)) * video.duration
+  }, [])
+
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
   }, [])
@@ -99,8 +111,8 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
     hideTimeoutRef.current = setTimeout(() => {
       if (isPlaying) setShowControls(false)
-    }, 3000)
-  }, [isPlaying])
+    }, AUTO_HIDE_MS)
+  }, [isPlaying, AUTO_HIDE_MS])
 
   useEffect(() => {
     const video = videoRef.current
@@ -172,6 +184,12 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    }
+  }, [])
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
@@ -181,6 +199,7 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
       onContextMenu={handleContextMenu}
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      onTouchStart={showControlsTemporarily}
     >
       <div
         className="absolute inset-0 z-10 pointer-events-none"
@@ -202,14 +221,14 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
 
       {isLoading && src && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <Loader2 className="h-10 w-10 animate-spin text-white/80" />
+          <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-white/80" />
         </div>
       )}
 
       {!src && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/90 text-white/60">
-          <Play className="h-16 w-16 mb-4" />
-          <p className="text-sm">Video coming soon</p>
+          <Play className="h-12 w-12 sm:h-16 sm:w-16 mb-3 sm:mb-4" />
+          <p className="text-xs sm:text-sm">Video coming soon</p>
         </div>
       )}
 
@@ -217,33 +236,43 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
         className={`absolute bottom-0 left-0 right-0 z-30 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}
       >
         <div
-          className="h-1.5 bg-white/20 cursor-pointer group/progress mx-3"
+          className="h-2 sm:h-1.5 bg-white/20 cursor-pointer group/progress mx-2 sm:mx-3 py-1"
           ref={progressRef}
           onClick={handleProgressClick}
+          onTouchMove={handleProgressTouch}
         >
           <div
-            className="h-full bg-primary relative transition-all duration-100"
+            className="h-1 sm:h-1.5 bg-primary relative transition-all duration-100 -mt-0.5 sm:mt-0"
             style={{ width: `${progress}%` }}
           >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center gap-3">
-            <button onClick={togglePlay} className="text-white hover:text-primary transition-colors">
-              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+        <div className="flex items-center justify-between px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={togglePlay}
+              className="text-white hover:text-primary transition-colors w-11 h-11 sm:w-auto sm:h-auto flex items-center justify-center"
+            >
+              {isPlaying ? <Pause className="h-6 w-6 sm:h-5 sm:w-5" /> : <Play className="h-6 w-6 sm:h-5 sm:w-5" />}
             </button>
-            <button onClick={toggleMute} className="text-white hover:text-primary transition-colors">
-              {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            <button
+              onClick={toggleMute}
+              className="text-white hover:text-primary transition-colors w-11 h-11 sm:w-auto sm:h-auto flex items-center justify-center"
+            >
+              {isMuted ? <VolumeX className="h-6 w-6 sm:h-5 sm:w-5" /> : <Volume2 className="h-6 w-6 sm:h-5 sm:w-5" />}
             </button>
-            <span className="text-white/80 text-xs font-mono">
+            <span className="text-white/80 text-xs sm:text-xs font-mono">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={toggleFullscreen} className="text-white hover:text-primary transition-colors">
-              <Maximize className="h-5 w-5" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={toggleFullscreen}
+              className="text-white hover:text-primary transition-colors w-11 h-11 sm:w-auto sm:h-auto flex items-center justify-center"
+            >
+              <Maximize className="h-6 w-6 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
@@ -252,8 +281,8 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
       <div
         className={`absolute top-0 left-0 right-0 z-30 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="px-4 py-3 bg-gradient-to-b from-black/60 to-transparent">
-          <p className="text-white text-sm font-medium truncate">{title}</p>
+        <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-b from-black/60 to-transparent">
+          <p className="text-white text-xs sm:text-sm font-medium truncate">{title}</p>
         </div>
       </div>
     </div>

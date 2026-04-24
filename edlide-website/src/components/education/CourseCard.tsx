@@ -30,10 +30,10 @@ export function CourseCard({ moduleData, moduleId, locale }: CourseCardProps) {
       href={`/${locale}/education/${moduleId}`}
       className="group block rounded-2xl border border-border bg-card hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
     >
-      <div className="p-6 sm:p-8">
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-            <Icon className="w-7 h-7 text-primary" />
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="flex items-start justify-between mb-3 sm:mb-4">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+            <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
           </div>
           {localizedDuration ? (
             <span className="text-xs font-medium text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
@@ -42,10 +42,10 @@ export function CourseCard({ moduleData, moduleId, locale }: CourseCardProps) {
           ) : null}
         </div>
 
-        <h2 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+        <h2 className="text-lg sm:text-xl font-semibold mb-1.5 sm:mb-2 group-hover:text-primary transition-colors">
           {t(moduleData.titleKey)}
         </h2>
-        <p className="text-sm text-muted-foreground mb-6 line-clamp-2">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 line-clamp-2">
           {t(moduleData.descriptionKey)}
         </p>
 
