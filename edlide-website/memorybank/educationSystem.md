@@ -93,41 +93,60 @@ All internal links from account page to education must use `/{locale}/education`
 - URL: `/education` (redirects to `/{locale}/education`)
 - File: `src/app/[locale]/education/page.tsx`
 
-## Current UI Architecture (Apr 23, 2026)
+## Current UI Architecture (Apr 24, 2026)
 
 ### Education Hub
 - Route: `/{locale}/education`
-- Shows 2 learning modules (Module 1 Website, Module 2 Mobile)
+- Uses visibility filtering from `src/lib/course-data.ts`
+- Currently shows only visible modules (`getVisibleModules()`)
+- Right now only Module 1 is visible (Module 2 is hidden via flag)
 - Access guarded by `education_access` check
 - Uses course data from `src/lib/course-data.ts`
 
 ### Module Page
 - Route: `/{locale}/education/[moduleId]`
-- Shows lessons for selected module
+- Shows only visible lessons for selected module (`getVisibleLessons()`)
+- Hidden modules are treated as unavailable
 - Access guarded by `education_access` check
 
 ### Lesson Page
 - Route: `/{locale}/education/[moduleId]/[lessonId]`
 - Main video player + lesson topics sidebar
-- Topic-to-topic navigation (previous/next)
+- Topic-to-topic navigation (previous/next) now respects visibility filters
+- Hidden lessons are treated as unavailable
 - Video download protection UI controls enabled (`nodownload`, disable PiP/context menu)
 - Access guarded by `education_access` check
+- Manual progress badge text was removed from lesson UI
 
 ## Course Structure (Current)
 
 ### Module 1
 - Next.js, MCP, Memory Bank, Git
-- 5 lessons
+- In data: 5 lessons
+- In UI now: only Lesson 1 visible; Lessons 2-5 hidden via `isHidden: true`
+- Lesson 1 currently has 5 topics (updated from 6)
 
 ### Module 2
 - Mobile development, React Native Expo, Store release flow
-- 5 lessons
+- In data: 5 lessons
+- In UI now: whole module hidden via `isHidden: true`
 
 Course content is currently stored in `src/lib/course-data.ts`.
 
+### Visibility Flags (New)
+- Added optional visibility flags in course model:
+  - `Module.isHidden?: boolean`
+  - `Lesson.isHidden?: boolean`
+  - `Topic.isHidden?: boolean`
+- Added helpers:
+  - `getVisibleModules()`
+  - `getVisibleLessons(module)`
+  - `getVisibleTopics(lesson)`
+- Duration field changed to optional (`duration?: string`) and UI shows duration only when present
+
 ## Progress Tracking Status
 - Supabase progress table is **not implemented/used** right now by request.
-- UI currently shows static/manual progress note only.
+- Static/manual progress note text was removed from education UI.
 
 ## Components
 - `src/components/education/VideoPlayer.tsx` — custom player UI + anti-download controls
@@ -176,6 +195,36 @@ Added to `messages/ru.json` and `messages/en.json`:
 - `src/components/education/VideoPlayer.tsx`
 - `messages/ru.json` — Added account.education* translation keys
 - `messages/en.json` — Added account.education* translation keys
+
+### Updated (Apr 24, 2026)
+- `src/lib/course-data.ts`
+  - Added `isHidden` flags for module/lesson/topic model
+  - Added visibility helpers (`getVisibleModules`, `getVisibleLessons`, `getVisibleTopics`)
+  - Hidden Module 2 and hidden Lessons 2-5 in Module 1
+  - Updated Lesson 1 topics to 5 videos
+  - Made duration optional and hardened duration aggregation for empty values
+- `src/app/[locale]/education/page.tsx`
+  - Uses `getVisibleModules()`
+- `src/app/[locale]/education/[moduleId]/page.tsx`
+  - Uses `getVisibleLessons()` and blocks hidden modules
+- `src/app/[locale]/education/[moduleId]/[lessonId]/page.tsx`
+  - Blocks hidden module/lesson
+  - Uses visibility-aware topic initialization/navigation
+  - Removed manual progress note badge
+  - Hides inline duration when missing
+- `src/components/education/CourseCard.tsx`
+  - Removed manual progress note text
+  - Hides total duration chip when no duration data
+- `src/components/education/LessonCard.tsx`
+  - Hides duration item when no duration data
+- `src/components/education/TopicSidebar.tsx`
+  - Hides per-topic duration row when no duration data
+- `messages/en.json`
+  - Updated Lesson 1 title/description
+  - Updated topic keys `topic1_1_1...topic1_1_5` for new first-lesson structure
+- `messages/ru.json`
+  - Updated Lesson 1 title/description
+  - Updated topic keys `topic1_1_1...topic1_1_5` for new first-lesson structure
 
 ### Supabase Migration
 - `create_education_tables` — Creates education_codes + education_access tables with RLS and indexes

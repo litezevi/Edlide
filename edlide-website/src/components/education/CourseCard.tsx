@@ -35,9 +35,11 @@ export function CourseCard({ moduleData, moduleId, locale }: CourseCardProps) {
           <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
             <Icon className="w-7 h-7 text-primary" />
           </div>
-          <span className="text-xs font-medium text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
-            {localizedDuration}
-          </span>
+          {localizedDuration ? (
+            <span className="text-xs font-medium text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
+              {localizedDuration}
+            </span>
+          ) : null}
         </div>
 
         <h2 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
@@ -58,7 +60,6 @@ export function CourseCard({ moduleData, moduleId, locale }: CourseCardProps) {
           </span>
         </div>
 
-        <p className="text-xs text-muted-foreground">{t('manualProgressNote')}</p>
       </div>
     </Link>
   )

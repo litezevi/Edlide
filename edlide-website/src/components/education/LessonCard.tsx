@@ -54,10 +54,12 @@ export function LessonCard({ lesson, moduleId, lessonId, lessonIndex, locale, co
             <BookOpen className="w-3 h-3" />
             {topicCount} {t('topicsLabel')}
           </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {localizedDuration}
-          </span>
+          {localizedDuration ? (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {localizedDuration}
+            </span>
+          ) : null}
           {progress > 0 && !isComplete && (
             <span className="text-primary font-medium">{progress}%</span>
           )}

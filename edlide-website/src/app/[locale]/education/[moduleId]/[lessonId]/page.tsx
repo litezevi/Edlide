@@ -3,11 +3,11 @@
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-import { getModule, getLesson, getTopic, getNextTopic, getPrevTopic } from '@/lib/course-data'
+import { getModule, getLesson, getTopic, getNextTopic, getPrevTopic, getVisibleTopics } from '@/lib/course-data'
 import { VideoPlayer } from '@/components/education/VideoPlayer'
 import { TopicSidebar } from '@/components/education/TopicSidebar'
 
@@ -25,6 +25,7 @@ export default function LessonPage() {
   const lessonId = params.lessonId as string
   const moduleData = getModule(moduleId)
   const lessonData = getLesson(moduleId, lessonId)
+  const visibleTopics = lessonData ? getVisibleTopics(lessonData) : []
   const activeTopic = activeTopicId ? getTopic(moduleId, lessonId, activeTopicId) : null
 
   const localePath = (path: string) => `/${locale}${path}`
@@ -52,10 +53,10 @@ export default function LessonPage() {
   }, [user, authLoading, locale, router])
 
   useEffect(() => {
-    if (lessonData && lessonData.topics.length > 0 && !activeTopicId) {
-      setActiveTopicId(lessonData.topics[0].id)
+    if (lessonData && visibleTopics.length > 0 && !activeTopicId) {
+      setActiveTopicId(visibleTopics[0].id)
     }
-  }, [lessonData, activeTopicId])
+  }, [lessonData, visibleTopics, activeTopicId])
 
   const handleTopicSelect = useCallback((topicId: string) => {
     setActiveTopicId(topicId)
@@ -76,7 +77,7 @@ export default function LessonPage() {
 
   if (!hasAccess) return null
 
-  if (!moduleData || !lessonData) {
+  if (!moduleData || moduleData.isHidden || !lessonData || lessonData.isHidden) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -128,18 +129,13 @@ export default function LessonPage() {
                       {t(activeTopic.titleKey)}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {t(lessonData.titleKey)} · {activeTopic.duration}
+                      {activeTopic.duration ? `${t(lessonData.titleKey)} · ${activeTopic.duration}` : t(lessonData.titleKey)}
                     </p>
                   </>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 ml-4">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-muted-foreground text-sm font-medium">
-                  <CheckCircle2 className="w-4 h-4" />
-                  {t('manualProgressNote')}
-                </span>
-              </div>
+              <div className="shrink-0 ml-4" />
             </div>
 
             <div className="mt-4 flex items-center justify-between">

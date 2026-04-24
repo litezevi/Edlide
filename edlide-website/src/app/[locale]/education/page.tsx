@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, GraduationCap } from 'lucide-react'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-import { courses } from '@/lib/course-data'
+import { getVisibleModules } from '@/lib/course-data'
 import { CourseCard } from '@/components/education/CourseCard'
 
 export default function EducationPage() {
@@ -18,6 +18,7 @@ export default function EducationPage() {
   const [hasAccess, setHasAccess] = useState(false)
 
   const localePath = (path: string) => `/${locale}${path}`
+  const visibleModules = getVisibleModules()
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -72,7 +73,7 @@ export default function EducationPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          {courses.map((mod) => (
+          {visibleModules.map((mod) => (
             <CourseCard
               key={mod.id}
               moduleData={mod}

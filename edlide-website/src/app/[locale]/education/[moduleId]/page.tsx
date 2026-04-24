@@ -7,7 +7,7 @@ import { Loader2, ArrowLeft, Globe, Smartphone, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useSupabaseAuth } from '@/lib/supabase-auth'
 import { supabase } from '@/lib/supabase'
-import { getModule } from '@/lib/course-data'
+import { getModule, getVisibleLessons } from '@/lib/course-data'
 import { LessonCard } from '@/components/education/LessonCard'
 
 const iconMap: Record<string, React.ElementType> = {
@@ -26,6 +26,7 @@ export default function ModulePage() {
 
   const moduleId = params.moduleId as string
   const moduleData = getModule(moduleId)
+  const visibleLessons = moduleData ? getVisibleLessons(moduleData) : []
   const Icon = moduleData ? iconMap[moduleData.icon] || BookOpen : BookOpen
 
   const localePath = (path: string) => `/${locale}${path}`
@@ -62,7 +63,7 @@ export default function ModulePage() {
 
   if (!hasAccess) return null
 
-  if (!moduleData) {
+  if (!moduleData || moduleData.isHidden) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -101,7 +102,7 @@ export default function ModulePage() {
         </div>
 
         <div className="space-y-3">
-          {moduleData.lessons.map((lesson, index) => (
+          {visibleLessons.map((lesson, index) => (
             <LessonCard
               key={lesson.id}
               lesson={lesson}

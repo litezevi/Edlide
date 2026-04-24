@@ -51,10 +51,12 @@ export function TopicSidebar({ lesson, activeTopicId, completedTopics, onTopicSe
                 <p className={`text-sm leading-snug ${isActive ? 'font-medium text-primary' : 'text-foreground'}`}>
                   {t(topic.titleKey)}
                 </p>
-                <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <Clock className="w-3 h-3" />
-                  {topic.duration}
-                </span>
+                {topic.duration ? (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <Clock className="w-3 h-3" />
+                    {topic.duration}
+                  </span>
+                ) : null}
               </div>
             </button>
           )
