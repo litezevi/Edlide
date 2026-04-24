@@ -20,6 +20,9 @@ export default function LessonPage() {
   const [checking, setChecking] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
   const [activeTopicId, setActiveTopicId] = useState<string>('')
+  const [resolvedVideoUrl, setResolvedVideoUrl] = useState('')
+  const [videoError, setVideoError] = useState('')
+  const [videoLoading, setVideoLoading] = useState(false)
 
   const moduleId = params.moduleId as string
   const lessonId = params.lessonId as string
@@ -66,6 +69,52 @@ export default function LessonPage() {
 
   const nextTopic = activeTopicId ? getNextTopic(moduleId, lessonId, activeTopicId) : null
   const prevTopic = activeTopicId ? getPrevTopic(moduleId, lessonId, activeTopicId) : null
+
+  useEffect(() => {
+    const resolveVideoUrl = async () => {
+      if (!activeTopicId || !hasAccess || !user) {
+        setResolvedVideoUrl('')
+        setVideoError('')
+        return
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData.session?.access_token
+
+      if (!accessToken) {
+        setResolvedVideoUrl('')
+        setVideoError('Failed to load video')
+        return
+      }
+
+      setVideoLoading(true)
+      setVideoError('')
+
+      try {
+        const response = await fetch(`/api/education/video?topicId=${encodeURIComponent(activeTopicId)}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+
+        if (!response.ok) {
+          setResolvedVideoUrl('')
+          setVideoError(response.status === 403 ? 'Access denied' : 'Failed to load video')
+          return
+        }
+
+        const payload = await response.json()
+        setResolvedVideoUrl(payload.url || '')
+      } catch {
+        setResolvedVideoUrl('')
+        setVideoError('Failed to load video')
+      } finally {
+        setVideoLoading(false)
+      }
+    }
+
+    resolveVideoUrl()
+  }, [activeTopicId, hasAccess, user])
 
   if (checking || authLoading) {
     return (
@@ -116,10 +165,17 @@ export default function LessonPage() {
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
             <VideoPlayer
-              src={activeTopic?.videoUrl || ''}
+              src={resolvedVideoUrl || activeTopic?.videoUrl || ''}
               title={activeTopic ? t(activeTopic.titleKey) : ''}
               onComplete={handleVideoComplete}
             />
+
+            {videoLoading ? (
+              <p className="mt-2 text-sm text-muted-foreground">Loading video...</p>
+            ) : null}
+            {videoError ? (
+              <p className="mt-2 text-sm text-red-500">{videoError}</p>
+            ) : null}
 
             <div className="mt-4 flex items-center justify-between">
               <div className="flex-1 min-w-0">

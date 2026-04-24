@@ -69,6 +69,19 @@ CREATE TABLE public.education_access (
   - `This activation code has already been used` — code already claimed
   - `Education portal is already activated for this account` — user already has access
 
+### GET `/api/education/video?topicId=<id>`
+- **Auth**: `Authorization: Bearer <supabase_access_token>`
+- **Logic**: validates Supabase JWT, checks `education_access`, maps `topicId` to private R2 object key, returns presigned URL
+- **Bucket**: `edlide-course`
+- **Path prefix**: `1-module-1-lesson/`
+- **URL TTL**: `R2_VIDEO_URL_EXPIRES_SECONDS` (current default: `900`)
+- **Errors**:
+  - `Invalid topicId`
+  - `Missing authentication`
+  - `Invalid or expired token`
+  - `Access denied`
+  - `R2 credentials not configured`
+
 ## UI Implementation
 
 ### Account Page — Education Card
@@ -117,6 +130,8 @@ All internal links from account page to education must use `/{locale}/education`
 - Video download protection UI controls enabled (`nodownload`, disable PiP/context menu)
 - Access guarded by `education_access` check
 - Manual progress badge text was removed from lesson UI
+- Video URL is resolved dynamically from private API per active topic
+- Shows video loading and error states during URL fetch
 
 ## Course Structure (Current)
 
@@ -149,7 +164,7 @@ Course content is currently stored in `src/lib/course-data.ts`.
 - Static/manual progress note text was removed from education UI.
 
 ## Components
-- `src/components/education/VideoPlayer.tsx` — custom player UI + anti-download controls
+- `src/components/education/VideoPlayer.tsx` — custom player UI + anti-download controls + fixed fullscreen behavior
 - `src/components/education/CourseCard.tsx` — module card
 - `src/components/education/LessonCard.tsx` — lesson card
 - `src/components/education/TopicSidebar.tsx` — topic list sidebar
@@ -212,6 +227,14 @@ Added to `messages/ru.json` and `messages/en.json`:
   - Uses visibility-aware topic initialization/navigation
   - Removed manual progress note badge
   - Hides inline duration when missing
+  - Resolves private video URL from `/api/education/video?topicId=...`
+  - Passes Supabase access token via `Authorization` header
+  - Added loading/error UI for video URL fetch
+- `src/app/api/education/video/route.ts`
+  - Added private endpoint for education video delivery
+  - Validates Supabase JWT and `education_access`
+  - Uses R2 S3 presigned URL flow for bucket `edlide-course`
+  - Maps lesson topic IDs to uploaded Russian filenames in `1-module-1-lesson/`
 - `src/components/education/CourseCard.tsx`
   - Removed manual progress note text
   - Hides total duration chip when no duration data
@@ -219,6 +242,10 @@ Added to `messages/ru.json` and `messages/en.json`:
   - Hides duration item when no duration data
 - `src/components/education/TopicSidebar.tsx`
   - Hides per-topic duration row when no duration data
+- `src/components/education/VideoPlayer.tsx`
+  - Fixed fullscreen behavior across browsers
+  - Added WebKit fallbacks (`webkitRequestFullscreen`, `webkitExitFullscreen`, `webkitEnterFullscreen`)
+  - Added fullscreen state tracking and fullscreen-specific video sizing
 - `messages/en.json`
   - Updated Lesson 1 title/description
   - Updated topic keys `topic1_1_1...topic1_1_5` for new first-lesson structure

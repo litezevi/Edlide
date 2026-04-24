@@ -19,6 +19,7 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
   const [duration, setDuration] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [showControls, setShowControls] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const formatTime = (seconds: number) => {
@@ -48,12 +49,36 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
 
   const toggleFullscreen = useCallback(() => {
     const container = containerRef.current
+    const video = videoRef.current
     if (!container) return
-    if (document.fullscreenElement) {
-      document.exitFullscreen()
-    } else {
-      container.requestFullscreen()
+
+    const isAnyFullscreen =
+      !!document.fullscreenElement ||
+      !!(document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement
+
+    if (isAnyFullscreen) {
+      if (document.exitFullscreen) {
+        void document.exitFullscreen()
+      } else {
+        const webkitDoc = document as Document & { webkitExitFullscreen?: () => Promise<void> | void }
+        webkitDoc.webkitExitFullscreen?.()
+      }
+      return
     }
+
+    if (container.requestFullscreen) {
+      void container.requestFullscreen()
+      return
+    }
+
+    const webkitContainer = container as HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> | void }
+    if (webkitContainer.webkitRequestFullscreen) {
+      webkitContainer.webkitRequestFullscreen()
+      return
+    }
+
+    const webkitVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void }
+    webkitVideo.webkitEnterFullscreen?.()
   }, [])
 
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -129,6 +154,24 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [togglePlay, toggleMute, toggleFullscreen])
 
+  useEffect(() => {
+    const updateFullscreenState = () => {
+      const fullEl =
+        document.fullscreenElement ||
+        (document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+        null
+      setIsFullscreen(fullEl === containerRef.current)
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenState)
+    document.addEventListener('webkitfullscreenchange', updateFullscreenState as EventListener)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', updateFullscreenState)
+      document.removeEventListener('webkitfullscreenchange', updateFullscreenState as EventListener)
+    }
+  }, [])
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
@@ -148,7 +191,7 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
       <video
         ref={videoRef}
         src={src}
-        className="w-full aspect-video"
+        className={isFullscreen ? 'w-full h-full object-contain bg-black' : 'w-full aspect-video'}
         playsInline
         disablePictureInPicture
         disableRemotePlayback
