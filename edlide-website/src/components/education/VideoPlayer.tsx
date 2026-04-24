@@ -236,16 +236,18 @@ export function VideoPlayer({ src, title, onComplete }: VideoPlayerProps) {
         className={`absolute bottom-0 left-0 right-0 z-30 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}
       >
         <div
-          className="h-2 sm:h-1.5 bg-white/20 cursor-pointer group/progress mx-2 sm:mx-3 py-1"
+          className="cursor-pointer group/progress mx-2 sm:mx-3 py-2"
           ref={progressRef}
           onClick={handleProgressClick}
           onTouchMove={handleProgressTouch}
         >
-          <div
-            className="h-1 sm:h-1.5 bg-primary relative transition-all duration-100 -mt-0.5 sm:mt-0"
-            style={{ width: `${progress}%` }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+          <div className="h-1 sm:h-1.5 bg-white/20 rounded-full relative">
+            <div
+              className="h-full bg-primary rounded-full relative transition-all duration-100"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
 
